@@ -1109,7 +1109,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                             </button>
                             {now - new Date(job.firstSeenAt).getTime() <
                               86400000 && (
-                              <span className="new-badge">NEW</span>
+                              <span className="status-badge status-new">NEW</span>
                             )}
                           </div>
                           <div className="job-company">
@@ -1177,7 +1177,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                             />
                           </button>
                           {job.status === "applied" && (
-                            <span className="applied-badge">
+                            <span className="status-badge status-applied">
                               <Check size={11} />
                               Applied
                             </span>
@@ -1668,7 +1668,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                             <td>{timeAgo(source.lastSyncedAt)}</td>
                             <td>
                               <button
-                                className={`source-state table-state`}
+                                className={`source-state table-state ${!source.enabled ? "is-paused" : source.lastError ? "is-failed" : "is-connected"}`}
                                 onClick={() => action("source-toggle", source.id, !source.enabled).catch((e) => setToast(e.message))}
                               >
                                 <i className={`status-dot ${source.lastError ? "failed" : !source.enabled ? "paused" : ""}`} />
@@ -1785,7 +1785,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                             <td>{dateTime(run.startedAt)}</td>
                             <td>
                               <span className={`run-status ${run.status}`}>
-                                {run.status === "success" ? <Check size={12} /> : <Activity size={12} />} {run.status}
+                                {run.status === "success" ? <Check size={12} /> : run.status === "failed" ? <X size={12} /> : <Activity size={12} />} {run.status}
                               </span>
                             </td>
                             <td>{run.fetched}</td>
@@ -2608,6 +2608,12 @@ function JobDetail({
           </span>
         )}
       </div>
+      <span className={`status-badge status-${job.status} detail-status`}>
+        {job.status === "applied" && <Check size={12} />}
+        {job.status === "saved" && <Bookmark size={12} />}
+        {job.status === "archived" && <Trash2 size={12} />}
+        {job.status === "new" ? "New" : job.status}
+      </span>
       {demo && (
         <div className="demo-notice">
           Illustrative sample — this is not a verified job opening.

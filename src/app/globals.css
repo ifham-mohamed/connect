@@ -1391,3 +1391,99 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
     height: 190px;
   }
 }
+
+/* Semantic status colors used across jobs, sources, and sync history. */
+.status-badge,
+.new-badge,
+.applied-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid hsl(var(--primary) / .18);
+  border-radius: 999px;
+  background: hsl(var(--primary) / .1);
+  color: hsl(var(--primary));
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .03em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.status-new,
+.new-badge {
+  border-color: hsl(var(--primary) / .22);
+  background: hsl(var(--primary) / .1);
+  color: hsl(var(--primary));
+}
+.status-saved,
+.bookmark-btn.is-saved {
+  border-color: hsl(var(--warning) / .28);
+  background: hsl(var(--warning) / .12);
+  color: hsl(var(--warning));
+}
+.status-applied,
+.applied-badge {
+  border-color: hsl(var(--success) / .24);
+  background: hsl(var(--success) / .12);
+  color: hsl(var(--success));
+}
+.status-archived {
+  border-color: hsl(var(--muted-foreground) / .22);
+  background: hsl(var(--muted-foreground) / .1);
+  color: hsl(var(--muted-foreground));
+}
+.detail-status {
+  width: fit-content;
+  margin-top: 10px;
+  text-transform: capitalize;
+}
+.status-dot {
+  background: hsl(var(--success));
+  box-shadow: 0 0 0 3px hsl(var(--success) / .12);
+}
+.status-dot.failed {
+  background: hsl(var(--destructive));
+  box-shadow: 0 0 0 3px hsl(var(--destructive) / .12);
+}
+.status-dot.paused {
+  background: hsl(var(--warning));
+  box-shadow: 0 0 0 3px hsl(var(--warning) / .14);
+}
+.source-state.is-connected,
+.run-status.success {
+  border-color: hsl(var(--success) / .22);
+  background: hsl(var(--success) / .1);
+  color: hsl(var(--success));
+}
+.source-state.is-failed,
+.run-status.failed {
+  border-color: hsl(var(--destructive) / .22);
+  background: hsl(var(--destructive) / .1);
+  color: hsl(var(--destructive));
+}
+.source-state.is-paused,
+.run-status.running {
+  border-color: hsl(var(--warning) / .28);
+  background: hsl(var(--warning) / .12);
+  color: hsl(var(--warning));
+}
+.ribbon-status {
+  border-color: hsl(var(--success) / .18);
+  background: hsl(var(--success) / .08);
+  color: hsl(var(--success));
+}
+.ribbon-status i {
+  background: hsl(var(--success));
+}
+@media (max-width: 640px) {
+  .status-badge,
+  .new-badge,
+  .applied-badge {
+    min-height: 20px;
+    padding-inline: 7px;
+    font-size: 9px;
+  }
+}
