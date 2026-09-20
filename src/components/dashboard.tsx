@@ -12,7 +12,6 @@ import {
   Bookmark,
   BriefcaseBusiness,
   Check,
-  ChevronDown,
   ChevronRight,
   CircleHelp,
   Clock3,
@@ -644,18 +643,6 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           </span>
           jobradar<span className="brand-dot">.</span>
         </Link>
-        <button
-          className="workspace-switch"
-          onClick={(event) => navigate("settings", event)}
-          data-tooltip="Workspace settings"
-        >
-          <span className="workspace-avatar" data-tooltip="Personal workspace">P</span>
-          <span>
-            <strong>Personal workspace</strong>
-            <small>Your next chapter</small>
-          </span>
-          <ChevronDown size={15} />
-        </button>
         <div className="nav-label">WORKSPACE</div>
         <nav aria-label="Main navigation">
           {navigation.map((item) => (
