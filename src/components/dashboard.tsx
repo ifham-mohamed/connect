@@ -999,6 +999,20 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                         sourceFilter !== "all" ||
                         monitorFilter !== "all") && <i />}
                     </button>
+                    <label className="sort-control">
+                      <ArrowDown size={13} />
+                      <select
+                        aria-label="Sort opportunities"
+                        value={sort}
+                        onChange={(e) => {
+                          setSort(e.target.value);
+                          setPage(1);
+                        }}
+                      >
+                        <option value="newest">Newest first</option>
+                        <option value="company">Company name</option>
+                      </select>
+                    </label>
                   </div>
                   {filters && (
                     <div className="filter-row">
@@ -1064,27 +1078,13 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       </button>
                     </div>
                   )}
-                  <div className="results-row">
+                  <div className="results-row compact-results-row">
                     <span>
                       <strong>{filtered.length}</strong> opportunities{" "}
                       <span className="muted">
                         {query ? `for “${query}”` : "to explore"}
                       </span>
                     </span>
-                    <label>
-                      <ArrowDown size={13} />
-                      <select
-                        aria-label="Sort opportunities"
-                        value={sort}
-                        onChange={(e) => {
-                          setSort(e.target.value);
-                          setPage(1);
-                        }}
-                      >
-                        <option value="newest">Newest first</option>
-                        <option value="company">Company name</option>
-                      </select>
-                    </label>
                   </div>
                   <div className="job-list">
                     {paginatedJobs.map((job) => (
