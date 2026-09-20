@@ -53,8 +53,10 @@ import {
   linkedInJobsSearchUrl,
   linkedInNetworkJobsSearchUrl,
   type LinkedInDatePosted,
+  type LinkedInDistance,
   type LinkedInExperience,
   type LinkedInJobType,
+  type LinkedInSort,
   type LinkedInWorkplace,
 } from "@/lib/linkedin";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
@@ -202,6 +204,12 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     useState<LinkedInJobType>("any");
   const [linkedInDatePosted, setLinkedInDatePosted] =
     useState<LinkedInDatePosted>("week");
+  const [linkedInSort, setLinkedInSort] =
+    useState<LinkedInSort>("relevant");
+  const [linkedInDistance, setLinkedInDistance] =
+    useState<LinkedInDistance>("25");
+  const [linkedInEasyApply, setLinkedInEasyApply] = useState(false);
+  const [linkedInUnderTen, setLinkedInUnderTen] = useState(false);
   const [modal, setModalState] = useState<Modal>(null);
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(false);
@@ -710,6 +718,10 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     experience: jobViews ? "any" : linkedInExperience,
     jobType: jobViews ? "any" : linkedInJobType,
     datePosted: jobViews ? "week" : linkedInDatePosted,
+    sort: jobViews ? "relevant" : linkedInSort,
+    distance: jobViews ? "25" : linkedInDistance,
+    easyApply: !jobViews && linkedInEasyApply,
+    underTenApplicants: !jobViews && linkedInUnderTen,
   });
   const linkedInNetworkSearchUrl = linkedInNetworkJobsSearchUrl({
     monitor: linkedInMonitor,
@@ -726,6 +738,10 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     experience: jobViews ? "any" : linkedInExperience,
     jobType: jobViews ? "any" : linkedInJobType,
     datePosted: jobViews ? "week" : linkedInDatePosted,
+    sort: jobViews ? "relevant" : linkedInSort,
+    distance: jobViews ? "25" : linkedInDistance,
+    easyApply: !jobViews && linkedInEasyApply,
+    underTenApplicants: !jobViews && linkedInUnderTen,
   });
   const linkedInPostSearchUrl = linkedInJobPostsSearchUrl({
     monitor: linkedInMonitor,
@@ -1838,6 +1854,58 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <option value="month">Past month</option>
                     </select>
                   </label>
+                  <label className="linkedin-filter-field">
+                    <span>Sort results</span>
+                    <select
+                      aria-label="LinkedIn result order"
+                      value={linkedInSort}
+                      onChange={(event) =>
+                        setLinkedInSort(event.target.value as LinkedInSort)
+                      }
+                    >
+                      <option value="relevant">Most relevant</option>
+                      <option value="recent">Most recent</option>
+                    </select>
+                  </label>
+                  <label className="linkedin-filter-field">
+                    <span>Search radius</span>
+                    <select
+                      aria-label="LinkedIn location radius"
+                      value={linkedInDistance}
+                      onChange={(event) =>
+                        setLinkedInDistance(event.target.value as LinkedInDistance)
+                      }
+                    >
+                      <option value="0">Exact location</option>
+                      <option value="10">Within 10 km</option>
+                      <option value="25">Within 25 km</option>
+                      <option value="50">Within 50 km</option>
+                      <option value="100">Within 100 km</option>
+                    </select>
+                  </label>
+                  <fieldset className="linkedin-quick-filters">
+                    <legend>Application filters</legend>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={linkedInEasyApply}
+                        onChange={(event) =>
+                          setLinkedInEasyApply(event.target.checked)
+                        }
+                      />
+                      <span>Easy Apply</span>
+                    </label>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={linkedInUnderTen}
+                        onChange={(event) =>
+                          setLinkedInUnderTen(event.target.checked)
+                        }
+                      />
+                      <span>Under 10 applicants</span>
+                    </label>
+                  </fieldset>
                   <a
                     className="btn linkedin-search-link linkedin-discovery-submit"
                     href={linkedInSearchUrl}

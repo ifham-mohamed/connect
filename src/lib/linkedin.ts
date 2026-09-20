@@ -20,6 +20,8 @@ export type LinkedInJobType =
   | "temporary"
   | "internship";
 export type LinkedInDatePosted = "any" | "day" | "week" | "month";
+export type LinkedInSort = "relevant" | "recent";
+export type LinkedInDistance = "0" | "10" | "25" | "50" | "100";
 
 const workplaceCodes: Record<Exclude<LinkedInWorkplace, "any">, string> = {
   "on-site": "1",
@@ -85,6 +87,10 @@ export function linkedInJobsSearchUrl({
   experience = "any",
   jobType = "any",
   datePosted = "week",
+  sort = "relevant",
+  distance = "25",
+  easyApply = false,
+  underTenApplicants = false,
 }: {
   monitor?: Monitor;
   query?: string;
@@ -94,6 +100,10 @@ export function linkedInJobsSearchUrl({
   experience?: LinkedInExperience;
   jobType?: LinkedInJobType;
   datePosted?: LinkedInDatePosted;
+  sort?: LinkedInSort;
+  distance?: LinkedInDistance;
+  easyApply?: boolean;
+  underTenApplicants?: boolean;
 }) {
   const selectedWorkplace =
     workplace !== "any"
@@ -114,6 +124,10 @@ export function linkedInJobsSearchUrl({
   if (experience !== "any") params.set("f_E", experienceCodes[experience]);
   if (jobType !== "any") params.set("f_JT", jobTypeCodes[jobType]);
   if (datePosted !== "any") params.set("f_TPR", datePostedCodes[datePosted]);
+  if (sort === "recent") params.set("sortBy", "DD");
+  if (distance !== "0") params.set("distance", distance);
+  if (easyApply) params.set("f_AL", "true");
+  if (underTenApplicants) params.set("f_EA", "true");
   return `${LINKEDIN_JOBS_URL}?${params.toString()}`;
 }
 

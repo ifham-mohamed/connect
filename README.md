@@ -8,6 +8,7 @@ A working first release of a job-monitoring workspace for **Sri Lanka and remote
 - Keyword monitors with case-insensitive whole-term matching, exclusions, location, remote-only rules, editing, pausing, and deletion.
 - Monitor-powered LinkedIn Jobs discovery with position, keyword, location, work arrangement, experience, job type, and posting-date filters.
 - LinkedIn discovery paths for jobs in your network and job-related member posts, plus focused Sri Lanka and Qatar software-role monitors.
+- LinkedIn refinements for relevance or recency, search radius, Easy Apply, and lower-applicant opportunities, with early-career and remote monitor presets.
 - Saved, applied, and archived job states stored in PostgreSQL in live mode.
 - Collectors for **ITPro.lk RSS, Remotive, Lever, Greenhouse, and Arbeitnow**. ITPro.lk, Remotive, and Dijital Team’s Lever board are seeded by the migration.
 - Source-specific identifiers, original URLs and source attribution; publication, first discovery, and last observation timestamps.

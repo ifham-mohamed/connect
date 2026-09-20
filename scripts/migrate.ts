@@ -18,6 +18,7 @@ try {
     "003_role_monitors",
     "004_sri_lanka_sources",
     "005_location_monitors",
+    "006_linkedin_search_monitors",
   ];
   for (const name of migrations) {
     const applied = await client.query(

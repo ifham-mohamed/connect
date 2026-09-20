@@ -1800,6 +1800,52 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
   align-self: end;
   min-height: 38px;
 }
+.linkedin-quick-filters {
+  display: flex;
+  grid-column: span 2;
+  min-width: 0;
+  min-height: 38px;
+  align-self: end;
+  align-items: center;
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid hsl(var(--input));
+  border-radius: 9px;
+  background: hsl(var(--background));
+}
+.linkedin-quick-filters legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.linkedin-quick-filters label {
+  display: inline-flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 0 9px;
+  border-radius: 6px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.linkedin-quick-filters label:hover {
+  background: hsl(var(--muted) / .65);
+  color: hsl(var(--foreground));
+}
+.linkedin-quick-filters input {
+  width: 14px;
+  height: 14px;
+  accent-color: hsl(210 90% 45%);
+}
 .linkedin-search-paths {
   display: grid;
   grid-column: 1 / -1;
@@ -1877,6 +1923,9 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
     grid-template-columns: minmax(0, 1fr);
   }
   .linkedin-query-field {
+    grid-column: auto;
+  }
+  .linkedin-quick-filters {
     grid-column: auto;
   }
   .linkedin-search-paths {

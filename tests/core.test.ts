@@ -106,6 +106,10 @@ describe("LinkedIn job discovery", () => {
         experience: "entry",
         jobType: "full-time",
         datePosted: "day",
+        sort: "recent",
+        distance: "50",
+        easyApply: true,
+        underTenApplicants: true,
       }),
     );
 
@@ -115,6 +119,10 @@ describe("LinkedIn job discovery", () => {
     expect(url.searchParams.get("f_E")).toBe("2");
     expect(url.searchParams.get("f_JT")).toBe("F");
     expect(url.searchParams.get("f_TPR")).toBe("r86400");
+    expect(url.searchParams.get("sortBy")).toBe("DD");
+    expect(url.searchParams.get("distance")).toBe("50");
+    expect(url.searchParams.get("f_AL")).toBe("true");
+    expect(url.searchParams.get("f_EA")).toBe("true");
   });
   it("builds supported network-job and job-post discovery searches", () => {
     const networkUrl = new URL(
