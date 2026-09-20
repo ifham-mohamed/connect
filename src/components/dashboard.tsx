@@ -804,15 +804,15 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
               <h1>{titles[view][0]}</h1>
               <p>{titles[view][1]}</p>
             </div>
-            <button
-              className="btn primary"
-              onClick={() =>
-                setModal({ type: view === "sources" ? "source" : "monitor" })
-              }
-            >
-              <Plus size={17} />
-              {view === "sources" ? "Connect source" : "Create monitor"}
-            </button>
+            {view !== "monitors" && view !== "sources" && view !== "activity" && (
+              <button
+                className="btn primary"
+                onClick={() => setModal({ type: "monitor" })}
+              >
+                <Plus size={17} />
+                Create monitor
+              </button>
+            )}
           </div>
           {data.mode === "demo" && (
             <div className="demo-banner">

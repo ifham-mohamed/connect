@@ -1515,6 +1515,9 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
   text-align: right;
 }
 @media (max-width: 896px) {
+  .operations-panel .jobs-panel > .search-row > .search-box {
+    grid-column: auto;
+  }
   .operations-panel .jobs-panel > .search-row {
     grid-template-columns: minmax(0, 1fr) minmax(126px, .38fr);
     padding: 12px;
