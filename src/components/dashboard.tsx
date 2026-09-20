@@ -48,7 +48,13 @@ import type {
 } from "@/lib/types";
 import { matchesMonitor } from "@/lib/matching";
 import { monitorSchema, sourceSchema } from "@/lib/validation";
-import { linkedInJobsSearchUrl } from "@/lib/linkedin";
+import {
+  linkedInJobsSearchUrl,
+  type LinkedInDatePosted,
+  type LinkedInExperience,
+  type LinkedInJobType,
+  type LinkedInWorkplace,
+} from "@/lib/linkedin";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
 
 type View =
@@ -184,6 +190,16 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const [pageSize, setPageSize] = useState(8);
   const [filters, setFilters] = useState(false);
   const [workspaceFilter, setWorkspaceFilter] = useState("all");
+  const [linkedInQuery, setLinkedInQuery] = useState("");
+  const [linkedInLocation, setLinkedInLocation] = useState("");
+  const [linkedInWorkplace, setLinkedInWorkplace] =
+    useState<LinkedInWorkplace>("any");
+  const [linkedInExperience, setLinkedInExperience] =
+    useState<LinkedInExperience>("any");
+  const [linkedInJobType, setLinkedInJobType] =
+    useState<LinkedInJobType>("any");
+  const [linkedInDatePosted, setLinkedInDatePosted] =
+    useState<LinkedInDatePosted>("week");
   const [modal, setModalState] = useState<Modal>(null);
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(false);
@@ -679,14 +695,19 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     data.monitors[0];
   const linkedInSearchUrl = linkedInJobsSearchUrl({
     monitor: linkedInMonitor,
-    query: jobViews ? query : "",
+    query: jobViews ? query : linkedInQuery,
     location:
-      region === "remote"
+      jobViews && region === "remote"
         ? "Worldwide"
-        : region === "sri-lanka"
+        : jobViews && region === "sri-lanka"
           ? "Sri Lanka"
-          : "",
-    remoteOnly: region === "remote" || linkedInMonitor?.remoteOnly,
+          : linkedInLocation,
+    remoteOnly:
+      (jobViews && region === "remote") || linkedInMonitor?.remoteOnly,
+    workplace: jobViews ? "any" : linkedInWorkplace,
+    experience: jobViews ? "any" : linkedInExperience,
+    jobType: jobViews ? "any" : linkedInJobType,
+    datePosted: jobViews ? "week" : linkedInDatePosted,
   });
   const savedCount = jobs.filter((j) => j.status === "saved").length;
   const newCount = jobs.filter(
@@ -1680,36 +1701,127 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 <div className="linkedin-discovery-copy">
                   <strong>LinkedIn Jobs discovery</strong>
                   <p>
-                    Search LinkedIn using a monitor’s position, included
-                    keywords, location, and remote preference.
+                    Start with a monitor, then refine the position, location,
+                    work arrangement, experience, job type, and posting date.
                   </p>
                 </div>
-                <label className="linkedin-monitor-select">
-                  <span>Monitor</span>
-                  <select
-                    aria-label="Monitor for LinkedIn Jobs search"
-                    value={linkedInMonitor?.id || ""}
-                    onChange={(event) => setMonitorFilter(event.target.value)}
-                    disabled={!data.monitors.length}
+                <div className="linkedin-search-fields">
+                  <label className="linkedin-filter-field linkedin-monitor-select">
+                    <span>Monitor</span>
+                    <select
+                      aria-label="Monitor for LinkedIn Jobs search"
+                      value={linkedInMonitor?.id || ""}
+                      onChange={(event) => setMonitorFilter(event.target.value)}
+                      disabled={!data.monitors.length}
+                    >
+                      {data.monitors.map((monitor) => (
+                        <option key={monitor.id} value={monitor.id}>
+                          {monitor.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="linkedin-filter-field linkedin-query-field">
+                    <span>Position or keywords</span>
+                    <div>
+                      <Search size={15} />
+                      <input
+                        aria-label="LinkedIn position or keywords"
+                        placeholder={linkedInMonitor?.name || "Software engineer"}
+                        value={linkedInQuery}
+                        onChange={(event) => setLinkedInQuery(event.target.value)}
+                      />
+                    </div>
+                  </label>
+                  <label className="linkedin-filter-field linkedin-location-field">
+                    <span>Location</span>
+                    <div>
+                      <MapPin size={15} />
+                      <input
+                        aria-label="LinkedIn job location"
+                        placeholder={linkedInMonitor?.location || "Sri Lanka"}
+                        value={linkedInLocation}
+                        onChange={(event) => setLinkedInLocation(event.target.value)}
+                      />
+                    </div>
+                  </label>
+                  <label className="linkedin-filter-field">
+                    <span>Work arrangement</span>
+                    <select
+                      aria-label="LinkedIn work arrangement"
+                      value={linkedInWorkplace}
+                      onChange={(event) =>
+                        setLinkedInWorkplace(event.target.value as LinkedInWorkplace)
+                      }
+                    >
+                      <option value="any">Any arrangement</option>
+                      <option value="remote">Remote</option>
+                      <option value="hybrid">Hybrid</option>
+                      <option value="on-site">On-site</option>
+                    </select>
+                  </label>
+                  <label className="linkedin-filter-field">
+                    <span>Experience</span>
+                    <select
+                      aria-label="LinkedIn experience level"
+                      value={linkedInExperience}
+                      onChange={(event) =>
+                        setLinkedInExperience(event.target.value as LinkedInExperience)
+                      }
+                    >
+                      <option value="any">Any level</option>
+                      <option value="internship">Internship</option>
+                      <option value="entry">Entry level</option>
+                      <option value="associate">Associate</option>
+                      <option value="mid-senior">Mid-Senior level</option>
+                      <option value="director">Director</option>
+                      <option value="executive">Executive</option>
+                    </select>
+                  </label>
+                  <label className="linkedin-filter-field">
+                    <span>Job type</span>
+                    <select
+                      aria-label="LinkedIn job type"
+                      value={linkedInJobType}
+                      onChange={(event) =>
+                        setLinkedInJobType(event.target.value as LinkedInJobType)
+                      }
+                    >
+                      <option value="any">Any job type</option>
+                      <option value="full-time">Full-time</option>
+                      <option value="part-time">Part-time</option>
+                      <option value="contract">Contract</option>
+                      <option value="temporary">Temporary</option>
+                      <option value="internship">Internship</option>
+                    </select>
+                  </label>
+                  <label className="linkedin-filter-field">
+                    <span>Date posted</span>
+                    <select
+                      aria-label="LinkedIn date posted"
+                      value={linkedInDatePosted}
+                      onChange={(event) =>
+                        setLinkedInDatePosted(event.target.value as LinkedInDatePosted)
+                      }
+                    >
+                      <option value="any">Any time</option>
+                      <option value="day">Past 24 hours</option>
+                      <option value="week">Past week</option>
+                      <option value="month">Past month</option>
+                    </select>
+                  </label>
+                  <a
+                    className="btn linkedin-search-link linkedin-discovery-submit"
+                    href={linkedInSearchUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Search LinkedIn Jobs for ${linkedInQuery || linkedInMonitor?.name || "software engineering roles"}`}
                   >
-                    {data.monitors.map((monitor) => (
-                      <option key={monitor.id} value={monitor.id}>
-                        {monitor.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <a
-                  className="btn linkedin-search-link"
-                  href={linkedInSearchUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`Search LinkedIn Jobs for ${linkedInMonitor?.name || "software engineering roles"}`}
-                >
-                  <LinkedInMark />
-                  Search LinkedIn
-                  <ExternalLink size={13} />
-                </a>
+                    <LinkedInMark />
+                    Search LinkedIn
+                    <ExternalLink size={13} />
+                  </a>
+                </div>
               </div>
               <div className="jobs-panel admin-table-panel">
                 <div className="view-filters" aria-label="Source filters">

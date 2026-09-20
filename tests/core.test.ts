@@ -94,6 +94,26 @@ describe("LinkedIn job discovery", () => {
       }),
     ).toBe("React OR TypeScript");
   });
+  it("maps the discovery filters to LinkedIn search parameters", () => {
+    const url = new URL(
+      linkedInJobsSearchUrl({
+        monitor,
+        query: "Frontend Engineer",
+        location: "Colombo",
+        workplace: "hybrid",
+        experience: "entry",
+        jobType: "full-time",
+        datePosted: "day",
+      }),
+    );
+
+    expect(url.searchParams.get("keywords")).toBe("Frontend Engineer");
+    expect(url.searchParams.get("location")).toBe("Colombo");
+    expect(url.searchParams.get("f_WT")).toBe("3");
+    expect(url.searchParams.get("f_E")).toBe("2");
+    expect(url.searchParams.get("f_JT")).toBe("F");
+    expect(url.searchParams.get("f_TPR")).toBe("r86400");
+  });
 });
 describe("source normalization and trust boundaries", () => {
   it("keeps feed publication timezone and source URL with Sri Lankan location", () => {
