@@ -1,0 +1,28 @@
+# Use independently: docker compose -f compose.aiven.yaml up --build -d
+services:
+  migrate:
+    build:
+      context: .
+      target: worker
+    env_file: .env
+    command: ["npm", "run", "db:migrate"]
+  web:
+    build:
+      context: .
+      target: web
+    env_file: .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+  worker:
+    build:
+      context: .
+      target: worker
+    env_file: .env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped

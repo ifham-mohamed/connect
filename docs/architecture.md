@@ -1,0 +1,112 @@
+# Architecture and decisions
+
+## Problem and scope
+
+Reduce repeated visits to Sri Lankan and remote job websites. Capture listings from supported feeds, retain their origin and discovery history, match personal interests, and support a shortlist/application workflow. The first release serves a single owner workspace; public readers can view source listings. Saved statuses and monitors are shared workspace data, not private per-user data.
+
+## System shape
+
+```mermaid
+flowchart LR
+  U[Browser dashboard] --> N[Next.js pages and route handlers]
+  N --> P[(PostgreSQL)]
+  W[Scheduled Node collector] --> A[Allowlisted source adapters]
+  C[Protected cron endpoint] --> A
+  A --> S[ITPro RSS / Remotive / employer APIs]
+  A --> V[Validate and normalize]
+  V --> I[Transactional upsert and matching]
+  I --> P
+  W -. PostgreSQL advisory lock .-> C
+```
+
+One TypeScript codebase is organized into independently understandable boundaries:
+
+- `src/components`: presentation and browser-only demo state.
+- `src/app/api`: request/response, authentication, validation and authorization.
+- `src/lib/connectors.ts`: fixed source endpoints and source-specific validation/normalization.
+- `src/lib/sync.ts`: scheduling, collection orchestration, transactional storage and match rebuilding.
+- `src/lib/repository.ts`: read projections with explicit database-to-UI naming.
+- `src/lib/matching.ts`: keyword/location matching and safe text/URL helpers.
+- `db`: versioned database migrations.
+- `scripts`: deploy-time migrations and standalone worker entry points.
+
+Use the worker **or** a platform scheduler calling `/api/cron`. The same lock and interval checks protect both paths. Scheduled work does not depend on the dashboard being open.
+
+## Data model
+
+```mermaid
+erDiagram
+  SOURCES ||--o{ JOBS : publishes
+  SOURCES ||--o{ SYNC_RUNS : checked_by
+  JOBS ||--o{ MONITOR_MATCHES : matches
+  MONITORS ||--o{ MONITOR_MATCHES : finds
+  SOURCES {
+    uuid id PK
+    text kind
+    text board
+    boolean enabled
+    timestamp last_attempt_at
+    timestamp last_synced_at
+  }
+  JOBS {
+    uuid id PK
+    uuid source_id FK
+    text external_id
+    text url
+    timestamp published_at
+    timestamp first_seen_at
+    timestamp last_seen_at
+    text status
+  }
+```
+
+`(source_id, external_id)` is the import identity. Retries update source-owned fields but preserve owner-owned status and the original first-seen timestamp. Cross-source duplicates remain separate so attribution is not accidentally erased. A future canonical job table can group them while preserving a source-listing table.
+
+`published_at` is nullable; missing dates must remain unknown. Do not substitute fetch time or Greenhouse’s `updated_at` for publication. `first_seen_at` and `last_seen_at` reflect this platform’s observations. All timestamps are stored as PostgreSQL `timestamptz`, serialized as ISO strings, and displayed in the viewer’s local timezone.
+
+`sync_runs` records start/end/status, accepted tech-record count, number added, and error. It does not store a full version history of changed descriptions. `monitor_matches` is a derived index that can be rebuilt. `schema_migrations` ensures the initial seed is not reapplied after an owner deletes a monitor.
+
+## Collection sequence and failure handling
+
+1. Obtain a dedicated connection and the global collection lock. A concurrent invocation exits without collecting.
+2. Mark orphaned `running` records as interrupted after acquiring the lock.
+3. Select enabled sources whose last attempt is older than their allowed interval.
+4. Persist attempt time and a new run before fetching. Failed attempts also observe the cooldown.
+5. Fetch only a supported fixed host; employer slugs cannot inject a URL or path. Redirects are rejected. Apply a 25-second timeout and a 12 MB response limit.
+6. Validate, convert descriptions to text, reject unsafe destination schemes, and apply the explicit tech title/tag heuristic.
+7. In one transaction, upsert each accepted record, rebuild monitor matches, mark the run successful and update source health.
+8. On failure, roll back that source’s changes, retain previous jobs, record a failure, and continue to the next source. Retry on its next scheduled interval.
+9. Release the lock and connection. The worker wakes every minute to discover due sources, not to fetch each source every minute.
+
+No absence-based closure is inferred from limited feeds. The initial release does not automatically deactivate jobs. A future reconciliation process should only close jobs after a complete source snapshot or an authoritative closure signal.
+
+## Security and trust boundaries
+
+- Read endpoints expose a public, shared workspace. Owner mutations require an authenticated session and a same-origin request.
+- The owner password comes from the deployment secret environment. It is compared using timing-safe comparison; session cookies are HMAC signed and expire after 12 hours.
+- Login is limited in PostgreSQL, globally across instances, to 10 attempts per five-minute window. This simple control can cause temporary global lockouts; replace it with provider-backed identity and a trusted edge rate limiter when inviting more users.
+- `APP_URL` must equal the production HTTPS origin; it also determines the secure-cookie flag. Configure HTTPS at the host/reverse proxy.
+- Cron access requires a separate Bearer secret. Source URLs and job descriptions cannot trigger backend requests.
+- SQL is parameterized. Job HTML is displayed as React-escaped plain text, never through `dangerouslySetInnerHTML`. XML DTD/entity declarations are rejected. CSV cells are escaped and spreadsheet formula prefixes are neutralized.
+- Local storage is used only for the explicitly labeled demo. Production data requires PostgreSQL; database failure does not fall back to fabricated live results.
+
+## Scaling decisions and measurable next steps
+
+The web and worker are separate processes and can be deployed independently. The current collector intentionally serializes work behind one global lock. This prioritizes reliable retries and source friendliness for the initial few sources.
+
+| When measurements show…                                          | Make this change                                                                                                                                                                                                               |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Loading 1,000 descriptions affects response size or latency      | Add cursor pagination, server-side filters, and a separate job-detail endpoint. Use the existing date/source indexes and PostgreSQL full-text index.                                                                           |
+| Match rebuilding approaches the collection interval              | Recompute only changed jobs/monitors; process the initial backfill in batches. Keep a durable cursor and rule version.                                                                                                         |
+| Many employer boards cause a collection to exceed request limits | Always use the independent worker. Add a PostgreSQL queue such as pg-boss, leases per source, bounded concurrency, retries with jitter, and domain-specific request budgets. Verify the queue’s deployment requirements first. |
+| Multiple worker instances are needed                             | Replace the global lock with a source-level lease plus a durable queue; make all tasks idempotent and fence stale lease holders.                                                                                               |
+| Database connection count grows with web instances               | Give web reads/writes a transaction-pooled connection. Keep a separate direct/session-pooled worker connection for session advisory locks.                                                                                     |
+| Users need private shortlists and monitors                       | Add provider-backed authentication, workspaces and memberships, owner/workspace foreign keys, authorization on every query, and tenant-isolation tests before inviting users.                                                  |
+| Users need email/push notifications                              | Add an outbox keyed by `(monitor, job, channel)` in the same import transaction, then deliver separately with retries and opt-in preferences.                                                                                  |
+| Older record volume becomes significant                          | Establish an explicit retention policy, keep provenance, archive old descriptions, and partition large run/event tables if measurements justify it.                                                                            |
+
+Redis and a dedicated search engine are optional future tools, not prerequisites. PostgreSQL can supply the first queue and search capabilities. Container images avoid tying the architecture to one hosting vendor.
+
+## Known tradeoffs
+
+Full description payloads and client-side filtering make the first release easy to operate but cap the dashboard at the newest 1,000 records. Match counts shown by the dashboard are for that loaded window. Global matching is a cross-join of jobs and monitors and is not appropriate for a very large catalog. There is no load-test claim, automatic failover claim, or guarantee that public feeds are complete. Revisit these decisions against actual source count, data volume, and latency rather than labeling the current release infinitely scalable.

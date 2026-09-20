@@ -1,0 +1,8 @@
+node_modules/
+.next/
+.env*
+!.env.example
+coverage/
+*.tsbuildinfo
+artifacts/
+tmp_source_pages/
