@@ -1083,3 +1083,56 @@ html.jobradar-sidebar-collapsed .skeleton-line:nth-of-type(2) { display: none; }
     width: 92px;
   }
 }
+
+/* Responsive toolbar action pair: keep Filters and Newest side by side. */
+@media (max-width: 896px) {
+  .jobs-panel > .search-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .jobs-panel > .search-row .search-box {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .jobs-panel > .search-row .filter-btn,
+  .jobs-panel > .search-row .sort-control {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    border-radius: 10px;
+  }
+
+  .jobs-panel > .search-row .sort-control {
+    justify-content: center;
+    padding-inline: 10px;
+  }
+
+  .jobs-panel > .search-row .sort-control select {
+    min-width: 0;
+    max-width: 100%;
+    flex: 0 1 auto;
+    text-align: center;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 420px) {
+  .jobs-panel > .search-row {
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .jobs-panel > .search-row .filter-btn,
+  .jobs-panel > .search-row .sort-control {
+    min-height: 38px;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .jobs-panel > .search-row .sort-control select {
+    font-size: 12px;
+  }
+}
