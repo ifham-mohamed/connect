@@ -817,3 +817,49 @@ html.jobradar-sidebar-collapsed .skeleton-line:nth-of-type(2) { display: none; }
   .page-heading h1 { font-size: clamp(25px, 8.8vw, 31px); }
   .btn.primary { min-height: 40px; }
 }
+
+
+/* Unified responsive sidebar trigger and compact mobile controls. */
+.mobile-menu, .desktop-sidebar-toggle { display: none !important; }
+.sidebar-trigger { display: inline-flex; color: hsl(var(--muted-foreground)); border-color: transparent; background: transparent; }
+.sidebar-trigger:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.jobs-panel > .search-row { gap: 8px; }
+@media (max-width: 900px) {
+  .sidebar-trigger { width: 34px; height: 34px; }
+  .topbar-right { gap: 6px; }
+  .topbar-right .icon-btn, .top-avatar { width: 34px; height: 34px; }
+  .jobs-panel > .search-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
+  .jobs-panel > .search-row .search-box,
+  .jobs-panel > .search-row .filter-btn,
+  .jobs-panel > .search-row .sort-control {
+    width: 100%;
+  }
+  .sort-control { justify-content: center; }
+  .sort-control select { flex: 0 1 auto; text-align: center; }
+  .pagination-footer { gap: 10px; }
+  .pagination-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+    gap: 8px;
+  }
+  .page-size-control,
+  .page-indicator {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
+  .pagination-btn { width: 100%; min-width: 0; }
+}
+@media (max-width: 640px) {
+  .view-filters { padding: 0 10px; gap: 14px; }
+  .search-box { height: 36px; }
+  .filter-btn, .sort-control { min-height: 38px; }
+  .list-footer { padding: 12px; }
+  .page-size-control select { min-width: 54px; }
+}

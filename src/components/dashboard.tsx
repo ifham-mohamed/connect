@@ -22,7 +22,6 @@ import {
   Link2,
   LoaderCircle,
   MapPin,
-  Menu,
   PanelLeftClose,
   PanelLeftOpen,
   Moon,
@@ -732,21 +731,26 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
         <header className="topbar">
           <div className="breadcrumb">
             <button
-              className="icon-btn mobile-menu"
-              aria-label="Open navigation"
-              onClick={() => setMobileNav(true)}
+              className="icon-btn sidebar-trigger"
+              aria-label={
+                mobileNav
+                  ? "Close navigation"
+                  : sidebarCollapsed
+                    ? "Expand sidebar"
+                    : "Open navigation"
+              }
+              onClick={() => {
+                if (window.matchMedia("(max-width: 900px)").matches) {
+                  setMobileNav((current) => !current);
+                } else {
+                  setSidebarCollapsed((current) => !current);
+                }
+              }}
             >
-              <Menu size={20} />
-            </button>
-            <button
-              className="icon-btn desktop-sidebar-toggle"
-              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              onClick={() => setSidebarCollapsed((current) => !current)}
-            >
-              {sidebarCollapsed ? (
-                <PanelLeftOpen size={18} />
-              ) : (
+              {mobileNav || !sidebarCollapsed ? (
                 <PanelLeftClose size={18} />
+              ) : (
+                <PanelLeftOpen size={18} />
               )}
             </button>
             <span>Workspace</span>
