@@ -618,3 +618,15 @@ td { padding: 13px 16px; }
   .sidebar-collapsed .workspace-switch, .sidebar-collapsed .sidebar-note { display: flex !important; }
   .sidebar-collapsed .brand > :not(.brand-icon), .sidebar-collapsed .brand-dot { display: inline !important; }
 }
+
+
+/* Collapsed logo alignment: keep the rail logo centered and separate from topbar controls. */
+.sidebar-collapsed .sidebar { padding-left: 0; padding-right: 0; }
+.sidebar-collapsed .brand { width: var(--sidebar-width); height: 56px; margin: -20px 0 12px; border-bottom: 1px solid hsl(var(--border)); border-radius: 0; }
+.sidebar-collapsed .brand-icon { width: 28px; height: 28px; border-radius: 8px; }
+.sidebar-collapsed .brand-icon svg { width: 16px; height: 16px; }
+.sidebar-collapsed nav { margin-top: 0; }
+.sidebar-collapsed .nav-item, .sidebar-collapsed .profile, .sidebar-collapsed .sidebar-note { width: 34px; }
+.sidebar-collapsed .nav-item { height: 34px; }
+.desktop-sidebar-toggle { margin-right: 8px; border-color: transparent; background: transparent; }
+.sidebar-collapsed .desktop-sidebar-toggle { margin-left: 2px; margin-right: 10px; }
