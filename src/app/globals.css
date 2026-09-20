@@ -872,3 +872,14 @@ html.jobradar-sidebar-collapsed .skeleton-line:nth-of-type(2) { display: none; }
 @media (max-width: 900px) {
   .sidebar .brand { margin-bottom: 20px; }
 }
+
+
+/* Jobs header polish: prevent cramped tab scrollbars and shortcut wrapping. */
+.view-filters { min-height: 46px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.view-filters::-webkit-scrollbar { display: none; }
+.search-box kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 24px; padding: 0 7px; line-height: 1; white-space: nowrap; writing-mode: horizontal-tb; }
+.jobs-panel > .search-row { min-height: 58px; }
+@media (max-width: 640px) {
+  .view-filters { min-height: 48px; }
+  .search-box kbd { display: none; }
+}
