@@ -579,3 +579,28 @@ td { padding: 13px 16px; }
   .sidebar-collapsed .brand > :not(.brand-icon), .sidebar-collapsed .brand-dot, .sidebar-collapsed .workspace-switch > span:not(.workspace-avatar), .sidebar-collapsed .workspace-switch > svg, .sidebar-collapsed .nav-label, .sidebar-collapsed .sidebar-note strong, .sidebar-collapsed .sidebar-note p, .sidebar-collapsed .sidebar-note button, .sidebar-collapsed .profile > span:not(.profile-avatar), .sidebar-collapsed .profile .icon-btn { display: initial; }
   .sidebar-collapsed .sidebar-note, .sidebar-collapsed .profile, .sidebar-collapsed .nav-item, .sidebar-collapsed .workspace-switch, .sidebar-collapsed .brand { width: auto; }
 }
+
+
+/* Sidebar collapsed-state refinements. */
+.sidebar-collapse { display: none !important; }
+.sidebar-collapsed { --sidebar-width: 56px; }
+.sidebar-collapsed .sidebar { padding: 20px 7px 10px; }
+.sidebar-collapsed .brand, .sidebar-collapsed .workspace-switch, .sidebar-collapsed .nav-item, .sidebar-collapsed .sidebar-note, .sidebar-collapsed .profile { width: 36px; }
+.sidebar-collapsed .brand { height: 36px; }
+.sidebar-collapsed .brand-icon { width: 30px; height: 30px; border-radius: 9px; }
+.sidebar-collapsed .brand-icon svg { width: 17px; height: 17px; }
+.sidebar-collapsed .workspace-switch { height: 38px; margin: 18px 0 14px; border-radius: 10px; }
+.sidebar-collapsed .workspace-avatar, .sidebar-collapsed .profile-avatar { width: 28px; height: 28px; font-size: 10px; }
+.sidebar-collapsed .nav-item { height: 36px; margin-top: 3px; border-radius: 10px; }
+.sidebar-collapsed .nav-item > svg:first-child { width: 16px; height: 16px; }
+.sidebar-collapsed .nav-count { top: 1px; right: 1px; min-width: 14px; min-height: 14px; padding: 0 3px; font-size: 8px; }
+.sidebar-collapsed .sidebar-note { min-height: 36px; margin: 12px 0; border-radius: 10px; }
+.sidebar-collapsed .note-orbit svg { width: 16px; height: 16px; }
+.sidebar-collapsed .profile { padding-top: 10px; }
+.sidebar-collapsed [data-tooltip]::after { left: calc(100% + 10px); padding: 5px 7px; font-size: 11px; }
+.sidebar-collapsed [data-tooltip]::before { left: calc(100% + 5px); }
+.desktop-sidebar-toggle { color: hsl(var(--muted-foreground)); }
+.desktop-sidebar-toggle:focus-visible { outline-color: hsl(var(--ring) / .45); }
+@media (max-width: 900px) {
+  .sidebar-collapsed .brand, .sidebar-collapsed .workspace-switch, .sidebar-collapsed .nav-item, .sidebar-collapsed .sidebar-note, .sidebar-collapsed .profile { width: auto; }
+}

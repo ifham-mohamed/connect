@@ -610,18 +610,6 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       className={`app-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}
     >
       <aside className={`sidebar ${mobileNav ? "open" : ""}`}>
-        <button
-          className="sidebar-collapse"
-          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-expanded={!sidebarCollapsed}
-          onClick={() => setSidebarCollapsed((current) => !current)}
-        >
-          {sidebarCollapsed ? (
-            <PanelLeftOpen size={17} />
-          ) : (
-            <PanelLeftClose size={17} />
-          )}
-        </button>
         <Link
           href="/"
           onClick={(event) => navigate("overview", event)}
