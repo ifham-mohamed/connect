@@ -1,6 +1,7 @@
 import type { Monitor } from "./types";
 
 const LINKEDIN_JOBS_URL = "https://www.linkedin.com/jobs/search/";
+const LINKEDIN_POSTS_URL = "https://www.linkedin.com/search/results/content/";
 
 export type LinkedInWorkplace = "any" | "on-site" | "remote" | "hybrid";
 export type LinkedInExperience =
@@ -51,11 +52,15 @@ function quoted(term: string) {
   return normalized.includes(" ") ? `"${normalized}"` : normalized;
 }
 
+function monitorPosition(monitor?: Monitor) {
+  return monitor?.name.split("·")[0].trim() || "software engineer";
+}
+
 export function linkedInSearchTerms(monitor?: Monitor, query = "") {
   if (query.trim()) return query.trim().replace(/\s+/g, " ");
   if (!monitor) return "software engineer";
 
-  const role = monitor.name.trim();
+  const role = monitorPosition(monitor);
   const seen = new Set<string>();
   const terms = [role, ...monitor.keywords]
     .map((term) => term.trim().replace(/\s+/g, " "))
@@ -110,4 +115,35 @@ export function linkedInJobsSearchUrl({
   if (jobType !== "any") params.set("f_JT", jobTypeCodes[jobType]);
   if (datePosted !== "any") params.set("f_TPR", datePostedCodes[datePosted]);
   return `${LINKEDIN_JOBS_URL}?${params.toString()}`;
+}
+
+export function linkedInNetworkJobsSearchUrl(
+  options: Parameters<typeof linkedInJobsSearchUrl>[0],
+) {
+  const role =
+    options.query?.trim() || monitorPosition(options.monitor);
+  return linkedInJobsSearchUrl({
+    ...options,
+    query: `${role} jobs in my network`,
+  });
+}
+
+export function linkedInJobPostsSearchUrl({
+  monitor,
+  query = "",
+  location = "",
+}: Pick<
+  Parameters<typeof linkedInJobsSearchUrl>[0],
+  "monitor" | "query" | "location"
+>) {
+  const role = query.trim() || monitorPosition(monitor);
+  const targetLocation = location.trim() || monitor?.location.trim();
+  const keywords = [
+    role,
+    "hiring OR vacancy OR opportunity OR \"job opening\"",
+    targetLocation,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return `${LINKEDIN_POSTS_URL}?${new URLSearchParams({ keywords }).toString()}`;
 }

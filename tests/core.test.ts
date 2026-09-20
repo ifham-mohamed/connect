@@ -8,7 +8,9 @@ import {
 } from "../src/lib/matching";
 import { normalize, sourceUrl } from "../src/lib/connectors";
 import {
+  linkedInJobPostsSearchUrl,
   linkedInJobsSearchUrl,
+  linkedInNetworkJobsSearchUrl,
   linkedInSearchTerms,
 } from "../src/lib/linkedin";
 import { monitorSchema, sourceSchema } from "../src/lib/validation";
@@ -113,6 +115,38 @@ describe("LinkedIn job discovery", () => {
     expect(url.searchParams.get("f_E")).toBe("2");
     expect(url.searchParams.get("f_JT")).toBe("F");
     expect(url.searchParams.get("f_TPR")).toBe("r86400");
+  });
+  it("builds supported network-job and job-post discovery searches", () => {
+    const networkUrl = new URL(
+      linkedInNetworkJobsSearchUrl({ monitor, location: "Colombo" }),
+    );
+    const postsUrl = new URL(
+      linkedInJobPostsSearchUrl({ monitor, location: "Qatar" }),
+    );
+
+    expect(networkUrl.pathname).toBe("/jobs/search/");
+    expect(networkUrl.searchParams.get("keywords")).toBe(
+      "Engineering jobs in my network",
+    );
+    expect(postsUrl.pathname).toBe("/search/results/content/");
+    expect(postsUrl.searchParams.get("keywords")).toContain("Engineering");
+    expect(postsUrl.searchParams.get("keywords")).toContain("hiring OR vacancy");
+    expect(postsUrl.searchParams.get("keywords")).toContain("Qatar");
+  });
+  it("keeps a geographic monitor label out of the position query", () => {
+    const url = new URL(
+      linkedInJobsSearchUrl({
+        monitor: {
+          ...monitor,
+          name: "Software Engineering · Qatar",
+          location: "Qatar",
+        },
+      }),
+    );
+
+    expect(url.searchParams.get("keywords")).toContain("Software Engineering");
+    expect(url.searchParams.get("keywords")).not.toContain("· Qatar");
+    expect(url.searchParams.get("location")).toBe("Qatar");
   });
 });
 describe("source normalization and trust boundaries", () => {

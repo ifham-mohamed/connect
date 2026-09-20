@@ -1800,6 +1800,51 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
   align-self: end;
   min-height: 38px;
 }
+.linkedin-search-paths {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 2px;
+}
+.linkedin-path-link {
+  display: flex;
+  min-width: 0;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid hsl(210 90% 45% / .18);
+  border-radius: 9px;
+  background: hsl(210 90% 45% / .05);
+  color: hsl(var(--foreground));
+  font-size: 12px;
+  font-weight: 700;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.linkedin-path-link span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+.linkedin-path-link span svg {
+  flex: none;
+  color: hsl(210 90% 42%);
+}
+.linkedin-path-link:hover {
+  border-color: hsl(210 90% 45% / .38);
+  background: hsl(210 90% 45% / .1);
+  color: hsl(210 90% 38%);
+}
+.linkedin-search-paths p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  line-height: 1.45;
+}
 @media (max-width: 900px) {
   .linkedin-search-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1832,6 +1877,12 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
     grid-template-columns: minmax(0, 1fr);
   }
   .linkedin-query-field {
+    grid-column: auto;
+  }
+  .linkedin-search-paths {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .linkedin-search-paths p {
     grid-column: auto;
   }
   .linkedin-discovery-submit {

@@ -49,7 +49,9 @@ import type {
 import { matchesMonitor } from "@/lib/matching";
 import { monitorSchema, sourceSchema } from "@/lib/validation";
 import {
+  linkedInJobPostsSearchUrl,
   linkedInJobsSearchUrl,
+  linkedInNetworkJobsSearchUrl,
   type LinkedInDatePosted,
   type LinkedInExperience,
   type LinkedInJobType,
@@ -708,6 +710,32 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     experience: jobViews ? "any" : linkedInExperience,
     jobType: jobViews ? "any" : linkedInJobType,
     datePosted: jobViews ? "week" : linkedInDatePosted,
+  });
+  const linkedInNetworkSearchUrl = linkedInNetworkJobsSearchUrl({
+    monitor: linkedInMonitor,
+    query: jobViews ? query : linkedInQuery,
+    location:
+      jobViews && region === "remote"
+        ? "Worldwide"
+        : jobViews && region === "sri-lanka"
+          ? "Sri Lanka"
+          : linkedInLocation,
+    remoteOnly:
+      (jobViews && region === "remote") || linkedInMonitor?.remoteOnly,
+    workplace: jobViews ? "any" : linkedInWorkplace,
+    experience: jobViews ? "any" : linkedInExperience,
+    jobType: jobViews ? "any" : linkedInJobType,
+    datePosted: jobViews ? "week" : linkedInDatePosted,
+  });
+  const linkedInPostSearchUrl = linkedInJobPostsSearchUrl({
+    monitor: linkedInMonitor,
+    query: jobViews ? query : linkedInQuery,
+    location:
+      jobViews && region === "remote"
+        ? "Worldwide"
+        : jobViews && region === "sri-lanka"
+          ? "Sri Lanka"
+          : linkedInLocation,
   });
   const savedCount = jobs.filter((j) => j.status === "saved").length;
   const newCount = jobs.filter(
@@ -1821,6 +1849,30 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                     Search LinkedIn
                     <ExternalLink size={13} />
                   </a>
+                  <div className="linkedin-search-paths" aria-label="LinkedIn discovery searches">
+                    <a
+                      className="linkedin-path-link"
+                      href={linkedInNetworkSearchUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span><Globe2 size={15} /> Jobs in my network</span>
+                      <ExternalLink size={13} />
+                    </a>
+                    <a
+                      className="linkedin-path-link"
+                      href={linkedInPostSearchUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span><Activity size={15} /> Job-related posts</span>
+                      <ExternalLink size={13} />
+                    </a>
+                    <p>
+                      LinkedIn ranks these searches using your signed-in network.
+                      Reactions by connections are not available as a search filter.
+                    </p>
+                  </div>
                 </div>
               </div>
               <div className="jobs-panel admin-table-panel">
