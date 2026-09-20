@@ -630,3 +630,11 @@ td { padding: 13px 16px; }
 .sidebar-collapsed .nav-item { height: 34px; }
 .desktop-sidebar-toggle { margin-right: 8px; border-color: transparent; background: transparent; }
 .sidebar-collapsed .desktop-sidebar-toggle { margin-left: 2px; margin-right: 10px; }
+
+
+/* Ensure collapsed brand renders as icon-only even for raw text nodes. */
+.sidebar-collapsed .brand { color: transparent; font-size: 0; line-height: 0; }
+.sidebar-collapsed .brand-icon { color: hsl(var(--primary-foreground)); font-size: 0; }
+@media (max-width: 900px) {
+  .sidebar-collapsed .brand { color: hsl(var(--foreground)); font-size: 21px; line-height: 1; }
+}
