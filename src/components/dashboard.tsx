@@ -48,6 +48,7 @@ import type {
 } from "@/lib/types";
 import { matchesMonitor } from "@/lib/matching";
 import { monitorSchema, sourceSchema } from "@/lib/validation";
+import { linkedInJobsSearchUrl } from "@/lib/linkedin";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
 
 type View =
@@ -159,6 +160,13 @@ function companyColor(value: string) {
   return ["tone-a", "tone-b", "tone-c", "tone-d", "tone-e"][
     Array.from(value).reduce((n, c) => n + c.charCodeAt(0), 0) % 5
   ];
+}
+function LinkedInMark() {
+  return (
+    <span className="linkedin-mark" aria-hidden="true">
+      in
+    </span>
+  );
 }
 
 export default function Dashboard({ initialView = "overview" }: { initialView?: View }) {
@@ -664,13 +672,28 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       <DashboardSkeleton view={initialView} />
     );
   const activeMonitors = data.monitors.filter((m) => m.enabled);
+  const jobViews = ["overview", "jobs", "saved"].includes(view);
+  const linkedInMonitor =
+    data.monitors.find((monitor) => monitor.id === monitorFilter) ||
+    activeMonitors[0] ||
+    data.monitors[0];
+  const linkedInSearchUrl = linkedInJobsSearchUrl({
+    monitor: linkedInMonitor,
+    query: jobViews ? query : "",
+    location:
+      region === "remote"
+        ? "Worldwide"
+        : region === "sri-lanka"
+          ? "Sri Lanka"
+          : "",
+    remoteOnly: region === "remote" || linkedInMonitor?.remoteOnly,
+  });
   const savedCount = jobs.filter((j) => j.status === "saved").length;
   const newCount = jobs.filter(
     (j) => now - new Date(j.firstSeenAt).getTime() < 86400000,
   ).length;
   const liveSources = data.sources.filter((s) => s.enabled);
   const matchedJobs = jobs.filter((j) => j.matchedMonitors.length > 0);
-  const jobViews = ["overview", "jobs", "saved"].includes(view);
   return (
     <div
       className={`app-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}
@@ -1133,6 +1156,17 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                         {query ? `for “${query}”` : "to explore"}
                       </span>
                     </span>
+                    <a
+                      className="btn small linkedin-search-link"
+                      href={linkedInSearchUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`Search LinkedIn Jobs for ${query || linkedInMonitor?.name || "software engineering roles"}`}
+                    >
+                      <LinkedInMark />
+                      <span>Search LinkedIn</span>
+                      <ExternalLink size={13} />
+                    </a>
                   </div>
                   <div className="job-list">
                     {paginatedJobs.map((job) => (
@@ -1560,13 +1594,25 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                                 </button>
                               </td>
                               <td>
-                                <button
-                                  className="btn small"
-                                  onClick={() => openModal({ type: "monitor", monitor: m })}
-                                >
-                                  <Settings2 size={14} />
-                                  Edit
-                                </button>
+                                <div className="table-actions">
+                                  <a
+                                    className="btn small linkedin-monitor-link"
+                                    href={linkedInJobsSearchUrl({ monitor: m })}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    aria-label={`Search LinkedIn Jobs for ${m.name}`}
+                                  >
+                                    <LinkedInMark />
+                                    LinkedIn
+                                  </a>
+                                  <button
+                                    className="btn small"
+                                    onClick={() => openModal({ type: "monitor", monitor: m })}
+                                  >
+                                    <Settings2 size={14} />
+                                    Edit
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -1626,6 +1672,44 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   back to its original publisher. Collection respects each
                   source’s check interval.
                 </p>
+              </div>
+              <div className="linkedin-discovery-panel">
+                <span className="linkedin-discovery-icon" aria-hidden="true">
+                  <LinkedInMark />
+                </span>
+                <div className="linkedin-discovery-copy">
+                  <strong>LinkedIn Jobs discovery</strong>
+                  <p>
+                    Search LinkedIn using a monitor’s position, included
+                    keywords, location, and remote preference.
+                  </p>
+                </div>
+                <label className="linkedin-monitor-select">
+                  <span>Monitor</span>
+                  <select
+                    aria-label="Monitor for LinkedIn Jobs search"
+                    value={linkedInMonitor?.id || ""}
+                    onChange={(event) => setMonitorFilter(event.target.value)}
+                    disabled={!data.monitors.length}
+                  >
+                    {data.monitors.map((monitor) => (
+                      <option key={monitor.id} value={monitor.id}>
+                        {monitor.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <a
+                  className="btn linkedin-search-link"
+                  href={linkedInSearchUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`Search LinkedIn Jobs for ${linkedInMonitor?.name || "software engineering roles"}`}
+                >
+                  <LinkedInMark />
+                  Search LinkedIn
+                  <ExternalLink size={13} />
+                </a>
               </div>
               <div className="jobs-panel admin-table-panel">
                 <div className="view-filters" aria-label="Source filters">

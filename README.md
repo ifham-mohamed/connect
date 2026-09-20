@@ -6,6 +6,7 @@ A working first release of a job-monitoring workspace for **Sri Lanka and remote
 
 - Responsive dashboard with search, location/source/monitor filters, sorting, CSV export, and job details.
 - Keyword monitors with case-insensitive whole-term matching, exclusions, location, remote-only rules, editing, pausing, and deletion.
+- Monitor-powered LinkedIn Jobs discovery links using the role, included keywords, location, remote preference, and a recent-posting filter.
 - Saved, applied, and archived job states stored in PostgreSQL in live mode.
 - Collectors for **ITPro.lk RSS, Remotive, Lever, Greenhouse, and Arbeitnow**. ITPro.lk, Remotive, and Dijital Team’s Lever board are seeded by the migration.
 - Source-specific identifiers, original URLs and source attribution; publication, first discovery, and last observation timestamps.
@@ -123,7 +124,7 @@ Do not enable both schedulers unnecessarily. Overlap is guarded, but one schedul
 | Greenhouse | One employer per connection      | 1 hour           | Requires the employer’s board token. `updated_at` is intentionally not treated as an original publication date.                          |
 | Arbeitnow  | Latest page of European listings | 6 hours          | Optional; not seeded for the Sri Lanka focus. This is recent-page monitoring, not a full historical import.                              |
 
-These are supported sources, not a claim to cover every vacancy or rank every job site. LinkedIn, TopJobs, Indeed, XpressJobs and other boards are not scraped. Add them only through a documented feed, licensed API, or an authorized integration. Source access and terms can change; inspect the source-health page if a connector starts failing.
+These are supported collected sources, not a claim to cover every vacancy or rank every job site. LinkedIn discovery opens LinkedIn’s own Jobs search from a selected monitor; LinkedIn listings are not scraped, copied, or counted as collected records. Add imported sources only through a documented feed, licensed API, or authorized integration. Source access and terms can change; inspect the source-health page if a connector starts failing.
 
 Remote means the source labels a job as remote. It does **not** mean someone in Sri Lanka is eligible. Original restrictions are shown. The technology filter is a title/tag heuristic; it may miss roles or include ambiguous engineering titles.
 

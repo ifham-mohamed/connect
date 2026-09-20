@@ -7,6 +7,10 @@ import {
   safeUrl,
 } from "../src/lib/matching";
 import { normalize, sourceUrl } from "../src/lib/connectors";
+import {
+  linkedInJobsSearchUrl,
+  linkedInSearchTerms,
+} from "../src/lib/linkedin";
 import { monitorSchema, sourceSchema } from "../src/lib/validation";
 import type { Monitor, Source } from "../src/lib/types";
 const monitor: Monitor = {
@@ -65,6 +69,30 @@ describe("keyword matching", () => {
       false,
     );
     expect(matchesMonitor(job, { ...monitor, enabled: false })).toBe(false);
+  });
+});
+describe("LinkedIn job discovery", () => {
+  it("builds a monitor-led search with location, recency, and remote filters", () => {
+    const url = new URL(linkedInJobsSearchUrl({ monitor }));
+
+    expect(url.origin).toBe("https://www.linkedin.com");
+    expect(url.pathname).toBe("/jobs/search/");
+    expect(url.searchParams.get("keywords")).toBe("Engineering OR React OR C++");
+    expect(url.searchParams.get("location")).toBe("Sri Lanka");
+    expect(url.searchParams.get("f_TPR")).toBe("r604800");
+    expect(url.searchParams.get("f_WT")).toBe("2");
+  });
+  it("uses an explicit position search and removes duplicate monitor terms", () => {
+    expect(linkedInSearchTerms(monitor, "  Product   Engineer ")).toBe(
+      "Product Engineer",
+    );
+    expect(
+      linkedInSearchTerms({
+        ...monitor,
+        name: "React",
+        keywords: ["react", "TypeScript"],
+      }),
+    ).toBe("React OR TypeScript");
   });
 });
 describe("source normalization and trust boundaries", () => {
