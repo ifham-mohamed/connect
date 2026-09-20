@@ -182,7 +182,14 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem("jobradar-sidebar") === "collapsed";
+    } catch {
+      return false;
+    }
+  });
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "light";
     try {
@@ -255,6 +262,23 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     document.documentElement.classList.toggle("jobradar-dark", theme === "dark");
     document.documentElement.classList.toggle("jobradar-light", theme === "light");
   }, [theme]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "jobradar-sidebar",
+        sidebarCollapsed ? "collapsed" : "expanded",
+      );
+    } catch {
+      /* The selected sidebar state still applies for this session. */
+    }
+    document.documentElement.dataset.sidebar = sidebarCollapsed
+      ? "collapsed"
+      : "expanded";
+    document.documentElement.classList.toggle(
+      "jobradar-sidebar-collapsed",
+      sidebarCollapsed,
+    );
+  }, [sidebarCollapsed]);
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMobileNav(false);

@@ -14,11 +14,16 @@ export default function RootLayout({
       const theme = stored === "light" || stored === "dark"
         ? stored
         : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      const sidebar = localStorage.getItem("jobradar-sidebar");
+      const collapsed = sidebar === "collapsed";
       document.documentElement.dataset.theme = theme;
+      document.documentElement.dataset.sidebar = collapsed ? "collapsed" : "expanded";
       document.documentElement.classList.toggle("jobradar-dark", theme === "dark");
       document.documentElement.classList.toggle("jobradar-light", theme !== "dark");
+      document.documentElement.classList.toggle("jobradar-sidebar-collapsed", collapsed);
     } catch {
       document.documentElement.dataset.theme = "light";
+      document.documentElement.dataset.sidebar = "expanded";
       document.documentElement.classList.add("jobradar-light");
     }
   `;

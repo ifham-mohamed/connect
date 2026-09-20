@@ -646,3 +646,17 @@ td { padding: 13px 16px; }
 .sidebar-collapsed .desktop-sidebar-toggle { width: 32px; height: 32px; margin: 0 12px 0 0; align-self: center; }
 .sidebar-collapsed .brand { height: 56px; margin: -20px 0 14px; align-self: stretch; }
 .sidebar-collapsed .brand-icon { margin: 0 auto; }
+
+
+/* Persisted collapsed state also applies before React hydrates and during route skeletons. */
+html.jobradar-sidebar-collapsed { --sidebar-width: 56px; }
+html.jobradar-sidebar-collapsed .skeleton-screen { grid-template-columns: var(--sidebar-width) minmax(0, 1fr); }
+html.jobradar-sidebar-collapsed .skeleton-screen aside { padding: 0; }
+html.jobradar-sidebar-collapsed .skeleton-logo { width: var(--sidebar-width); height: 56px; margin: 0 0 14px; border-radius: 0; }
+html.jobradar-sidebar-collapsed .skeleton-line { width: 34px; height: 34px; margin: 3px auto; border-radius: 10px; }
+html.jobradar-sidebar-collapsed .skeleton-line:nth-of-type(2) { display: none; }
+.sidebar-collapsed .brand-icon { transform: translateY(2px); }
+@media (max-width: 900px) {
+  html.jobradar-sidebar-collapsed { --sidebar-width: 0px; }
+  .sidebar-collapsed .brand-icon { transform: none; }
+}
