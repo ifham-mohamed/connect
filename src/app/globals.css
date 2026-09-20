@@ -1042,3 +1042,44 @@ html.jobradar-sidebar-collapsed .skeleton-line:nth-of-type(2) { display: none; }
     width: 100%;
   }
 }
+
+
+/* Pagination footer visual alignment: right aligned on wider screens, dashboard-tone background. */
+@media (min-width: 641px) {
+  .pagination-footer {
+    justify-content: flex-end;
+    background: hsl(var(--background));
+  }
+  .pagination-footer > span:first-child {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  .pagination-controls {
+    justify-content: flex-end;
+    width: auto;
+    margin-left: auto;
+    padding: 6px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    background: hsl(var(--background));
+  }
+  .pagination-btn {
+    min-width: 92px;
+    height: 34px;
+    padding: 0 14px;
+  }
+  .page-indicator {
+    min-height: 34px;
+  }
+}
+@media (min-width: 641px) and (max-width: 896px) {
+  .pagination-controls {
+    grid-template-columns: auto 92px auto 92px;
+    margin-left: auto;
+  }
+  .pagination-btn {
+    min-width: 92px;
+    width: 92px;
+  }
+}
