@@ -863,3 +863,12 @@ html.jobradar-sidebar-collapsed .skeleton-line:nth-of-type(2) { display: none; }
   .list-footer { padding: 12px; }
   .page-size-control select { min-width: 54px; }
 }
+
+
+/* Sidebar logo breathing room after removing the workspace switcher. */
+.sidebar:not(.open) .brand,
+.sidebar .brand { margin-bottom: 18px; }
+.sidebar-collapsed .brand { margin-bottom: 14px; }
+@media (max-width: 900px) {
+  .sidebar .brand { margin-bottom: 20px; }
+}
