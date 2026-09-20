@@ -780,3 +780,40 @@ html.jobradar-sidebar-collapsed .skeleton-line:nth-of-type(2) { display: none; }
     display: none !important;
   }
 }
+
+
+/* Final mobile shell reset: no hidden rail space on small screens. */
+@media (max-width: 900px) {
+  html.jobradar-sidebar-collapsed,
+  :root { --sidebar-width: 0px; }
+  .app-shell,
+  .app-shell.sidebar-collapsed { display: block; }
+  .main-shell,
+  .sidebar-collapsed .main-shell { width: 100%; margin-left: 0 !important; }
+  .topbar,
+  .sidebar-collapsed .topbar { height: 52px; padding: 0 12px; }
+  .breadcrumb,
+  .sidebar-collapsed .breadcrumb { min-height: 52px; gap: 8px; }
+  .main-content { width: 100%; padding: 16px 12px 0; }
+  .page-heading { gap: 14px; margin-bottom: 18px; padding-bottom: 16px; }
+  .page-heading h1 { font-size: clamp(26px, 8.4vw, 34px); }
+  .stats-grid { gap: 10px; }
+  .stat-card { padding: 14px; }
+  .sidebar,
+  .sidebar-collapsed .sidebar {
+    left: 0;
+    width: min(286px, calc(100vw - 40px));
+    max-width: calc(100vw - 40px);
+  }
+  .refresh-skeleton,
+  .sidebar-collapsed .refresh-skeleton { left: 0; }
+  .toast,
+  .sidebar-collapsed .toast { left: 50%; }
+}
+@media (max-width: 640px) {
+  .topbar,
+  .sidebar-collapsed .topbar { padding: 0 10px; }
+  .main-content { padding: 14px 10px 0; }
+  .page-heading h1 { font-size: clamp(25px, 8.8vw, 31px); }
+  .btn.primary { min-height: 40px; }
+}
