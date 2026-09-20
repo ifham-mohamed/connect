@@ -954,3 +954,91 @@ html.jobradar-sidebar-collapsed .skeleton-line:nth-of-type(2) { display: none; }
   .pagination-btn:last-of-type::after { content: "›"; }
   .pagination-btn:disabled::after { color: hsl(var(--muted-foreground) / .45); }
 }
+
+
+/* Tablet and mobile alignment pass below 896px. */
+@media (max-width: 896px) {
+  .section-heading,
+  .page-heading {
+    gap: 16px;
+  }
+  .section-heading .heading-actions,
+  .page-heading > .btn {
+    width: 100%;
+  }
+  .heading-actions {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    width: 100%;
+    align-items: center;
+  }
+  .heading-actions .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .heading-actions .btn,
+  .page-heading > .btn {
+    min-height: 42px;
+  }
+  .jobs-panel > .search-row,
+  .operations-panel .search-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+  .jobs-panel > .search-row .search-box,
+  .jobs-panel > .search-row .filter-btn,
+  .jobs-panel > .search-row .sort-control,
+  .operations-panel .search-row .search-box,
+  .operations-panel .search-row .filter-btn {
+    width: 100%;
+  }
+  .filter-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .filter-row .text-btn {
+    justify-self: end;
+    align-self: end;
+    min-height: 34px;
+  }
+  .pagination-footer {
+    align-items: stretch;
+  }
+  .pagination-footer > span:first-child {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .pagination-controls {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+@media (min-width: 641px) and (max-width: 896px) {
+  .pagination-controls {
+    display: grid;
+    grid-template-columns: auto minmax(120px, 1fr) auto auto;
+    align-items: center;
+  }
+  .page-size-control,
+  .page-indicator {
+    grid-column: auto;
+  }
+  .pagination-btn {
+    min-width: 88px;
+  }
+}
+@media (max-width: 560px) {
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+  .filter-row .text-btn {
+    justify-self: stretch;
+  }
+  .heading-actions {
+    grid-template-columns: 1fr;
+  }
+  .heading-actions .icon-btn {
+    width: 100%;
+  }
+}
