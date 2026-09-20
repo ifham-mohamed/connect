@@ -1487,3 +1487,76 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
     font-size: 9px;
   }
 }
+
+/* Operations pages: keep panel actions aligned in the same content row. */
+.operations-panel .jobs-panel > .search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 10px;
+}
+.operations-panel .jobs-panel > .search-row .search-box {
+  width: 100%;
+  min-width: 0;
+}
+.operations-panel .jobs-panel > .search-row .filter-btn {
+  width: auto;
+  min-width: 168px;
+  justify-self: end;
+}
+.operations-panel .jobs-panel > .results-row {
+  align-items: center;
+  gap: 10px;
+}
+.operations-panel .jobs-panel > .results-row > span:first-child {
+  min-width: 0;
+}
+.operations-panel .jobs-panel > .results-row > span:last-child {
+  text-align: right;
+}
+@media (max-width: 896px) {
+  .operations-panel .jobs-panel > .search-row {
+    grid-template-columns: minmax(0, 1fr) minmax(126px, .38fr);
+    padding: 12px;
+  }
+  .operations-panel .jobs-panel > .search-row .filter-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    border-radius: 10px;
+  }
+  .operations-panel .jobs-panel > .results-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-inline: 12px;
+  }
+}
+@media (max-width: 520px) {
+  .operations-panel .jobs-panel > .search-row {
+    grid-template-columns: minmax(0, 1fr) 112px;
+    gap: 8px;
+    padding-inline: 10px;
+  }
+  .operations-panel .jobs-panel > .search-row .filter-btn {
+    min-height: 38px;
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+  .operations-panel .jobs-panel > .search-row .filter-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  .operations-panel .jobs-panel > .search-row .filter-btn span {
+    max-width: 74px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .operations-panel .jobs-panel > .results-row {
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding-inline: 12px;
+  }
+  .operations-panel .jobs-panel > .results-row > span:last-child {
+    text-align: left;
+  }
+}
