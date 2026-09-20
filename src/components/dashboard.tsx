@@ -1583,10 +1583,6 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   back to its original publisher. Collection respects each
                   source’s check interval.
                 </p>
-                <button className="btn" onClick={sync} disabled={busy}>
-                  <RefreshCw size={15} className={busy ? "spin" : ""} />
-                  Check due sources
-                </button>
               </div>
               <div className="jobs-panel admin-table-panel">
                 <div className="view-filters" aria-label="Source filters">
@@ -1628,10 +1624,16 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <kbd>⌘ K</kbd>
                     )}
                   </label>
-                  <button className="btn filter-btn" onClick={() => setModal({ type: "source" })}>
-                    <Plus size={16} />
-                    <span>Connect source</span>
-                  </button>
+                  <div className="toolbar-actions source-toolbar-actions">
+                    <button className="btn filter-btn" onClick={sync} disabled={busy}>
+                      <RefreshCw size={15} className={busy ? "spin" : ""} />
+                      <span>Check sources</span>
+                    </button>
+                    <button className="btn filter-btn" onClick={() => setModal({ type: "source" })}>
+                      <Plus size={16} />
+                      <span>Connect source</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="results-row">
                   <span><strong>{filteredSources.length}</strong> sources <span className="muted">in this view</span></span>

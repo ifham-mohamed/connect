@@ -1560,3 +1560,94 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
     text-align: left;
   }
 }
+
+/* Source coverage toolbar: place check/connect actions beside search. */
+.toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.operations-panel .jobs-panel > .search-row .toolbar-actions {
+  justify-self: end;
+}
+.operations-panel .jobs-panel > .search-row .toolbar-actions .filter-btn {
+  min-width: 0;
+}
+.source-toolbar-actions .filter-btn {
+  min-width: 148px;
+}
+.sources-intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+}
+@media (max-width: 896px) {
+  .operations-panel .jobs-panel > .search-row:has(.toolbar-actions) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .operations-panel .jobs-panel > .search-row .toolbar-actions {
+    width: auto;
+  }
+  .source-toolbar-actions .filter-btn {
+    min-width: 118px;
+  }
+}
+@media (max-width: 620px) {
+  .operations-panel .jobs-panel > .search-row:has(.source-toolbar-actions) {
+    grid-template-columns: minmax(0, 1fr) 184px;
+  }
+  .source-toolbar-actions {
+    width: 184px;
+    gap: 6px;
+  }
+  .source-toolbar-actions .filter-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: 8px;
+  }
+  .source-toolbar-actions .filter-btn span {
+    max-width: 54px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+@media (max-width: 430px) {
+  .operations-panel .jobs-panel > .search-row:has(.source-toolbar-actions) {
+    grid-template-columns: minmax(0, 1fr) 142px;
+  }
+  .source-toolbar-actions {
+    width: 142px;
+  }
+  .source-toolbar-actions .filter-btn {
+    gap: 0;
+    padding-inline: 0;
+  }
+  .source-toolbar-actions .filter-btn span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+/* Keep refresh/export action pairs on one line on compact screens. */
+@media (max-width: 560px) {
+  .section-heading .heading-actions {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+  }
+  .section-heading .heading-actions .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .section-heading .heading-actions .btn {
+    width: 100%;
+    min-height: 40px;
+  }
+}
