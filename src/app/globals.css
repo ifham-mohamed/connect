@@ -604,3 +604,17 @@ td { padding: 13px 16px; }
 @media (max-width: 900px) {
   .sidebar-collapsed .brand, .sidebar-collapsed .workspace-switch, .sidebar-collapsed .nav-item, .sidebar-collapsed .sidebar-note, .sidebar-collapsed .profile { width: auto; }
 }
+
+
+/* Collapsed sidebar cleanup: logo-only, no workspace card, no promo card. */
+.sidebar-collapsed .brand { display: grid; overflow: hidden; place-items: center; }
+.sidebar-collapsed .brand .brand-icon { display: grid; place-items: center; }
+.sidebar-collapsed .brand > :not(.brand-icon), .sidebar-collapsed .brand-dot { display: none !important; }
+.sidebar-collapsed .brand::before, .sidebar-collapsed .brand::after { display: none !important; content: none !important; }
+.sidebar-collapsed .workspace-switch, .sidebar-collapsed .sidebar-note { display: none !important; }
+.sidebar-collapsed nav { margin-top: 18px; }
+.sidebar-collapsed .sidebar-spacer { flex: 1; min-height: 18px; }
+@media (max-width: 900px) {
+  .sidebar-collapsed .workspace-switch, .sidebar-collapsed .sidebar-note { display: flex !important; }
+  .sidebar-collapsed .brand > :not(.brand-icon), .sidebar-collapsed .brand-dot { display: inline !important; }
+}

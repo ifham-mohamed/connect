@@ -614,7 +614,6 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           href="/"
           onClick={(event) => navigate("overview", event)}
           className="brand"
-          data-tooltip="Overview"
         >
           <span className="brand-icon">
             <Radio size={24} />
