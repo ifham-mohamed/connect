@@ -638,3 +638,11 @@ td { padding: 13px 16px; }
 @media (max-width: 900px) {
   .sidebar-collapsed .brand { color: hsl(var(--foreground)); font-size: 21px; line-height: 1; }
 }
+
+
+/* Align collapsed rail logo with the topbar toggle line. */
+.sidebar-collapsed .topbar { height: 56px; }
+.sidebar-collapsed .breadcrumb { min-height: 56px; align-items: center; }
+.sidebar-collapsed .desktop-sidebar-toggle { width: 32px; height: 32px; margin: 0 12px 0 0; align-self: center; }
+.sidebar-collapsed .brand { height: 56px; margin: -20px 0 14px; align-self: stretch; }
+.sidebar-collapsed .brand-icon { margin: 0 auto; }
