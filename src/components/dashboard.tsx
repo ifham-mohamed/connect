@@ -176,7 +176,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const [pageSize, setPageSize] = useState(8);
   const [filters, setFilters] = useState(false);
   const [workspaceFilter, setWorkspaceFilter] = useState("all");
-  const [modal, setModal] = useState<Modal>(null);
+  const [modal, setModalState] = useState<Modal>(null);
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -203,6 +203,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   });
   const searchRef = useRef<HTMLInputElement>(null);
   const hasLoadedRef = useRef(false);
+  const modalHistoryRef = useRef(false);
   const refresh = useCallback(async () => {
     if (hasLoadedRef.current) setRefreshing(true);
     try {
@@ -290,8 +291,22 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     return () => document.removeEventListener("keydown", handler);
   }, []);
   useEffect(() => {
-    const syncViewFromPath = () => {
+    const syncViewFromPath = (event: PopStateEvent) => {
+      const historyModal = event.state?.jobradarModal as Modal | undefined;
+      if (historyModal) {
+        modalHistoryRef.current = true;
+        setModalState(historyModal);
+        setMobileNav(false);
+        return;
+      }
+      if (modalHistoryRef.current) {
+        modalHistoryRef.current = false;
+        setModalState(null);
+        setMobileNav(false);
+        return;
+      }
       const next = pathViews[window.location.pathname] || "overview";
+      setModalState(null);
       setView(next);
       setTab(next === "jobs" ? "matched" : "all");
       setPage(1);
@@ -417,6 +432,34 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       window.history.pushState({ view: next }, "", viewPaths[next]);
     }
   }
+  function openModal(next: Exclude<Modal, null>) {
+    if (typeof window !== "undefined") {
+      const nextState = {
+        ...(window.history.state || {}),
+        jobradarModal: next,
+      };
+      if (modalHistoryRef.current) {
+        window.history.replaceState(nextState, "", window.location.href);
+      } else {
+        window.history.pushState(nextState, "", window.location.href);
+        modalHistoryRef.current = true;
+      }
+    }
+    setModalState(next);
+  }
+  function closeModal(replaceHistory = false) {
+    setModalState(null);
+    if (typeof window === "undefined" || !modalHistoryRef.current) return;
+
+    if (replaceHistory) {
+      const nextState = { ...(window.history.state || {}) };
+      delete nextState.jobradarModal;
+      window.history.replaceState(nextState, "", window.location.href);
+      modalHistoryRef.current = false;
+      return;
+    }
+    window.history.back();
+  }
   function focusMonitor(id: string) {
     navigate("jobs");
     setMonitorFilter(id);
@@ -503,7 +546,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       return;
     }
     if (!data.authenticated) {
-      setModal({ type: "login" });
+      openModal({ type: "login" });
       throw new Error("Sign in to manage this workspace.");
     }
     const response = await fetch("/api/actions", {
@@ -674,7 +717,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           <p>
             Create a monitor. We’ll keep an eye out for your next opportunity.
           </p>
-          <button onClick={() => setModal({ type: "monitor" })}>
+          <button onClick={() => openModal({ type: "monitor" })}>
             Create a monitor <ArrowUpRight size={15} />
           </button>
         </div>
@@ -689,7 +732,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
         </Link>
         <button
           className="nav-item"
-          onClick={() => setModal({ type: "help" })}
+          onClick={() => openModal({ type: "help" })}
           data-tooltip="Help & getting started"
         >
           <CircleHelp size={18} />
@@ -714,7 +757,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             onClick={() =>
               data.mode === "demo"
                 ? navigate("settings")
-                : setModal({ type: "login" })
+                : openModal({ type: "login" })
             }
           >
             <MoreHorizontal size={18} />
@@ -807,7 +850,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             {view !== "monitors" && view !== "sources" && view !== "activity" && (
               <button
                 className="btn primary"
-                onClick={() => setModal({ type: "monitor" })}
+                onClick={() => openModal({ type: "monitor" })}
               >
                 <Plus size={17} />
                 Create monitor
@@ -1103,7 +1146,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                           <div className="job-title-line">
                             <button
                               className="job-title"
-                              onClick={() => setModal({ type: "job", job })}
+                              onClick={() => openModal({ type: "job", job })}
                             >
                               {job.title}
                             </button>
@@ -1185,7 +1228,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                           <button
                             className="job-open"
                             aria-label={`View ${job.title}`}
-                            onClick={() => setModal({ type: "job", job })}
+                            onClick={() => openModal({ type: "job", job })}
                           >
                             <ArrowUpRight size={18} />
                           </button>
@@ -1276,7 +1319,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <button
                         className="icon-btn"
                         aria-label="Add a monitor"
-                        onClick={() => setModal({ type: "monitor" })}
+                        onClick={() => openModal({ type: "monitor" })}
                       >
                         <Plus size={16} />
                       </button>
@@ -1365,7 +1408,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       These monitors include TypeScript, React, Next.js, Node,
                       Laravel, PostgreSQL, Docker, AWS, and API work.
                     </p>
-                    <button onClick={() => setModal({ type: "monitor" })}>
+                    <button onClick={() => openModal({ type: "monitor" })}>
                       Fine-tune monitors <ArrowUpRight size={15} />
                     </button>
                     <div className="tip-decoration">
@@ -1441,7 +1484,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <kbd>⌘ K</kbd>
                     )}
                   </label>
-                  <button className="btn filter-btn" onClick={() => setModal({ type: "monitor" })}>
+                  <button className="btn filter-btn" onClick={() => openModal({ type: "monitor" })}>
                     <Plus size={16} />
                     <span>Create monitor</span>
                   </button>
@@ -1519,7 +1562,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                               <td>
                                 <button
                                   className="btn small"
-                                  onClick={() => setModal({ type: "monitor", monitor: m })}
+                                  onClick={() => openModal({ type: "monitor", monitor: m })}
                                 >
                                   <Settings2 size={14} />
                                   Edit
@@ -1629,7 +1672,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <RefreshCw size={15} className={busy ? "spin" : ""} />
                       <span>Check sources</span>
                     </button>
-                    <button className="btn filter-btn" onClick={() => setModal({ type: "source" })}>
+                    <button className="btn filter-btn" onClick={() => openModal({ type: "source" })}>
                       <Plus size={16} />
                       <span>Connect source</span>
                     </button>
@@ -1870,7 +1913,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                           await refresh();
                           setToast("Signed out.");
                         }
-                      } else setModal({ type: "login" });
+                      } else openModal({ type: "login" });
                     }}
                   >
                     {data.authenticated ? "Sign out" : "Sign in as owner"}
@@ -1990,21 +2033,21 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                     ? "Welcome to your workspace"
                     : "A calmer way to find what’s next"
           }
-          close={() => setModal(null)}
+          close={() => closeModal()}
         >
           {modal.type === "monitor" && (
             <MonitorForm
               monitor={modal.monitor}
               onSave={async (value) => {
                 await action("monitor-save", modal.monitor?.id, value);
-                setModal(null);
+                closeModal();
                 setToast("Monitor saved. Matching jobs are ready to explore.");
               }}
               onDelete={
                 modal.monitor
                   ? async () => {
                       await action("monitor-delete", modal.monitor!.id);
-                      setModal(null);
+                      closeModal();
                       setToast(
                         "Monitor deleted. Your collected jobs are still here.",
                       );
@@ -2017,7 +2060,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             <SourceForm
               onSave={async (value) => {
                 await action("source-add", undefined, value);
-                setModal(null);
+                closeModal();
                 setToast(
                   data.mode === "demo"
                     ? "Source added to the demo. Connect your database to collect real jobs."
@@ -2044,7 +2087,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error);
                 await refresh();
-                setModal(null);
+                closeModal();
                 setToast("You’re signed in. Welcome back.");
               }}
             />
@@ -2094,7 +2137,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
               <button
                 className="btn primary"
                 onClick={() => {
-                  setModal(null);
+                  closeModal(true);
                   navigate("settings");
                 }}
               >
