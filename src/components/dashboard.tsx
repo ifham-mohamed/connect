@@ -48,6 +48,7 @@ import type {
 } from "@/lib/types";
 import { matchesMonitor } from "@/lib/matching";
 import { monitorSchema, sourceSchema } from "@/lib/validation";
+import { DashboardSkeleton } from "@/components/dashboard-skeleton";
 
 type View =
   | "overview"
@@ -2167,53 +2168,6 @@ function Empty({
         {label}
       </button>
     </div>
-  );
-}
-
-function DashboardSkeleton({ view }: { view: View }) {
-  const cardCount = view === "monitors" || view === "sources" ? 6 : 4;
-  const rowCount = view === "activity" ? 6 : view === "settings" ? 3 : 7;
-  return (
-    <main className={`skeleton-screen skeleton-${view}`}>
-      <aside>
-        <div className="skeleton-logo" />
-        {Array.from({ length: 7 }).map((_, index) => (
-          <div className="skeleton-line" key={index} />
-        ))}
-      </aside>
-      <section>
-        <div className="skeleton-topbar" />
-        <div className="skeleton-heading" />
-        {view === "overview" && (
-          <div className="skeleton-stats">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <span key={index} />
-            ))}
-          </div>
-        )}
-        {(view === "monitors" || view === "sources") && (
-          <div className="skeleton-card-grid">
-            {Array.from({ length: cardCount }).map((_, index) => (
-              <span key={index} />
-            ))}
-          </div>
-        )}
-        {view === "settings" && (
-          <div className="skeleton-settings-grid">
-            {Array.from({ length: 2 }).map((_, index) => (
-              <span key={index} />
-            ))}
-          </div>
-        )}
-        {!["monitors", "sources", "settings"].includes(view) && (
-          <div className="skeleton-table">
-            {Array.from({ length: rowCount }).map((_, index) => (
-              <span key={index} />
-            ))}
-          </div>
-        )}
-      </section>
-    </main>
   );
 }
 

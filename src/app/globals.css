@@ -1136,3 +1136,258 @@ html.jobradar-sidebar-collapsed .skeleton-line:nth-of-type(2) { display: none; }
     font-size: 12px;
   }
 }
+
+/* Page-aware skeleton layouts for every workspace screen. */
+.skeleton-screen {
+  overflow-x: hidden;
+}
+.skeleton-sidebar {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+.skeleton-main {
+  min-width: 0;
+}
+.skeleton-nav-group {
+  display: grid;
+  gap: 8px;
+}
+.skeleton-sidebar-spacer {
+  flex: 1;
+  min-height: 120px;
+}
+.skeleton-bottom-line {
+  opacity: .75;
+}
+.skeleton-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  background: transparent;
+}
+.skeleton-topbar > span,
+.skeleton-eyebrow,
+.skeleton-title,
+.skeleton-subtitle,
+.skeleton-callout,
+.skeleton-tabs,
+.skeleton-search-row,
+.skeleton-table-head {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, hsl(var(--muted)) 0%, hsl(var(--accent)) 45%, hsl(var(--muted)) 90%);
+  background-size: 240% 100%;
+  animation: skeleton-sweep 1.45s ease-in-out infinite;
+}
+.skeleton-topbar > span:nth-child(1) { width: min(280px, 42vw); height: 18px; }
+.skeleton-topbar > span:nth-child(2) { width: min(180px, 22vw); height: 18px; margin-left: auto; }
+.skeleton-topbar > span:nth-child(3) { width: 38px; height: 38px; border-radius: 999px; }
+.skeleton-hero {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.skeleton-eyebrow {
+  width: min(310px, 58vw);
+  height: 14px;
+  margin-bottom: 18px;
+}
+.skeleton-title {
+  width: min(760px, 78vw);
+  height: clamp(38px, 6vw, 58px);
+  margin-bottom: 12px;
+  border-radius: 14px;
+}
+.skeleton-subtitle {
+  width: min(520px, 66vw);
+  height: 18px;
+}
+.skeleton-callout {
+  width: 100%;
+  height: 118px;
+  margin-bottom: 24px;
+  border-radius: var(--radius);
+}
+.skeleton-jobs-table,
+.skeleton-activity-table {
+  overflow: hidden;
+}
+.skeleton-tabs {
+  width: min(470px, 72vw);
+  height: 42px;
+  margin-bottom: 12px;
+  border-radius: 0;
+}
+.skeleton-search-row {
+  width: 100%;
+  height: 46px;
+  margin-bottom: 10px;
+  border-radius: 11px;
+}
+.skeleton-table-head {
+  width: 100%;
+  height: 50px;
+  margin-bottom: 10px;
+  border-radius: 0;
+}
+.skeleton-card-grid-sources > span {
+  height: 210px;
+}
+.skeleton-settings .skeleton-settings-grid > span:first-child {
+  min-height: 300px;
+}
+.skeleton-settings .skeleton-settings-grid > span:last-child {
+  min-height: 150px;
+}
+.skeleton-activity .skeleton-table > span {
+  height: 54px;
+}
+.skeleton-jobs .skeleton-table > span,
+.skeleton-saved .skeleton-table > span,
+.skeleton-overview .skeleton-table > span {
+  height: 92px;
+}
+
+html.jobradar-sidebar-collapsed .skeleton-sidebar-spacer,
+html.jobradar-sidebar-collapsed .skeleton-bottom-line {
+  display: none;
+}
+html.jobradar-sidebar-collapsed .skeleton-nav-group {
+  padding-top: 4px;
+}
+html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
+  width: min(230px, 36vw);
+}
+
+@media (max-width: 1180px) {
+  .skeleton-title { width: min(640px, 78vw); }
+  .skeleton-callout { height: 104px; }
+  .skeleton-card-grid-sources > span { height: 190px; }
+}
+
+@media (max-width: 900px) {
+  .skeleton-screen,
+  html.jobradar-sidebar-collapsed .skeleton-screen {
+    grid-template-columns: 1fr;
+  }
+  .skeleton-screen aside,
+  html.jobradar-sidebar-collapsed .skeleton-screen aside {
+    display: none;
+  }
+  .skeleton-screen section,
+  html.jobradar-sidebar-collapsed .skeleton-screen section {
+    width: 100%;
+    padding: 16px 12px 0;
+  }
+  .skeleton-topbar {
+    height: 52px;
+    margin-bottom: 18px;
+    padding: 0;
+    border-bottom: 1px solid hsl(var(--border));
+    border-radius: 0;
+  }
+  .skeleton-topbar > span:nth-child(1) { width: 34px; height: 34px; }
+  .skeleton-topbar > span:nth-child(2) { width: 150px; height: 16px; margin-left: 0; }
+  .skeleton-topbar > span:nth-child(3) { width: 34px; height: 34px; margin-left: auto; }
+  .skeleton-hero {
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+  }
+  .skeleton-eyebrow {
+    width: min(280px, 76vw);
+    height: 12px;
+    margin-bottom: 14px;
+  }
+  .skeleton-title {
+    width: min(520px, 92vw);
+    height: clamp(34px, 10vw, 46px);
+    margin-bottom: 10px;
+  }
+  .skeleton-subtitle {
+    width: min(420px, 82vw);
+    height: 16px;
+  }
+  .skeleton-stats {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .skeleton-stats > span {
+    height: 118px;
+  }
+  .skeleton-callout {
+    height: 104px;
+    margin-bottom: 18px;
+  }
+  .skeleton-tabs {
+    width: 100%;
+    height: 42px;
+  }
+  .skeleton-search-row {
+    height: 116px;
+    border-radius: var(--radius);
+  }
+  .skeleton-jobs .skeleton-table > span,
+  .skeleton-saved .skeleton-table > span,
+  .skeleton-overview .skeleton-table > span {
+    height: 126px;
+  }
+  .skeleton-card-grid,
+  .skeleton-settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .skeleton-card-grid > span {
+    height: 180px;
+  }
+}
+
+@media (max-width: 520px) {
+  .skeleton-screen section,
+  html.jobradar-sidebar-collapsed .skeleton-screen section {
+    padding: 12px 10px 0;
+  }
+  .skeleton-topbar > span:nth-child(2) {
+    width: 118px;
+  }
+  .skeleton-title {
+    width: 100%;
+    height: 72px;
+  }
+  .skeleton-jobs .skeleton-title,
+  .skeleton-saved .skeleton-title,
+  .skeleton-activity .skeleton-title,
+  .skeleton-settings .skeleton-title {
+    height: 56px;
+  }
+  .skeleton-subtitle {
+    width: 78%;
+  }
+  .skeleton-overview .skeleton-stats > span {
+    height: 112px;
+  }
+  .skeleton-table {
+    padding: 10px;
+  }
+  .skeleton-search-row {
+    height: 112px;
+  }
+  .skeleton-table > span {
+    margin: 8px 0;
+  }
+  .skeleton-jobs .skeleton-table > span,
+  .skeleton-saved .skeleton-table > span,
+  .skeleton-overview .skeleton-table > span {
+    height: 118px;
+  }
+  .skeleton-activity .skeleton-table > span {
+    height: 64px;
+  }
+  .skeleton-card-grid > span {
+    height: 166px;
+  }
+  .skeleton-settings-grid > span {
+    height: 190px;
+  }
+}
