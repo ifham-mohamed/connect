@@ -19,6 +19,7 @@ import {
 type Experience = "internship" | "entry" | "mid" | "senior";
 type WorkMode = "onsite" | "hybrid" | "remote";
 type MonitorDraft = {
+  clientId: string;
   name: string;
   keywords: string[];
   excludedKeywords: string[];
@@ -82,6 +83,7 @@ function makeMonitors(
   return roles.flatMap((role) => {
     const preset = rolePresets.find((item) => item.label === role);
     return locations.map((location) => ({
+      clientId: `generated-${role}-${location}`,
       name: `${role} · ${location}`,
       keywords: [...new Set([...(preset?.keywords || [role.toLowerCase()]), ...experienceKeywords(role, experience)])],
       excludedKeywords: exclusionsFor(experience),
@@ -135,9 +137,13 @@ export function OnboardingFlow({ userName }: { userName: string }) {
       setError("Give the monitor a name and at least one comma-separated keyword.");
       return;
     }
+    if (monitors.length >= 12) {
+      setError("You can start with up to 12 monitors. Remove one before adding another.");
+      return;
+    }
     setMonitors((current) => [
-      ...current,
       {
+        clientId: `custom-${crypto.randomUUID()}`,
         name: customName.trim(),
         keywords: keywords.slice(0, 20),
         excludedKeywords: experience ? exclusionsFor(experience) : [],
@@ -145,6 +151,7 @@ export function OnboardingFlow({ userName }: { userName: string }) {
         remoteOnly: workModes.length === 1 && workModes[0] === "remote",
         enabled: true,
       },
+      ...current,
     ]);
     setCustomName("");
     setCustomKeywords("");
@@ -247,20 +254,28 @@ export function OnboardingFlow({ userName }: { userName: string }) {
 
           {step === 3 && (
             <div className="onboarding-review">
-              <div className="onboarding-monitor-list">
-                {monitors.map((monitor, index) => (
-                  <article key={`${monitor.name}-${index}`}>
-                    <span className="monitor-icon"><Radio size={17} /></span>
-                    <div><strong>{monitor.name}</strong><small>{monitor.keywords.slice(0, 4).join(" · ")}</small><em>{monitor.remoteOnly ? "Remote only" : monitor.location || "Any location"}</em></div>
-                    <button aria-label={`Remove ${monitor.name}`} onClick={() => setMonitors((current) => current.filter((_, itemIndex) => itemIndex !== index))}><Trash2 size={16} /></button>
-                  </article>
-                ))}
+              <div className="onboarding-list-panel">
+                <div className="onboarding-list-heading">
+                  <strong>Your monitors</strong>
+                  <span>{monitors.length} of 12 · four visible at a time</span>
+                </div>
+                <div className="onboarding-monitor-list" aria-live="polite">
+                  {monitors.map((monitor) => (
+                    <article key={monitor.clientId}>
+                      <span className="monitor-icon"><Radio size={17} /></span>
+                      <div><strong>{monitor.name}</strong><small>{monitor.keywords.slice(0, 4).join(" · ")}</small><em>{monitor.remoteOnly ? "Remote only" : monitor.location || "Any location"}</em></div>
+                      <button aria-label={`Remove ${monitor.name}`} onClick={() => setMonitors((current) => current.filter((item) => item.clientId !== monitor.clientId))}><Trash2 size={16} /></button>
+                    </article>
+                  ))}
+                </div>
               </div>
               <div className="onboarding-custom">
                 <div><strong>Add another monitor</strong><small>Use a name and comma-separated role or skill keywords.</small></div>
                 <input aria-label="Custom monitor name" placeholder="e.g. TypeScript roles" value={customName} onChange={(event) => setCustomName(event.target.value)} />
                 <input aria-label="Custom monitor keywords" placeholder="typescript developer, typescript engineer" value={customKeywords} onChange={(event) => setCustomKeywords(event.target.value)} />
-                <button className="btn" type="button" onClick={addCustomMonitor}><Plus size={15} /> Add monitor</button>
+                <button className="btn" type="button" disabled={monitors.length >= 12} onClick={addCustomMonitor}>
+                  <Plus size={15} /> {monitors.length >= 12 ? "Monitor limit reached" : "Add monitor"}
+                </button>
               </div>
             </div>
           )}
