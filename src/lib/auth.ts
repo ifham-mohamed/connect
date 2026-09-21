@@ -70,11 +70,11 @@ export async function currentSessionToken() {
   return (await cookies()).get(sessionCookie)?.value || "";
 }
 export async function currentUser(
-  queryable: Queryable = db(),
+  queryable?: Queryable,
 ): Promise<AuthUser | null> {
   const token = await currentSessionToken();
   if (!token) return null;
-  const result = await queryable.query<AuthUser>(
+  const result = await (queryable || db()).query<AuthUser>(
     `SELECT u.id, u.name, u.email, u.role
        FROM user_sessions s JOIN users u ON u.id=s.user_id
       WHERE s.token_hash=$1 AND s.expires_at>now() LIMIT 1`,

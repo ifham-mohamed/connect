@@ -76,7 +76,7 @@ svg { vertical-align: middle; stroke-width: 1.8; }
 .brand-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
 .brand-dot, .text-btn, .rail-link, .job-title:hover, .remote-label, .salary, .detail-dates dd, .monitor-card-footer strong { color: hsl(var(--primary)); }
 .workspace-switch { display: flex; align-items: center; gap: 10px; margin: 28px 0 24px; padding: 10px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--background)); text-align: left; }
-.workspace-switch > span:nth-child(2), .profile > div { min-width: 0; flex: 1; }
+.workspace-switch > span:nth-child(2), .profile > div, .profile > span:not(.profile-avatar) { min-width: 0; flex: 1; }
 .workspace-switch strong, .profile strong { display: block; overflow: hidden; color: hsl(var(--foreground)); font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-switch small, .profile small { display: block; overflow: hidden; color: hsl(var(--muted-foreground)); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-avatar, .profile-avatar, .top-avatar { display: grid; place-items: center; flex-shrink: 0; border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--muted)); color: hsl(var(--foreground)); font-size: 12px; font-weight: 700; }
@@ -107,6 +107,12 @@ svg { vertical-align: middle; stroke-width: 1.8; }
 .notification-btn { position: relative; }
 .notification-btn i { position: absolute; top: 7px; right: 7px; width: 6px; height: 6px; border-radius: 999px; background: hsl(var(--warning)); }
 .top-avatar { width: 34px; height: 34px; }
+.top-account { display: flex; min-width: 0; align-items: center; gap: 8px; padding: 3px 7px 3px 3px; border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--card)); text-align: left; }
+.top-account:hover { background: hsl(var(--accent)); }
+.top-account-copy { display: grid; min-width: 0; max-width: 140px; line-height: 1.15; }
+.top-account-copy strong, .top-account-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top-account-copy strong { font-size: 11px; font-weight: 700; }
+.top-account-copy small { margin-top: 2px; color: hsl(var(--muted-foreground)); font-size: 9px; }
 .mobile-menu { display: none !important; }
 .main-content { width: min(100%, 1680px); margin: 0 auto; padding: 28px 32px 0; }
 .page-heading, .section-heading, .rail-heading, .card-top, .toast, .modal > header, .form-footer, .sources-intro { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
@@ -2033,6 +2039,12 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
 .landing-nav nav > a:hover { color: hsl(var(--foreground)); }
 .landing-nav .btn { min-height: 38px; padding-inline: 14px; }
 .landing-signin { color: hsl(var(--foreground)); }
+.landing-account { display: flex; min-width: 0; align-items: center; gap: 8px; padding: 4px 9px 4px 4px; border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--card)); }
+.landing-account-avatar { display: grid; width: 29px; height: 29px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-size: 9px; font-weight: 800; }
+.landing-account > span:last-child { display: grid; min-width: 0; max-width: 130px; line-height: 1.12; }
+.landing-account strong, .landing-account small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.landing-account strong { font-size: 10px; color: hsl(var(--foreground)); }
+.landing-account small { margin-top: 2px; color: hsl(var(--muted-foreground)); font-size: 8px; }
 .landing-hero { position: relative; isolation: isolate; display: grid; width: min(100% - 40px, 1240px); min-height: 660px; grid-template-columns: minmax(0, .94fr) minmax(420px, 1.06fr); align-items: center; gap: clamp(36px, 6vw, 84px); margin: 0 auto; padding: 70px 0 82px; }
 .landing-hero::before { position: absolute; top: 3%; left: -18%; z-index: -1; width: 58%; aspect-ratio: 1; border-radius: 50%; background: hsl(var(--primary) / .075); filter: blur(80px); content: ""; }
 .landing-hero-copy { max-width: 630px; }
@@ -2090,6 +2102,8 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
   .landing-nav { width: min(100% - 28px, 1240px); height: 68px; }
   .landing-nav nav { gap: 9px; }
   .landing-nav .landing-signin { display: none; }
+  .landing-account { padding: 3px; }
+  .landing-account > span:last-child { display: none; }
   .landing-nav .btn { min-height: 36px; padding: 0 11px; font-size: 11px; }
   .landing-brand { font-size: 21px; }
   .landing-brand .brand-icon { width: 33px; height: 33px; }
@@ -2109,6 +2123,11 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
   .landing-private { grid-template-columns: 1fr; margin-bottom: 42px; }
   .landing-private .btn { width: 100%; justify-content: center; }
   .landing-footer { align-items: flex-start; flex-direction: column; gap: 12px; }
+}
+
+@media (max-width: 640px) {
+  .top-account { padding: 0; border: 0; background: transparent; }
+  .top-account-copy { display: none; }
 }
 
 /* Private workspace entry */

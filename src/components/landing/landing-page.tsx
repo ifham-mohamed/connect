@@ -4,12 +4,14 @@ import {
   Bookmark,
   BriefcaseBusiness,
   Check,
+  LayoutDashboard,
   Link2,
   Radio,
   Search,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import type { AuthUser } from "@/lib/auth";
 
 const workflow = [
   {
@@ -32,7 +34,18 @@ const workflow = [
   },
 ];
 
-export function LandingPage() {
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+export function LandingPage({ user }: { user: AuthUser | null }) {
+  const workspaceLabel = user?.role === "owner" ? "Workspace owner" : "Workspace member";
+
   return (
     <main className="landing-shell">
       <header className="landing-nav">
@@ -43,10 +56,27 @@ export function LandingPage() {
         <nav aria-label="Primary navigation">
           <a href="#workflow">How it works</a>
           <a href="#privacy">Private workspace</a>
-          <Link className="landing-signin" href="/auth">Sign in</Link>
-          <Link className="btn primary" href="/auth?mode=sign-up">
-            Create account <ArrowRight size={15} />
-          </Link>
+          {user ? (
+            <>
+              <div className="landing-account" title={user.email}>
+                <span className="landing-account-avatar">{initials(user.name)}</span>
+                <span>
+                  <strong>{user.name}</strong>
+                  <small>{workspaceLabel}</small>
+                </span>
+              </div>
+              <Link className="btn primary" href="/app/dashboard">
+                Open workspace <ArrowRight size={15} />
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link className="landing-signin" href="/auth">Sign in</Link>
+              <Link className="btn primary" href="/auth?mode=sign-up">
+                Create account <ArrowRight size={15} />
+              </Link>
+            </>
+          )}
         </nav>
       </header>
 
@@ -59,11 +89,11 @@ export function LandingPage() {
             priorities, and keeps your shortlist clear—from discovery to application.
           </p>
           <div className="landing-actions">
-            <Link className="btn primary" href="/auth?mode=sign-up">
-              Start your workspace <ArrowRight size={16} />
+            <Link className="btn primary" href={user ? "/app/dashboard" : "/auth?mode=sign-up"}>
+              {user ? "Continue to dashboard" : "Start your workspace"} <ArrowRight size={16} />
             </Link>
-            <Link className="btn" href="/app/dashboard">
-              Open dashboard
+            <Link className="btn" href={user ? "/app/saved" : "/auth"}>
+              {user ? <><Bookmark size={15} /> View saved jobs</> : "Sign in"}
             </Link>
           </div>
           <div className="landing-proof">
@@ -125,12 +155,16 @@ export function LandingPage() {
           <h2>Your search belongs in your workspace.</h2>
           <p>Dashboard data requires an authenticated account. Passwords are hashed and sessions expire automatically.</p>
         </div>
-        <Link className="btn primary" href="/auth">Continue securely <ArrowRight size={15} /></Link>
+        <Link className="btn primary" href={user ? "/app/dashboard" : "/auth"}>
+          {user ? <><LayoutDashboard size={15} /> Open your workspace</> : <>Continue securely <ArrowRight size={15} /></>}
+        </Link>
       </section>
 
       <footer className="landing-footer">
         <span>jobradar · Less searching. More possibility.</span>
-        <Link href="/auth">Workspace access <ArrowRight size={13} /></Link>
+        <Link href={user ? "/app/settings" : "/auth"}>
+          {user ? "Account settings" : "Workspace access"} <ArrowRight size={13} />
+        </Link>
       </footer>
     </main>
   );

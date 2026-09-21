@@ -179,6 +179,15 @@ function LinkedInMark() {
   );
 }
 
+function accountInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export default function Dashboard({ initialView = "overview" }: { initialView?: View }) {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -848,21 +857,14 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             className="profile-avatar"
             data-tooltip={data.user?.name || "Your workspace"}
           >
-            {(data.user?.name || "Your workspace")
-              .split(/\s+/)
-              .map((part) => part[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()}
+            {accountInitials(data.user?.name || "Your workspace")}
           </span>
           <span>
             <strong>{data.user?.name || "Your workspace"}</strong>
             <small>
               {data.mode === "demo"
                 ? "Demo explorer"
-                : data.user?.role === "owner"
-                  ? "Workspace owner"
-                  : "Workspace member"}
+                : data.user?.email || "Workspace member"}
             </small>
           </span>
           <button
@@ -937,11 +939,23 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
               {data.runs.some((r) => r.status === "failed") && <i />}
             </button>
             <button
-              className="top-avatar"
+              className="top-account"
               aria-label="Account settings"
               onClick={(event) => navigate("settings", event)}
             >
-              Y
+              <span className="top-avatar">
+                {accountInitials(data.user?.name || "Your workspace")}
+              </span>
+              <span className="top-account-copy">
+                <strong>{data.user?.name || "Your workspace"}</strong>
+                <small>
+                  {data.mode === "demo"
+                    ? "Demo explorer"
+                    : data.user?.role === "owner"
+                      ? "Workspace owner"
+                      : "Workspace member"}
+                </small>
+              </span>
             </button>
           </div>
         </header>
