@@ -18,6 +18,12 @@ beforeAll(async () => {
   await database.exec(
     await readFile(new URL("../db/001_initial.sql", import.meta.url), "utf8"),
   );
+  await database.exec(
+    await readFile(new URL("../db/007_user_auth.sql", import.meta.url), "utf8"),
+  );
+  await database.exec(
+    await readFile(new URL("../db/008_personal_onboarding.sql", import.meta.url), "utf8"),
+  );
 });
 afterAll(async () => {
   await database.close();
@@ -89,6 +95,26 @@ describe("PostgreSQL schema and matching integration", () => {
       jobSelect,
     );
     expect(after.rows[0].matchedMonitors).toHaveLength(0);
+  });
+  it("stores onboarding state and scopes monitors to their user", async () => {
+    const user = await database.query<{ id: string }>(
+      "INSERT INTO users(name,email,password_hash) VALUES('A User','a@example.com','hash') RETURNING id",
+    );
+    await database.query("UPDATE monitors SET user_id=$1", [user.rows[0].id]);
+    await database.query(
+      "UPDATE users SET onboarding_completed_at=now(),preferences=$2::jsonb WHERE id=$1",
+      [user.rows[0].id, JSON.stringify({ roles: ["Software Engineer"] })],
+    );
+    const owned = await database.query<{ count: number }>(
+      "SELECT count(*)::int AS count FROM monitors WHERE user_id=$1",
+      [user.rows[0].id],
+    );
+    const profile = await database.query<{ completed: boolean }>(
+      'SELECT onboarding_completed_at IS NOT NULL AS completed FROM users WHERE id=$1',
+      [user.rows[0].id],
+    );
+    expect(owned.rows[0].count).toBeGreaterThan(0);
+    expect(profile.rows[0].completed).toBe(true);
   });
   it("enforces unique source identity and valid application status", async () => {
     await expect(

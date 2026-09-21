@@ -8,6 +8,13 @@ export const monitorSchema = z.object({
   remoteOnly: z.boolean().default(false),
   enabled: z.boolean().default(true),
 });
+export const onboardingSchema = z.object({
+  experience: z.enum(["internship", "entry", "mid", "senior"]),
+  roles: z.array(z.string().trim().min(2).max(60)).min(1).max(4),
+  locations: z.array(z.string().trim().min(2).max(80)).min(1).max(6),
+  workModes: z.array(z.enum(["onsite", "hybrid", "remote"])).min(1).max(3),
+  monitors: z.array(monitorSchema).min(1).max(12),
+});
 export const sourceSchema = z
   .object({
     name: z.string().trim().min(1).max(80),

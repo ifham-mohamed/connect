@@ -10,7 +10,13 @@ export default async function WorkspaceAuthPage({
   const query = await searchParams;
   const user = await currentUser().catch(() => null);
   if (user) {
-    redirect(query.next?.startsWith("/app/") ? query.next : "/app/dashboard");
+    redirect(
+      user.onboardingCompleted
+        ? query.next?.startsWith("/app/")
+          ? query.next
+          : "/app/dashboard"
+        : "/onboarding",
+    );
   }
   return <AuthPage initialMode={query.mode === "sign-up" ? "sign-up" : "sign-in"} />;
 }

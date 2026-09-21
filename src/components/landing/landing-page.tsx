@@ -45,6 +45,7 @@ function initials(name: string) {
 
 export function LandingPage({ user }: { user: AuthUser | null }) {
   const workspaceLabel = user?.role === "owner" ? "Workspace owner" : "Workspace member";
+  const workspaceHref = user?.onboardingCompleted ? "/app/dashboard" : "/onboarding";
 
   return (
     <main className="landing-shell">
@@ -65,8 +66,8 @@ export function LandingPage({ user }: { user: AuthUser | null }) {
                   <small>{workspaceLabel}</small>
                 </span>
               </div>
-              <Link className="btn primary" href="/app/dashboard">
-                Open workspace <ArrowRight size={15} />
+              <Link className="btn primary" href={workspaceHref}>
+                {user.onboardingCompleted ? "Open workspace" : "Finish setup"} <ArrowRight size={15} />
               </Link>
             </>
           ) : (
@@ -89,11 +90,11 @@ export function LandingPage({ user }: { user: AuthUser | null }) {
             priorities, and keeps your shortlist clear—from discovery to application.
           </p>
           <div className="landing-actions">
-            <Link className="btn primary" href={user ? "/app/dashboard" : "/auth?mode=sign-up"}>
-              {user ? "Continue to dashboard" : "Start your workspace"} <ArrowRight size={16} />
+            <Link className="btn primary" href={user ? workspaceHref : "/auth?mode=sign-up"}>
+              {user ? user.onboardingCompleted ? "Continue to dashboard" : "Finish your setup" : "Start your workspace"} <ArrowRight size={16} />
             </Link>
-            <Link className="btn" href={user ? "/app/saved" : "/auth"}>
-              {user ? <><Bookmark size={15} /> View saved jobs</> : "Sign in"}
+            <Link className="btn" href={user?.onboardingCompleted ? "/app/saved" : user ? "/onboarding" : "/auth"}>
+              {user?.onboardingCompleted ? <><Bookmark size={15} /> View saved jobs</> : user ? "Review preferences" : "Sign in"}
             </Link>
           </div>
           <div className="landing-proof">
@@ -155,15 +156,15 @@ export function LandingPage({ user }: { user: AuthUser | null }) {
           <h2>Your search belongs in your workspace.</h2>
           <p>Dashboard data requires an authenticated account. Passwords are hashed and sessions expire automatically.</p>
         </div>
-        <Link className="btn primary" href={user ? "/app/dashboard" : "/auth"}>
-          {user ? <><LayoutDashboard size={15} /> Open your workspace</> : <>Continue securely <ArrowRight size={15} /></>}
+        <Link className="btn primary" href={user ? workspaceHref : "/auth"}>
+          {user ? <><LayoutDashboard size={15} /> {user.onboardingCompleted ? "Open your workspace" : "Finish personal setup"}</> : <>Continue securely <ArrowRight size={15} /></>}
         </Link>
       </section>
 
       <footer className="landing-footer">
         <span>jobradar · Less searching. More possibility.</span>
-        <Link href={user ? "/app/settings" : "/auth"}>
-          {user ? "Account settings" : "Workspace access"} <ArrowRight size={13} />
+        <Link href={user?.onboardingCompleted ? "/app/settings" : user ? "/onboarding" : "/auth"}>
+          {user?.onboardingCompleted ? "Account settings" : user ? "Preference setup" : "Workspace access"} <ArrowRight size={13} />
         </Link>
       </footer>
     </main>

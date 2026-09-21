@@ -19,6 +19,7 @@ export interface AuthUser {
   name: string;
   email: string;
   role: UserRole;
+  onboardingCompleted: boolean;
 }
 type Queryable = Pick<Pool | PoolClient, "query">;
 
@@ -75,7 +76,8 @@ export async function currentUser(
   const token = await currentSessionToken();
   if (!token) return null;
   const result = await (queryable || db()).query<AuthUser>(
-    `SELECT u.id, u.name, u.email, u.role
+    `SELECT u.id, u.name, u.email, u.role,
+            (u.onboarding_completed_at IS NOT NULL) AS "onboardingCompleted"
        FROM user_sessions s JOIN users u ON u.id=s.user_id
       WHERE s.token_hash=$1 AND s.expires_at>now() LIMIT 1`,
     [hashSessionToken(token)],

@@ -16,9 +16,10 @@ A working first release of a job-monitoring workspace for **Sri Lanka and remote
 - Idempotent imports; previously saved/application states survive re-imports.
 - Source health, run history, timeouts, response-size limits, per-source scheduling, and an advisory lock preventing overlapping collectors.
 - Private account access with scrypt-hashed passwords, expiring database sessions, HTTP-only cookies, and owner/member authorization.
+- Guided first-run onboarding that creates editable, user-owned monitors from career stage, role, location, and work-arrangement preferences.
 - Docker Compose setup, a standalone worker, and a protected endpoint for external schedulers.
 
-This is a **single shared workspace**, not a multi-tenant recruiting SaaS. Every live dashboard request requires an account; saved states and monitors are shared by workspace members.
+This is a **single shared source catalog**, not a multi-tenant recruiting SaaS. Every live dashboard request requires an account. Sources and collected listings are shared operational data, while each account owns its monitor rules and personalized matches.
 
 ## Technology choices
 

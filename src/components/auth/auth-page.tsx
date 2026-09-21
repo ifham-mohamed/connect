@@ -13,7 +13,11 @@ export function AuthPage({
   return (
     <AuthGate
       initialMode={initialMode}
-      onAuthenticated={async () => {
+      onAuthenticated={async (needsOnboarding) => {
+        if (needsOnboarding) {
+          router.replace("/onboarding");
+          return;
+        }
         const requested = new URLSearchParams(window.location.search).get("next");
         const destination = requested?.startsWith("/app/")
           ? requested

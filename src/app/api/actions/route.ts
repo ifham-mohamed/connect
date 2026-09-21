@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const ownerAction = ["source-add", "source-toggle", "sync"].includes(
       body.action,
     );
-    await authorizeWrite(request, ownerAction ? "owner" : "member");
+    const user = await authorizeWrite(request, ownerAction ? "owner" : "member");
     if (body.action === "sync") return NextResponse.json(await syncSources());
     if (body.action === "source-add") {
       const value = sourceSchema.parse(body.data);
@@ -63,16 +63,18 @@ export async function POST(request: Request) {
         await client.query("BEGIN");
         await client.query("SELECT pg_advisory_xact_lock(741210)");
         if (body.action === "monitor-delete")
-          await client.query("DELETE FROM monitors WHERE id=$1", [
+          await client.query("DELETE FROM monitors WHERE id=$1 AND user_id=$2", [
             z.string().uuid().parse(body.id),
+            user.id,
           ]);
         else {
           const v = monitorSchema.parse(body.data);
           if (body.id)
             await client.query(
-              "UPDATE monitors SET name=$2,keywords=$3,excluded_keywords=$4,location=$5,remote_only=$6,enabled=$7 WHERE id=$1",
+              "UPDATE monitors SET name=$3,keywords=$4,excluded_keywords=$5,location=$6,remote_only=$7,enabled=$8 WHERE id=$1 AND user_id=$2",
               [
                 body.id,
+                user.id,
                 v.name,
                 v.keywords,
                 v.excludedKeywords,
@@ -83,8 +85,9 @@ export async function POST(request: Request) {
             );
           else
             await client.query(
-              "INSERT INTO monitors(name,keywords,excluded_keywords,location,remote_only,enabled) VALUES($1,$2,$3,$4,$5,$6)",
+              "INSERT INTO monitors(user_id,name,keywords,excluded_keywords,location,remote_only,enabled) VALUES($1,$2,$3,$4,$5,$6,$7)",
               [
+                user.id,
                 v.name,
                 v.keywords,
                 v.excludedKeywords,

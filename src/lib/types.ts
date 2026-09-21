@@ -35,6 +35,7 @@ export interface Job {
 }
 export interface Monitor {
   id: string;
+  userId?: string;
   name: string;
   keywords: string[];
   excludedKeywords: string[];
@@ -77,5 +78,6 @@ export interface DashboardData {
     name: string;
     email: string;
     role: "owner" | "member";
+    onboardingCompleted: boolean;
   } | null;
 }

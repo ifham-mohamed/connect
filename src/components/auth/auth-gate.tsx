@@ -23,7 +23,7 @@ export function AuthGate({
   onAuthenticated,
   initialMode = "sign-in",
 }: {
-  onAuthenticated: () => Promise<void>;
+  onAuthenticated: (needsOnboarding: boolean) => Promise<void>;
   initialMode?: "sign-in" | "sign-up";
 }) {
   const [mode, setMode] = useState<"sign-in" | "sign-up">(initialMode);
@@ -167,7 +167,9 @@ export function AuthGate({
                 const result = await response.json();
                 if (!response.ok)
                   throw new Error(result.error || "Account access failed.");
-                await onAuthenticated();
+                await onAuthenticated(
+                  mode === "sign-up" || result.user?.onboardingCompleted === false,
+                );
               } catch (cause) {
                 setError(
                   cause instanceof Error

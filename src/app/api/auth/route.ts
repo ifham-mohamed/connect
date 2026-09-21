@@ -86,6 +86,7 @@ export async function POST(request: Request) {
       name: string;
       email: string;
       role: "owner" | "member";
+      onboardingCompleted: boolean;
     };
     await client.query("BEGIN");
     if (parsed.data.mode === "sign-up") {
@@ -106,13 +107,20 @@ export async function POST(request: Request) {
       );
       const role = count.rows[0]?.count === 0 ? "owner" : "member";
       const created = await client.query<typeof user>(
-        `INSERT INTO users(name,email,password_hash,role) VALUES($1,$2,$3,$4) RETURNING id,name,email,role`,
+        `INSERT INTO users(name,email,password_hash,role) VALUES($1,$2,$3,$4)
+         RETURNING id,name,email,role,false AS "onboardingCompleted"`,
         [parsed.data.name, email, await hashPassword(password), role],
       );
       user = created.rows[0];
+      if (role === "owner")
+        await client.query("UPDATE monitors SET user_id=$1 WHERE user_id IS NULL", [
+          user.id,
+        ]);
     } else {
       const found = await client.query<typeof user & { passwordHash: string }>(
-        `SELECT id,name,email,role,password_hash AS "passwordHash" FROM users WHERE lower(email)=lower($1) LIMIT 1`,
+        `SELECT id,name,email,role,password_hash AS "passwordHash",
+                (onboarding_completed_at IS NOT NULL) AS "onboardingCompleted"
+           FROM users WHERE lower(email)=lower($1) LIMIT 1`,
         [email],
       );
       const candidate = found.rows[0];

@@ -13,7 +13,7 @@ import {
   linkedInNetworkJobsSearchUrl,
   linkedInSearchTerms,
 } from "../src/lib/linkedin";
-import { monitorSchema, sourceSchema } from "../src/lib/validation";
+import { monitorSchema, onboardingSchema, sourceSchema } from "../src/lib/validation";
 import type { Monitor, Source } from "../src/lib/types";
 const monitor: Monitor = {
   id: "m",
@@ -256,6 +256,24 @@ describe("source normalization and trust boundaries", () => {
         name: "Acme",
         kind: "lever",
         board: "acme-team",
+      }).success,
+    ).toBe(true);
+    expect(
+      onboardingSchema.safeParse({
+        experience: "entry",
+        roles: ["Software Engineer"],
+        locations: ["Sri Lanka"],
+        workModes: ["hybrid", "remote"],
+        monitors: [
+          {
+            name: "Entry software · Sri Lanka",
+            keywords: ["junior software engineer"],
+            excludedKeywords: ["senior"],
+            location: "Sri Lanka",
+            remoteOnly: false,
+            enabled: true,
+          },
+        ],
       }).success,
     ).toBe(true);
   });

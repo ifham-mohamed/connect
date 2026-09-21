@@ -2,7 +2,7 @@
 
 ## Problem and scope
 
-Reduce repeated visits to Sri Lankan and remote job websites. Capture listings from supported feeds, retain their origin and discovery history, match personal interests, and support a shortlist/application workflow. The first release serves one private shared workspace with owner and member accounts. Saved statuses and monitors are shared workspace data, not per-user data.
+Reduce repeated visits to Sri Lankan and remote job websites. Capture listings from supported feeds, retain their origin and discovery history, match personal interests, and support a shortlist/application workflow. The shared source catalog serves owner and member accounts, while monitor rules and matching views are scoped to the account that created them.
 
 ## System shape
 
@@ -40,6 +40,7 @@ erDiagram
   SOURCES ||--o{ SYNC_RUNS : checked_by
   JOBS ||--o{ MONITOR_MATCHES : matches
   MONITORS ||--o{ MONITOR_MATCHES : finds
+  USERS ||--o{ MONITORS : owns
   SOURCES {
     uuid id PK
     text kind
@@ -65,6 +66,8 @@ erDiagram
 `published_at` is nullable; missing dates must remain unknown. Do not substitute fetch time or Greenhouse’s `updated_at` for publication. `first_seen_at` and `last_seen_at` reflect this platform’s observations. All timestamps are stored as PostgreSQL `timestamptz`, serialized as ISO strings, and displayed in the viewer’s local timezone.
 
 `sync_runs` records start/end/status, accepted tech-record count, number added, and error. It does not store a full version history of changed descriptions. `monitor_matches` is a derived index that can be rebuilt. `schema_migrations` ensures the initial seed is not reapplied after an owner deletes a monitor.
+
+New accounts complete a four-step preference flow. Career stage, selected roles, locations, and work arrangements generate a reviewable set of user-owned monitors. Users can remove generated monitors or add custom keyword monitors before completing setup, and can continue editing those monitors from the dashboard.
 
 ## Collection sequence and failure handling
 
@@ -101,7 +104,7 @@ The web and worker are separate processes and can be deployed independently. The
 | Many employer boards cause a collection to exceed request limits | Always use the independent worker. Add a PostgreSQL queue such as pg-boss, leases per source, bounded concurrency, retries with jitter, and domain-specific request budgets. Verify the queue’s deployment requirements first. |
 | Multiple worker instances are needed                             | Replace the global lock with a source-level lease plus a durable queue; make all tasks idempotent and fence stale lease holders.                                                                                               |
 | Database connection count grows with web instances               | Give web reads/writes a transaction-pooled connection. Keep a separate direct/session-pooled worker connection for session advisory locks.                                                                                     |
-| Users need separate private shortlists and monitors              | Add workspaces and memberships, user/workspace foreign keys, authorization on every query, and tenant-isolation tests before promising per-user privacy.                                                                       |
+| Users need separate private shortlists                           | Add a user-owned job-state table and authorization on every status mutation. Monitor ownership is already user-scoped; collected source records remain shared.                                                                 |
 | Users need email/push notifications                              | Add an outbox keyed by `(monitor, job, channel)` in the same import transaction, then deliver separately with retries and opt-in preferences.                                                                                  |
 | Older record volume becomes significant                          | Establish an explicit retention policy, keep provenance, archive old descriptions, and partition large run/event tables if measurements justify it.                                                                            |
 

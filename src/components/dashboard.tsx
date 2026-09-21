@@ -265,6 +265,10 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
         window.location.replace(`/auth?next=${next}`);
         return;
       }
+      if (response.status === 409 && result.code === "ONBOARDING_REQUIRED") {
+        router.replace("/onboarding");
+        return;
+      }
       if (!response.ok) throw new Error(result.error);
       if (result.mode === "demo") {
         try {
@@ -289,7 +293,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [router]);
   useEffect(() => {
     const initial = setTimeout(
       () => refresh().catch((e) => setError(e.message)),

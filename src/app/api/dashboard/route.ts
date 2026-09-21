@@ -32,6 +32,11 @@ export async function GET() {
         { error: "Sign in to open this workspace.", code: "AUTH_REQUIRED" },
         { status: 401 },
       );
+    if (!user.onboardingCompleted)
+      return NextResponse.json(
+        { error: "Finish setting up your job preferences.", code: "ONBOARDING_REQUIRED" },
+        { status: 409 },
+      );
     return NextResponse.json(await getDashboard(user, client));
   } catch (error) {
     console.error("Dashboard read failed", error);
