@@ -22,6 +22,7 @@ import {
   LayoutDashboard,
   Link2,
   LoaderCircle,
+  LogOut,
   MapPin,
   PanelLeftClose,
   PanelLeftOpen,
@@ -225,6 +226,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const [accountMenu, setAccountMenu] = useState<"top" | "sidebar" | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -246,6 +248,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     }
   });
   const searchRef = useRef<HTMLInputElement>(null);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const hasLoadedRef = useRef(false);
   const modalHistoryRef = useRef(false);
   const refresh = useCallback(async () => {
@@ -334,7 +337,10 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   }, [sidebarCollapsed]);
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMobileNav(false);
+      if (event.key === "Escape") {
+        setMobileNav(false);
+        setAccountMenu(null);
+      }
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
         event.preventDefault();
         searchRef.current?.focus();
@@ -343,6 +349,16 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, []);
+  useEffect(() => {
+    if (!accountMenu) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setAccountMenu(null);
+      }
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [accountMenu]);
   useEffect(() => {
     const syncViewFromPath = (event: PopStateEvent) => {
       const historyModal = event.state?.jobradarModal as Modal | undefined;
@@ -784,6 +800,69 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   ).length;
   const liveSources = data.sources.filter((s) => s.enabled);
   const matchedJobs = jobs.filter((j) => j.matchedMonitors.length > 0);
+  const signOut = async () => {
+    setAccountMenu(null);
+    const response = await fetch("/api/auth", { method: "DELETE" });
+    if (response.ok) {
+      setData(null);
+      router.replace("/auth");
+      router.refresh();
+    }
+  };
+  const accountMenuContent = (
+    <div className="account-menu" role="menu" aria-label="Account menu">
+      <div className="account-menu-header">
+        <span className="account-menu-avatar">
+          {accountInitials(data.user?.name || "Your workspace")}
+        </span>
+        <span>
+          <strong>{data.user?.name || "Your workspace"}</strong>
+          <small>{data.user?.email || "Demo workspace"}</small>
+        </span>
+        <em>
+          {data.mode === "demo"
+            ? "Demo"
+            : data.user?.role === "owner"
+              ? "Owner"
+              : "Member"}
+        </em>
+      </div>
+      <div className="account-menu-items">
+        <button
+          role="menuitem"
+          onClick={() => {
+            setAccountMenu(null);
+            navigate("settings");
+          }}
+        >
+          <Settings2 size={16} />
+          <span><strong>Workspace settings</strong><small>Account and connection details</small></span>
+          <ChevronRight size={14} />
+        </button>
+        <button
+          role="menuitem"
+          onClick={() => {
+            setAccountMenu(null);
+            openModal({ type: "help" });
+          }}
+        >
+          <CircleHelp size={16} />
+          <span><strong>Help and guidance</strong><small>Review the workspace workflow</small></span>
+          <ChevronRight size={14} />
+        </button>
+        <Link href="/" role="menuitem" onClick={() => setAccountMenu(null)}>
+          <ArrowUpRight size={16} />
+          <span><strong>Public home</strong><small>Open the Jobradar overview</small></span>
+          <ChevronRight size={14} />
+        </Link>
+      </div>
+      {data.mode === "live" && (
+        <button className="account-menu-signout" role="menuitem" onClick={signOut}>
+          <LogOut size={16} /> Sign out
+        </button>
+      )}
+    </div>
+  );
   return (
     <div
       className={`app-shell theme-${theme} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}
@@ -852,28 +931,31 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           <span>Help & getting started</span>
           <ArrowUpRight size={14} />
         </button>
-        <div className="profile">
-          <span
-            className="profile-avatar"
-            data-tooltip={data.user?.name || "Your workspace"}
-          >
-            {accountInitials(data.user?.name || "Your workspace")}
-          </span>
-          <span>
-            <strong>{data.user?.name || "Your workspace"}</strong>
-            <small>
-              {data.mode === "demo"
-                ? "Demo explorer"
-                : data.user?.email || "Workspace member"}
-            </small>
-          </span>
+        <div
+          className="profile account-menu-anchor sidebar-account-anchor"
+          ref={accountMenu === "sidebar" ? accountMenuRef : undefined}
+        >
           <button
-            className="icon-btn"
-            aria-label="Workspace account"
-            onClick={() => navigate("settings")}
+            className="profile-summary"
+            aria-label="Open account menu"
+            aria-haspopup="menu"
+            aria-expanded={accountMenu === "sidebar"}
+            onClick={() => setAccountMenu((current) => current === "sidebar" ? null : "sidebar")}
           >
-            <MoreHorizontal size={18} />
+            <span className="profile-avatar" data-tooltip={data.user?.name || "Your workspace"}>
+              {accountInitials(data.user?.name || "Your workspace")}
+            </span>
+            <span className="profile-copy">
+              <strong>{data.user?.name || "Your workspace"}</strong>
+              <small>
+                {data.mode === "demo"
+                  ? "Demo explorer"
+                  : data.user?.email || "Workspace member"}
+              </small>
+            </span>
+            <MoreHorizontal className="profile-more" size={18} />
           </button>
+          {accountMenu === "sidebar" && accountMenuContent}
         </div>
       </aside>
       {mobileNav && (
@@ -938,25 +1020,33 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
               <Bell size={19} />
               {data.runs.some((r) => r.status === "failed") && <i />}
             </button>
-            <button
-              className="top-account"
-              aria-label="Account settings"
-              onClick={(event) => navigate("settings", event)}
+            <div
+              className="account-menu-anchor top-account-anchor"
+              ref={accountMenu === "top" ? accountMenuRef : undefined}
             >
-              <span className="top-avatar">
-                {accountInitials(data.user?.name || "Your workspace")}
-              </span>
-              <span className="top-account-copy">
-                <strong>{data.user?.name || "Your workspace"}</strong>
-                <small>
-                  {data.mode === "demo"
-                    ? "Demo explorer"
-                    : data.user?.role === "owner"
-                      ? "Workspace owner"
-                      : "Workspace member"}
-                </small>
-              </span>
-            </button>
+              <button
+                className="top-account"
+                aria-label="Open account menu"
+                aria-haspopup="menu"
+                aria-expanded={accountMenu === "top"}
+                onClick={() => setAccountMenu((current) => current === "top" ? null : "top")}
+              >
+                <span className="top-avatar">
+                  {accountInitials(data.user?.name || "Your workspace")}
+                </span>
+                <span className="top-account-copy">
+                  <strong>{data.user?.name || "Your workspace"}</strong>
+                  <small>
+                    {data.mode === "demo"
+                      ? "Demo explorer"
+                      : data.user?.role === "owner"
+                        ? "Workspace owner"
+                        : "Workspace member"}
+                  </small>
+                </span>
+              </button>
+              {accountMenu === "top" && accountMenuContent}
+            </div>
           </div>
         </header>
         <main className="main-content">
@@ -2298,13 +2388,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   <button
                     className="btn primary"
                     onClick={async () => {
-                      const r = await fetch("/api/auth", {
-                        method: "DELETE",
-                      });
-                      if (r.ok) {
-                        setData(null);
-                        router.replace("/auth");
-                      }
+                      await signOut();
                     }}
                   >
                     Sign out
