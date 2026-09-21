@@ -60,7 +60,7 @@ import {
   type LinkedInWorkplace,
 } from "@/lib/linkedin";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
-import { AuthGate } from "@/components/auth-gate";
+import { AuthGate } from "@/components/auth/auth-gate";
 
 type View =
   | "overview"
