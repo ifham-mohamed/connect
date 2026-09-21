@@ -29,4 +29,17 @@ describe("database connection configuration", () => {
       }).ssl,
     ).toBeUndefined();
   });
+  it("allows concurrent browser requests while keeping the pool bounded", () => {
+    expect(
+      databaseConfig({
+        DATABASE_URL: "postgres://jobradar:jobradar@localhost/db",
+      }).max,
+    ).toBe(5);
+    expect(
+      databaseConfig({
+        DATABASE_URL: "postgres://jobradar:jobradar@localhost/db",
+        DATABASE_POOL_MAX: "50",
+      }).max,
+    ).toBe(10);
+  });
 });

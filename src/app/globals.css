@@ -351,6 +351,11 @@ td small { display: block; margin-top: 5px; }
 .detail-title h3 { color: hsl(var(--foreground)); font-size: 20px; font-weight: 800; }
 .detail-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; color: hsl(var(--muted-foreground)); }
 .detail-description { line-height: 1.75; }
+.detail-description p { white-space: pre-line; }
+.detail-loading { display: grid; gap: 8px; padding-top: 10px; }
+.detail-loading span { height: 11px; border-radius: 999px; background: hsl(var(--muted)); animation: skeleton-pulse 1.55s ease-in-out infinite; }
+.detail-loading span:nth-child(2) { width: 92%; }
+.detail-loading span:nth-child(3) { width: 68%; }
 .detail-dates { padding: 14px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--muted)); }
 .page-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 28px; padding: 18px 0 24px; border-top: 1px solid hsl(var(--border)); }
 .page-footer > span:last-child { display: flex; align-items: center; gap: 6px; }

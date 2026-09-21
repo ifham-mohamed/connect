@@ -2,13 +2,16 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { authorizeWrite } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { rebuildMatches } from "@/lib/sync";
+import { rebuildMatchesForUser } from "@/lib/sync";
 import { onboardingSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
   try {
     if (Number(request.headers.get("content-length") || 0) > 30000)
-      return NextResponse.json({ error: "Request is too large." }, { status: 413 });
+      return NextResponse.json(
+        { error: "Request is too large." },
+        { status: 413 },
+      );
 
     const user = await authorizeWrite(request);
     const preferences = onboardingSchema.parse(await request.json());
@@ -44,7 +47,7 @@ export async function POST(request: Request) {
           }),
         ],
       );
-      await rebuildMatches(client);
+      await rebuildMatchesForUser(client, user.id);
       await client.query("COMMIT");
       return NextResponse.json({ ok: true });
     } catch (error) {
@@ -61,9 +64,15 @@ export async function POST(request: Request) {
       );
     const message = error instanceof Error ? error.message : "";
     if (message === "UNAUTHORIZED")
-      return NextResponse.json({ error: "Sign in to continue." }, { status: 401 });
+      return NextResponse.json(
+        { error: "Sign in to continue." },
+        { status: 401 },
+      );
     if (message === "FORBIDDEN")
-      return NextResponse.json({ error: "Request origin is not allowed." }, { status: 403 });
+      return NextResponse.json(
+        { error: "Request origin is not allowed." },
+        { status: 403 },
+      );
     console.error("Onboarding failed", error);
     return NextResponse.json(
       { error: "Your preferences could not be saved. Please try again." },

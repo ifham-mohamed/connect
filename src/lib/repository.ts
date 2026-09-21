@@ -11,9 +11,10 @@ export async function getDashboard(
 ): Promise<DashboardData> {
   const client = existingClient || (await db().connect());
   try {
-    const memberScope = user.role === "owner"
-      ? ""
-      : `WHERE EXISTS (
+    const memberScope =
+      user.role === "owner"
+        ? ""
+        : `WHERE EXISTS (
            SELECT 1 FROM monitor_matches visible_match
            JOIN monitors visible_monitor ON visible_monitor.id=visible_match.monitor_id
            WHERE visible_match.job_id=j.id AND visible_monitor.user_id=$1 AND visible_monitor.enabled
@@ -21,7 +22,7 @@ export async function getDashboard(
     const jobs = await client.query(
       `SELECT j.id, j.external_id AS "externalId", j.source_id AS "sourceId", s.name AS "sourceName",
               j.title, j.company, j.location, j.remote, j.employment_type AS "employmentType",
-              j.salary, j.tags, j.description, j.url, j.published_at AS "publishedAt",
+              j.salary, j.tags, ''::text AS description, j.url, j.published_at AS "publishedAt",
               j.first_seen_at AS "firstSeenAt", j.last_seen_at AS "lastSeenAt",
               COALESCE(personal_state.status, 'new') AS status,
               (personal_state.reviewed_at IS NOT NULL) AS reviewed, j.active,
@@ -62,6 +63,46 @@ export async function getDashboard(
         user,
       }),
     );
+  } finally {
+    if (!existingClient) client.release();
+  }
+}
+
+export async function getJobDetail(
+  user: AuthUser,
+  jobId: string,
+  existingClient?: PoolClient,
+) {
+  const client = existingClient || (await db().connect());
+  try {
+    const result = await client.query(
+      `SELECT j.id, j.external_id AS "externalId", j.source_id AS "sourceId", s.name AS "sourceName",
+              j.title, j.company, j.location, j.remote, j.employment_type AS "employmentType",
+              j.salary, j.tags, j.description, j.url, j.published_at AS "publishedAt",
+              j.first_seen_at AS "firstSeenAt", j.last_seen_at AS "lastSeenAt",
+              COALESCE(personal_state.status, 'new') AS status,
+              (personal_state.reviewed_at IS NOT NULL) AS reviewed, j.active,
+              COALESCE((
+                SELECT array_agg(mm.monitor_id::text) FROM monitor_matches mm
+                JOIN monitors m ON m.id=mm.monitor_id
+                WHERE mm.job_id=j.id AND m.enabled AND m.user_id=$1
+              ), ARRAY[]::text[]) AS "matchedMonitors"
+         FROM jobs j JOIN sources s ON s.id=j.source_id
+         LEFT JOIN job_user_states personal_state
+           ON personal_state.job_id=j.id AND personal_state.user_id=$1
+        WHERE j.id=$2 AND (
+          $3::text='owner'
+          OR personal_state.job_id IS NOT NULL
+          OR EXISTS (
+            SELECT 1 FROM monitor_matches visible_match
+            JOIN monitors visible_monitor ON visible_monitor.id=visible_match.monitor_id
+            WHERE visible_match.job_id=j.id AND visible_monitor.user_id=$1 AND visible_monitor.enabled
+          )
+        )
+        LIMIT 1`,
+      [user.id, jobId, user.role],
+    );
+    return result.rows[0] || null;
   } finally {
     if (!existingClient) client.release();
   }

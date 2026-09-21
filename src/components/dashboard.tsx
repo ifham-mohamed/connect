@@ -224,6 +224,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const [linkedInEasyApply, setLinkedInEasyApply] = useState(false);
   const [linkedInUnderTen, setLinkedInUnderTen] = useState(false);
   const [modal, setModalState] = useState<Modal>(null);
+  const [jobDetailLoading, setJobDetailLoading] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -575,6 +576,26 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       }
     }
     setModalState(next);
+    if (next.type === "job" && data?.mode === "live" && !next.job.description) {
+      const jobId = next.job.id;
+      setJobDetailLoading(jobId);
+      void fetch(`/api/jobs/${encodeURIComponent(jobId)}`, { cache: "no-store" })
+        .then(async (response) => {
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "The opportunity could not be loaded.");
+          setData((current) => current ? {
+            ...current,
+            jobs: current.jobs.map((job) => job.id === jobId ? result.job : job),
+          } : current);
+          setModalState((current) =>
+            current?.type === "job" && current.job.id === jobId
+              ? { type: "job", job: result.job }
+              : current,
+          );
+        })
+        .catch((cause) => setToast(cause instanceof Error ? cause.message : "The opportunity could not be loaded."))
+        .finally(() => setJobDetailLoading((current) => current === jobId ? null : current));
+    }
   }
   function closeModal(replaceHistory = false) {
     setModalState(null);
@@ -2590,6 +2611,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           {modal.type === "job" && (
             <JobDetail
               job={jobs.find((j) => j.id === modal.job.id) || modal.job}
+              loading={jobDetailLoading === modal.job.id}
               demo={data.mode === "demo"}
               onStatus={changeStatus}
             />
@@ -3121,10 +3143,12 @@ function SourceForm({
 }
 function JobDetail({
   job,
+  loading,
   demo,
   onStatus,
 }: {
   job: Job;
+  loading: boolean;
   demo: boolean;
   onStatus: (job: Job, status: JobStatus) => Promise<void>;
 }) {
@@ -3199,10 +3223,18 @@ function JobDetail({
       </div>
       <div className="detail-description">
         <h3>About the opportunity</h3>
-        <p>
-          {job.description ||
-            "Read the full description on the original listing."}
-        </p>
+        {loading ? (
+          <div className="detail-loading" aria-label="Loading opportunity details" aria-live="polite">
+            <span />
+            <span />
+            <span />
+          </div>
+        ) : (
+          <p>
+            {job.description ||
+              "Read the full description on the original listing."}
+          </p>
+        )}
       </div>
       <dl className="detail-dates">
         <div>

@@ -55,7 +55,7 @@ export function databaseConfig(
     ...(tls
       ? { ssl: { rejectUnauthorized: true, ...(ca ? { ca } : {}) } }
       : {}),
-    max: Math.max(1, Math.min(10, Number(env.DATABASE_POOL_MAX || 2))),
+    max: Math.max(1, Math.min(10, Number(env.DATABASE_POOL_MAX || 5))),
     connectionTimeoutMillis: 15000,
     idleTimeoutMillis: 20000,
     keepAlive: true,

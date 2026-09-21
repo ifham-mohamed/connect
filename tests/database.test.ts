@@ -9,8 +9,14 @@ vi.mock("../src/lib/db", () => ({
       database.query(text, params),
   }),
 }));
-const { rebuildMatches } = await import("../src/lib/sync");
-const { jobSelect, sourceSelect } = await import("../src/lib/repository");
+const {
+  rebuildMatches,
+  rebuildMatchesForJobs,
+  rebuildMatchesForMonitor,
+  rebuildMatchesForUser,
+} = await import("../src/lib/sync");
+const { getDashboard, getJobDetail, jobSelect, sourceSelect } =
+  await import("../src/lib/repository");
 const client = {
   query: (text: string, params?: unknown[]) => database.query(text, params),
 } as unknown as PoolClient;
@@ -22,16 +28,34 @@ beforeAll(async () => {
     await readFile(new URL("../db/007_user_auth.sql", import.meta.url), "utf8"),
   );
   await database.exec(
-    await readFile(new URL("../db/008_personal_onboarding.sql", import.meta.url), "utf8"),
+    await readFile(
+      new URL("../db/008_personal_onboarding.sql", import.meta.url),
+      "utf8",
+    ),
   );
   await database.exec(
-    await readFile(new URL("../db/009_personal_job_states.sql", import.meta.url), "utf8"),
+    await readFile(
+      new URL("../db/009_personal_job_states.sql", import.meta.url),
+      "utf8",
+    ),
   );
   await database.exec(
-    await readFile(new URL("../db/010_run_job_results.sql", import.meta.url), "utf8"),
+    await readFile(
+      new URL("../db/010_run_job_results.sql", import.meta.url),
+      "utf8",
+    ),
   );
   await database.exec(
-    await readFile(new URL("../db/011_run_result_backfill.sql", import.meta.url), "utf8"),
+    await readFile(
+      new URL("../db/011_run_result_backfill.sql", import.meta.url),
+      "utf8",
+    ),
+  );
+  await database.exec(
+    await readFile(
+      new URL("../db/012_incremental_matching.sql", import.meta.url),
+      "utf8",
+    ),
   );
 });
 afterAll(async () => {
@@ -105,6 +129,112 @@ describe("PostgreSQL schema and matching integration", () => {
     );
     expect(after.rows[0].matchedMonitors).toHaveLength(0);
   });
+  it("refreshes only the affected monitor, user, or jobs", async () => {
+    const users = await database.query<{ id: string }>(
+      `INSERT INTO users(name,email,password_hash)
+       VALUES('Scoped One','scoped-one@example.com','hash'),('Scoped Two','scoped-two@example.com','hash') RETURNING id`,
+    );
+    const monitors = await database.query<{ id: string; user_id: string }>(
+      `INSERT INTO monitors(user_id,name,keywords)
+       VALUES($1,'Backend roles',ARRAY['Backend Engineer']),($2,'Design roles',ARRAY['Product Designer'])
+       RETURNING id,user_id`,
+      [users.rows[0].id, users.rows[1].id],
+    );
+    const source = await database.query<{ id: string }>(
+      "SELECT id FROM sources LIMIT 1",
+    );
+    const jobs = await database.query<{ id: string }>(
+      `INSERT INTO jobs(source_id,external_id,title,company,location,url)
+       VALUES($1,'scoped-backend','Backend Engineer','Acme','Colombo','https://example.com/backend'),
+             ($1,'scoped-design','Product Designer','Acme','Colombo','https://example.com/design')
+       RETURNING id`,
+      [source.rows[0].id],
+    );
+
+    await rebuildMatches(client);
+    const designBefore = await database.query<{ count: number }>(
+      "SELECT count(*)::int AS count FROM monitor_matches WHERE monitor_id=$1",
+      [monitors.rows[1].id],
+    );
+    await database.query("UPDATE monitors SET enabled=false WHERE id=$1", [
+      monitors.rows[0].id,
+    ]);
+    await rebuildMatchesForMonitor(client, monitors.rows[0].id);
+    expect(
+      (
+        await database.query<{ count: number }>(
+          "SELECT count(*)::int AS count FROM monitor_matches WHERE monitor_id=$1",
+          [monitors.rows[0].id],
+        )
+      ).rows[0].count,
+    ).toBe(0);
+    expect(
+      (
+        await database.query<{ count: number }>(
+          "SELECT count(*)::int AS count FROM monitor_matches WHERE monitor_id=$1",
+          [monitors.rows[1].id],
+        )
+      ).rows[0].count,
+    ).toBe(designBefore.rows[0].count);
+
+    await database.query(
+      "UPDATE jobs SET title='Accountant',tags=ARRAY[]::text[] WHERE id=$1",
+      [jobs.rows[1].id],
+    );
+    await rebuildMatchesForJobs(client, [jobs.rows[1].id]);
+    expect(
+      (
+        await database.query<{ count: number }>(
+          "SELECT count(*)::int AS count FROM monitor_matches WHERE monitor_id=$1 AND job_id=$2",
+          [monitors.rows[1].id, jobs.rows[1].id],
+        )
+      ).rows[0].count,
+    ).toBe(0);
+
+    await database.query("UPDATE monitors SET enabled=true WHERE id=$1", [
+      monitors.rows[0].id,
+    ]);
+    await database.query(
+      "UPDATE jobs SET description='Private full opportunity detail' WHERE id=$1",
+      [jobs.rows[0].id],
+    );
+    await rebuildMatchesForUser(client, users.rows[0].id);
+    expect(
+      (
+        await database.query<{ count: number }>(
+          "SELECT count(*)::int AS count FROM monitor_matches WHERE monitor_id=$1 AND job_id=$2",
+          [monitors.rows[0].id, jobs.rows[0].id],
+        )
+      ).rows[0].count,
+    ).toBe(1);
+
+    const scopedUser = {
+      id: users.rows[0].id,
+      name: "Scoped One",
+      email: "scoped-one@example.com",
+      role: "member" as const,
+      onboardingCompleted: true,
+      preferences: {},
+    };
+    const dashboard = await getDashboard(scopedUser, client);
+    expect(
+      dashboard.jobs.find((job) => job.id === jobs.rows[0].id)?.description,
+    ).toBe("");
+    expect(
+      (await getJobDetail(scopedUser, jobs.rows[0].id, client))?.description,
+    ).toBe("Private full opportunity detail");
+    expect(
+      await getJobDetail(
+        {
+          ...scopedUser,
+          id: users.rows[1].id,
+          email: "scoped-two@example.com",
+        },
+        jobs.rows[0].id,
+        client,
+      ),
+    ).toBeNull();
+  });
   it("stores onboarding state and scopes monitors to their user", async () => {
     const user = await database.query<{ id: string }>(
       "INSERT INTO users(name,email,password_hash) VALUES('A User','a@example.com','hash') RETURNING id",
@@ -119,7 +249,7 @@ describe("PostgreSQL schema and matching integration", () => {
       [user.rows[0].id],
     );
     const profile = await database.query<{ completed: boolean }>(
-      'SELECT onboarding_completed_at IS NOT NULL AS completed FROM users WHERE id=$1',
+      "SELECT onboarding_completed_at IS NOT NULL AS completed FROM users WHERE id=$1",
       [user.rows[0].id],
     );
     expect(owned.rows[0].count).toBeGreaterThan(0);
@@ -130,13 +260,19 @@ describe("PostgreSQL schema and matching integration", () => {
       `INSERT INTO users(name,email,password_hash)
        VALUES('First Person','first@example.com','hash'),('Second Person','second@example.com','hash') RETURNING id`,
     );
-    const job = await database.query<{ id: string }>("SELECT id FROM jobs LIMIT 1");
+    const job = await database.query<{ id: string }>(
+      "SELECT id FROM jobs LIMIT 1",
+    );
     await database.query(
       `INSERT INTO job_user_states(user_id,job_id,status,reviewed_at)
        VALUES($1,$3,'saved',now()),($2,$3,'archived',NULL)`,
       [users.rows[0].id, users.rows[1].id, job.rows[0].id],
     );
-    const states = await database.query<{ userId: string; status: string; reviewed: boolean }>(
+    const states = await database.query<{
+      userId: string;
+      status: string;
+      reviewed: boolean;
+    }>(
       `SELECT user_id AS "userId",status,reviewed_at IS NOT NULL AS reviewed
        FROM job_user_states WHERE job_id=$1 AND user_id=ANY($2::uuid[]) ORDER BY status`,
       [job.rows[0].id, users.rows.map((user) => user.id)],
