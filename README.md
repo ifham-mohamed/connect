@@ -15,6 +15,7 @@ A working first release of a job-monitoring workspace for **Sri Lanka and remote
 - Source-specific identifiers, original URLs and source attribution; publication, first discovery, and last observation timestamps.
 - Idempotent imports; previously saved/application states survive re-imports.
 - Source health, run history, timeouts, response-size limits, per-source scheduling, and an advisory lock preventing overlapping collectors.
+- Per-run result history linking each successful source check to the jobs it found and the listings first discovered in that run.
 - Private account access with scrypt-hashed passwords, expiring database sessions, HTTP-only cookies, and owner/member authorization.
 - Guided first-run onboarding that creates editable, user-owned monitors from career stage, role, location, and work-arrangement preferences.
 - Docker Compose setup, a standalone worker, and a protected endpoint for external schedulers.

@@ -455,6 +455,8 @@ export function demoData(): DashboardData {
       fetched: s.jobCount,
       added: s.jobCount,
       error: null,
+      jobIds: jobs.filter((job) => job.sourceId === s.id).map((job) => job.id),
+      newJobIds: jobs.filter((job) => job.sourceId === s.id).slice(0, 2).map((job) => job.id),
     })),
   };
 }

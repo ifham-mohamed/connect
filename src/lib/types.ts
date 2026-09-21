@@ -72,6 +72,8 @@ export interface Run {
   fetched: number;
   added: number;
   error: string | null;
+  jobIds: string[];
+  newJobIds: string[];
 }
 export interface DashboardData {
   mode: "demo" | "live";

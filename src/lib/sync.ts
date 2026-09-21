@@ -55,12 +55,13 @@ export async function syncSources() {
         const ids = new Set(old.rows.map((r) => r.external_id));
         let added = 0;
         for (const j of jobs) {
-          await client.query(
+          const stored = await client.query<{ id: string }>(
             `INSERT INTO jobs(source_id,external_id,title,company,location,remote,employment_type,salary,tags,description,url,published_at)
             VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
             ON CONFLICT(source_id,external_id) DO UPDATE SET title=excluded.title,company=excluded.company,location=excluded.location,remote=excluded.remote,
             employment_type=excluded.employment_type,salary=excluded.salary,tags=excluded.tags,description=excluded.description,url=excluded.url,
-            published_at=COALESCE(excluded.published_at,jobs.published_at),last_seen_at=now(),active=true`,
+            published_at=COALESCE(excluded.published_at,jobs.published_at),last_seen_at=now(),active=true
+            RETURNING id`,
             [
               j.sourceId,
               j.externalId,
@@ -76,7 +77,13 @@ export async function syncSources() {
               j.publishedAt,
             ],
           );
-          if (!ids.has(j.externalId)) {
+          const isNew = !ids.has(j.externalId);
+          await client.query(
+            `INSERT INTO sync_run_jobs(run_id,job_id,is_new) VALUES($1,$2,$3)
+             ON CONFLICT(run_id,job_id) DO UPDATE SET is_new=sync_run_jobs.is_new OR excluded.is_new`,
+            [runId, stored.rows[0].id, isNew],
+          );
+          if (isNew) {
             added++;
             ids.add(j.externalId);
           }

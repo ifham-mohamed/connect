@@ -27,6 +27,12 @@ beforeAll(async () => {
   await database.exec(
     await readFile(new URL("../db/009_personal_job_states.sql", import.meta.url), "utf8"),
   );
+  await database.exec(
+    await readFile(new URL("../db/010_run_job_results.sql", import.meta.url), "utf8"),
+  );
+  await database.exec(
+    await readFile(new URL("../db/011_run_result_backfill.sql", import.meta.url), "utf8"),
+  );
 });
 afterAll(async () => {
   await database.close();

@@ -43,7 +43,13 @@ export async function getDashboard(
     );
     const sources = await client.query<Source>(`${sourceSelect} ORDER BY name`);
     const runs = await client.query(
-      `SELECT r.id, s.name AS "sourceName", r.started_at AS "startedAt", r.finished_at AS "finishedAt", r.status, r.fetched, r.added, r.error FROM sync_runs r JOIN sources s ON s.id=r.source_id ORDER BY r.started_at DESC LIMIT 50`,
+      `SELECT r.id, s.name AS "sourceName", r.started_at AS "startedAt", r.finished_at AS "finishedAt",
+              r.status, r.fetched, r.added, r.error,
+              COALESCE(array_agg(srj.job_id::text) FILTER (WHERE srj.job_id IS NOT NULL), ARRAY[]::text[]) AS "jobIds",
+              COALESCE(array_agg(srj.job_id::text) FILTER (WHERE srj.is_new), ARRAY[]::text[]) AS "newJobIds"
+         FROM sync_runs r JOIN sources s ON s.id=r.source_id
+         LEFT JOIN sync_run_jobs srj ON srj.run_id=r.id
+         GROUP BY r.id,s.name ORDER BY r.started_at DESC LIMIT 50`,
     );
     return JSON.parse(
       JSON.stringify({

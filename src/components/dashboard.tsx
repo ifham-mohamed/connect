@@ -205,6 +205,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const [pageSize, setPageSize] = useState(8);
   const [filters, setFilters] = useState(false);
   const [workspaceFilter, setWorkspaceFilter] = useState("all");
+  const [runFilter, setRunFilter] = useState<string | null>(null);
+  const [runScope, setRunScope] = useState<"all" | "new">("all");
   const [linkedInQuery, setLinkedInQuery] = useState("");
   const [linkedInLocation, setLinkedInLocation] = useState("");
   const [linkedInWorkplace, setLinkedInWorkplace] =
@@ -389,10 +391,25 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       setQuery("");
       setRegion("all");
       setSourceFilter("all");
+      const params = new URLSearchParams(window.location.search);
+      const historyRun = params.get("run");
+      setRunFilter(historyRun);
+      setRunScope(params.get("scope") === "new" ? "new" : "all");
+      if (historyRun) setTab("all");
       setMobileNav(false);
     };
+    const initial = window.setTimeout(() => {
+      const initialParams = new URLSearchParams(window.location.search);
+      const initialRun = initialParams.get("run");
+      setRunFilter(initialRun);
+      setRunScope(initialParams.get("scope") === "new" ? "new" : "all");
+      if (initialRun) setTab("all");
+    }, 0);
     window.addEventListener("popstate", syncViewFromPath);
-    return () => window.removeEventListener("popstate", syncViewFromPath);
+    return () => {
+      window.clearTimeout(initial);
+      window.removeEventListener("popstate", syncViewFromPath);
+    };
   }, []);
   const jobs = useMemo(
     () =>
@@ -406,6 +423,16 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   );
   const ownerAccess = data?.mode === "demo" || data?.user?.role === "owner";
   const activeTab = !ownerAccess && tab === "all" && view !== "saved" ? "matched" : tab;
+  const selectedRun = data?.runs.find((run) => run.id === runFilter);
+  const selectedRunJobIds = useMemo(
+    () => selectedRun
+      ? new Set(runScope === "new" ? selectedRun.newJobIds : selectedRun.jobIds)
+      : null,
+    [runScope, selectedRun],
+  );
+  const contextJobs = selectedRunJobIds
+    ? jobs.filter((job) => selectedRunJobIds.has(job.id))
+    : jobs;
   const filtered = useMemo(
     () =>
       jobs
@@ -414,11 +441,14 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             `${j.title} ${j.company} ${j.tags.join(" ")} ${j.location}`.toLowerCase();
           return (
             (!query || text.includes(query.toLowerCase())) &&
+            (!selectedRunJobIds || selectedRunJobIds.has(j.id)) &&
             (view === "saved"
               ? j.status === "saved" || j.status === "applied"
               : activeTab === "archived"
                 ? j.status === "archived"
-                : j.status !== "archived") &&
+                : selectedRun && activeTab === "all"
+                  ? true
+                  : j.status !== "archived") &&
             (region === "all" ||
               (region === "remote"
                 ? j.remote
@@ -437,7 +467,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             : new Date(b.publishedAt || b.firstSeenAt).getTime() -
               new Date(a.publishedAt || a.firstSeenAt).getTime(),
         ),
-    [jobs, query, view, region, sourceFilter, monitorFilter, activeTab, sort],
+    [jobs, query, view, region, sourceFilter, monitorFilter, activeTab, sort, selectedRun, selectedRunJobIds],
   );
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -503,10 +533,25 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     setQuery("");
     setRegion("all");
     setSourceFilter("all");
+    setRunFilter(null);
+    setRunScope("all");
     setWorkspaceFilter("all");
     setMobileNav(false);
     if (typeof window !== "undefined" && window.location.pathname !== viewPaths[next]) {
       window.history.pushState({ view: next }, "", viewPaths[next]);
+    }
+  }
+  function viewRun(runId: string, scope: "all" | "new" = "all") {
+    navigate("jobs");
+    setRunFilter(runId);
+    setRunScope(scope);
+    setTab(ownerAccess ? "all" : "matched");
+    if (typeof window !== "undefined") {
+      window.history.replaceState(
+        { view: "jobs", run: runId, scope },
+        "",
+        `/app/jobs?run=${encodeURIComponent(runId)}${scope === "new" ? "&scope=new" : ""}`,
+      );
     }
   }
   function openModal(next: Exclude<Modal, null>) {
@@ -1090,10 +1135,12 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   ? "YOUR CAREER, IN FOCUS"
                   : "A MORE THOUGHTFUL JOB SEARCH"}
               </div>
-              <h1>{view === "overview" ? `Role matches for ${focusLocationLabel}.` : view === "monitors" ? "Your personal monitors." : view === "jobs" && !isOwner ? "Opportunities matched to you." : titles[view][0]}</h1>
-              <p>{view === "overview" ? `Focused on ${focusRoleLabel} from your saved preferences.` : view === "monitors" ? "Add, edit, pause, or remove the searches that shape your Relevant feed." : view === "jobs" && !isOwner ? "Review roles selected by your personal monitors, then save, apply, or archive them." : titles[view][1]}</p>
+              <h1>{view === "jobs" && selectedRun ? `${runScope === "new" ? "New jobs" : "Jobs found"} by ${selectedRun.sourceName}.` : view === "overview" ? `Role matches for ${focusLocationLabel}.` : view === "monitors" ? "Your personal monitors." : view === "jobs" && !isOwner ? "Opportunities matched to you." : titles[view][0]}</h1>
+              <p>{view === "jobs" && selectedRun ? `${dateTime(selectedRun.startedAt)} · ${selectedRun.fetched} collected · ${selectedRun.added} new in this run.` : view === "overview" ? `Focused on ${focusRoleLabel} from your saved preferences.` : view === "monitors" ? "Add, edit, pause, or remove the searches that shape your Relevant feed." : view === "jobs" && !isOwner ? "Review roles selected by your personal monitors, then save, apply, or archive them." : titles[view][1]}</p>
             </div>
-            {view !== "monitors" && view !== "sources" && view !== "activity" && (
+            {view === "jobs" && selectedRun ? (
+              <button className="btn" onClick={() => navigate("jobs")}><X size={15} /> Clear run filter</button>
+            ) : view !== "monitors" && view !== "sources" && view !== "activity" && (
               <button
                 className="btn primary"
                 onClick={() => openModal({ type: "monitor" })}
@@ -1246,14 +1293,15 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                               ? savedCount +
                                 jobs.filter((j) => j.status === "applied")
                                   .length
-                              : jobs.filter((j) => j.status !== "archived")
-                                  .length}
+                              : selectedRun
+                                ? contextJobs.length
+                                : contextJobs.filter((j) => j.status !== "archived").length}
                           </span>
                         )}
                         {key === "matched" && (
                           <span>
                             {
-                              jobs.filter((j) => j.matchedMonitors.length > 0)
+                              contextJobs.filter((j) => j.matchedMonitors.length > 0)
                                 .length
                             }
                           </span>
@@ -2347,6 +2395,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                           <th>Status</th>
                           <th>Collected</th>
                           <th>New jobs</th>
+                          <th>Results</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2364,6 +2413,16 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                             </td>
                             <td>{run.fetched}</td>
                             <td>+{run.added}</td>
+                            <td>
+                              <div className="run-result-actions">
+                                <button className="btn small" disabled={!run.jobIds.length} onClick={() => viewRun(run.id)}>
+                                  View run <ArrowRight size={13} />
+                                </button>
+                                {run.newJobIds.length > 0 && (
+                                  <button className="btn small subtle" onClick={() => viewRun(run.id, "new")}>New only</button>
+                                )}
+                              </div>
+                            </td>
                           </tr>
                         ))}
                       </tbody>

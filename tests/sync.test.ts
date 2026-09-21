@@ -45,6 +45,9 @@ beforeAll(async () => {
   await database.exec(
     await readFile(new URL("../db/001_initial.sql", import.meta.url), "utf8"),
   );
+  await database.exec(
+    await readFile(new URL("../db/010_run_job_results.sql", import.meta.url), "utf8"),
+  );
   await database.query("UPDATE sources SET enabled=false WHERE kind='lever'");
 });
 afterAll(async () => {
@@ -63,6 +66,10 @@ describe("collector transactions and scheduling", () => {
       "SELECT count(*)::int AS count FROM monitor_matches",
     );
     expect(matches.rows[0].count).toBe(enabledSeedSources);
+    const runJobs = await database.query<{ count: number; newCount: number }>(
+      `SELECT count(*)::int AS count,count(*) FILTER (WHERE is_new)::int AS "newCount" FROM sync_run_jobs`,
+    );
+    expect(runJobs.rows[0]).toEqual({ count: enabledSeedSources, newCount: enabledSeedSources });
     const second = await syncSources();
     expect(second.results).toHaveLength(0);
     expect(collectMock).toHaveBeenCalledTimes(enabledSeedSources);
@@ -103,6 +110,13 @@ describe("collector transactions and scheduling", () => {
     );
     expect(rows.rows).toHaveLength(enabledSeedSources);
     expect(rows.rows.every((j) => j.status === "saved")).toBe(true);
+    const repeated = await database.query<{ isNew: boolean }>(
+      `SELECT srj.is_new AS "isNew" FROM sync_run_jobs srj
+       JOIN sync_runs run ON run.id=srj.run_id
+       JOIN sources source ON source.id=run.source_id
+       WHERE source.name='ITPro.lk' ORDER BY run.started_at DESC LIMIT 1`,
+    );
+    expect(repeated.rows[0].isNew).toBe(false);
     const failed = await database.query<{ status: string; error: string }>(
       "SELECT status,error FROM sync_runs WHERE status='failed'",
     );

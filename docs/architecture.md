@@ -38,6 +38,8 @@ Use the worker **or** a platform scheduler calling `/api/cron`. The same lock an
 erDiagram
   SOURCES ||--o{ JOBS : publishes
   SOURCES ||--o{ SYNC_RUNS : checked_by
+  SYNC_RUNS ||--o{ SYNC_RUN_JOBS : returned
+  JOBS ||--o{ SYNC_RUN_JOBS : observed_in
   JOBS ||--o{ MONITOR_MATCHES : matches
   MONITORS ||--o{ MONITOR_MATCHES : finds
   USERS ||--o{ MONITORS : owns
@@ -67,7 +69,7 @@ erDiagram
 
 `published_at` is nullable; missing dates must remain unknown. Do not substitute fetch time or Greenhouse’s `updated_at` for publication. `first_seen_at` and `last_seen_at` reflect this platform’s observations. All timestamps are stored as PostgreSQL `timestamptz`, serialized as ISO strings, and displayed in the viewer’s local timezone.
 
-`sync_runs` records start/end/status, accepted tech-record count, number added, and error. It does not store a full version history of changed descriptions. `monitor_matches` is a derived index that can be rebuilt. `job_user_states` separates each account's saved, applied, archived, and reviewed state from the shared source listing. `schema_migrations` ensures the initial seed is not reapplied after an owner deletes a monitor.
+`sync_runs` records start/end/status, accepted tech-record count, number added, and error. `sync_run_jobs` records the exact listings returned by each successful run and whether each listing was new in that run, which powers drill-down links from collection history. It does not store a full version history of changed descriptions. `monitor_matches` is a derived index that can be rebuilt. `job_user_states` separates each account's saved, applied, archived, and reviewed state from the shared source listing. `schema_migrations` ensures the initial seed is not reapplied after an owner deletes a monitor.
 
 New accounts complete a four-step preference flow. Career stage, selected roles, locations, and work arrangements generate a reviewable set of user-owned monitors. Users can remove generated monitors or add custom keyword monitors before completing setup, and can continue editing those monitors from the dashboard.
 
