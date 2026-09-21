@@ -1,31 +1,45 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { createSession, equalSecret, validSession } from "../src/lib/auth";
-afterEach(() => {
-  vi.unstubAllEnvs();
-  vi.useRealTimers();
-});
-describe("owner authentication", () => {
-  it("accepts a valid session but rejects tampering and rotated secrets", () => {
-    vi.stubEnv("SESSION_SECRET", "a".repeat(40));
-    const token = createSession();
-    expect(validSession(token)).toBe(true);
-    expect(validSession(token + "0")).toBe(false);
-    expect(validSession(token + ".extra")).toBe(false);
-    vi.stubEnv("SESSION_SECRET", "b".repeat(40));
-    expect(validSession(token)).toBe(false);
+import { describe, expect, it } from "vitest";
+import {
+  createSessionToken,
+  equalSecret,
+  hashPassword,
+  hashSessionToken,
+  originAllowed,
+  verifyPassword,
+} from "../src/lib/auth";
+
+describe("account authentication", () => {
+  it("hashes passwords with unique salts and verifies only the original", async () => {
+    const first = await hashPassword("correct-horse-123");
+    const second = await hashPassword("correct-horse-123");
+    expect(first).not.toBe(second);
+    expect(await verifyPassword("correct-horse-123", first)).toBe(true);
+    expect(await verifyPassword("incorrect-horse-123", first)).toBe(false);
+    expect(await verifyPassword("correct-horse-123", "invalid")).toBe(false);
   });
-  it("rejects expired sessions and short signing secrets", () => {
-    vi.stubEnv("SESSION_SECRET", "a".repeat(40));
-    vi.useFakeTimers();
-    const token = createSession();
-    vi.advanceTimersByTime(13 * 3600000);
-    expect(validSession(token)).toBe(false);
-    vi.stubEnv("SESSION_SECRET", "short");
-    expect(() => createSession()).toThrow();
+
+  it("creates opaque session tokens and stable non-reversible hashes", () => {
+    const token = createSessionToken();
+    expect(token.length).toBeGreaterThan(32);
+    expect(hashSessionToken(token)).toHaveLength(64);
+    expect(hashSessionToken(token)).toBe(hashSessionToken(token));
+    expect(hashSessionToken(token)).not.toContain(token);
   });
+
   it("compares secrets without accepting a prefix", () => {
     expect(equalSecret("correct", "correct")).toBe(true);
     expect(equalSecret("correct", "correc")).toBe(false);
     expect(equalSecret("correct", "incorrect")).toBe(false);
+  });
+
+  it("accepts only the configured same origin for mutations", () => {
+    const sameOrigin = new Request("https://jobradar.test/api/auth", {
+      headers: { origin: "https://jobradar.test" },
+    });
+    const otherOrigin = new Request("https://jobradar.test/api/auth", {
+      headers: { origin: "https://attacker.test" },
+    });
+    expect(originAllowed(sameOrigin)).toBe(true);
+    expect(originAllowed(otherOrigin)).toBe(false);
   });
 });

@@ -15,10 +15,10 @@ A working first release of a job-monitoring workspace for **Sri Lanka and remote
 - Source-specific identifiers, original URLs and source attribution; publication, first discovery, and last observation timestamps.
 - Idempotent imports; previously saved/application states survive re-imports.
 - Source health, run history, timeouts, response-size limits, per-source scheduling, and an advisory lock preventing overlapping collectors.
-- Password-protected owner actions and signed, expiring, HTTP-only sessions. Public listings remain readable without signup.
+- Private account access with scrypt-hashed passwords, expiring database sessions, HTTP-only cookies, and owner/member authorization.
 - Docker Compose setup, a standalone worker, and a protected endpoint for external schedulers.
 
-This is a **single shared workspace**, not a multi-tenant recruiting SaaS. Sample mode is clearly labeled and does not run collectors or imply that its illustrative openings are real.
+This is a **single shared workspace**, not a multi-tenant recruiting SaaS. Every live dashboard request requires an account; saved states and monitors are shared by workspace members.
 
 ## Technology choices
 
@@ -45,13 +45,13 @@ npm ci
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). With no `DATABASE_URL`, the app uses clearly labeled sample data. Monitor, source, and job-status changes persist in this browser’s local storage. Demo changes are not imported into the live database.
+Open [localhost:3000](http://localhost:3000). PostgreSQL is required for accounts and live workspace data. Apply the migrations, then create the first account; it becomes the workspace owner.
 
 ## Start the complete system with Docker
 
 1. Install/start Docker Desktop or Docker Engine with Compose.
 2. Copy `.env.example` to `.env`.
-3. Replace `ADMIN_PASSWORD`, `SESSION_SECRET`, and `CRON_SECRET` with different random values. The owner password must be at least 16 characters; the session secret at least 32; the cron secret at least 24. Generate each independently with:
+3. Replace `CRON_SECRET` with a random value of at least 24 characters. Generate one with:
 
 ```sh
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
@@ -64,7 +64,7 @@ node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 docker compose up --build -d
 ```
 
-Compose starts PostgreSQL, applies the migration once, then starts the web app and scheduled worker. Open [localhost:3000](http://localhost:3000). Sign in through **Workspace settings** to manage the workspace. The worker starts its first collection automatically.
+Compose starts PostgreSQL, applies the migration once, then starts the web app and scheduled worker. Open [localhost:3000](http://localhost:3000) and create the first account to become the workspace owner. The worker starts its first collection automatically.
 
 ```sh
 docker compose logs -f worker
@@ -78,7 +78,7 @@ The named PostgreSQL volume persists after `docker compose down`. Do not use `do
 
 ### Aiven configuration
 
-The local `.env` is prepared with the supplied Aiven connection URL and a placeholder password. Replace that password with the real service password, URL-encoding special characters, and confirm the hostname in the Aiven console. The originally supplied hostname failed DNS resolution during verification. App authentication secrets have been generated locally; the workspace owner password is `ADMIN_PASSWORD` in `.env`.
+The local `.env` is prepared with the supplied Aiven connection URL and a placeholder password. Replace that password with the real service password, URL-encoding special characters, and confirm the hostname in the Aiven console. User passwords are hashed in PostgreSQL and session cookies contain only random opaque tokens.
 
 Remote database connections verify TLS certificates. If the service uses an Aiven private CA, download its CA certificate from the service console and set `DATABASE_CA_CERT_PATH` to its local path, or provide the PEM in `DATABASE_CA_CERT`. For containers, use the PEM environment variable, because a Windows certificate path is not available inside the container.
 

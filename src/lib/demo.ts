@@ -444,6 +444,7 @@ export function demoData(): DashboardData {
     monitors,
     sources,
     authenticated: false,
+    user: null,
     runs: sources.map((s, i) => ({
       id: `r${i}`,
       sourceName: s.name,

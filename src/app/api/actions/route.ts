@@ -7,7 +7,6 @@ import { rebuildMatches, syncSources } from "@/lib/sync";
 export const maxDuration = 300;
 export async function POST(request: Request) {
   try {
-    await authorizeWrite(request);
     if (Number(request.headers.get("content-length") || 0) > 20000)
       return NextResponse.json(
         { error: "Request is too large." },
@@ -27,6 +26,10 @@ export async function POST(request: Request) {
         data: z.unknown().optional(),
       })
       .parse(await request.json());
+    const ownerAction = ["source-add", "source-toggle", "sync"].includes(
+      body.action,
+    );
+    await authorizeWrite(request, ownerAction ? "owner" : "member");
     if (body.action === "sync") return NextResponse.json(await syncSources());
     if (body.action === "source-add") {
       const value = sourceSchema.parse(body.data);
@@ -110,12 +113,20 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "";
     if (message === "UNAUTHORIZED")
       return NextResponse.json(
-        { error: "Sign in as the workspace owner to make changes." },
+        { error: "Sign in to make changes in this workspace." },
         { status: 401 },
       );
     if (message === "FORBIDDEN")
       return NextResponse.json(
         { error: "Request origin is not allowed. Check APP_URL." },
+        { status: 403 },
+      );
+    if (message === "OWNER_REQUIRED")
+      return NextResponse.json(
+        {
+          error:
+            "Only the workspace owner can manage sources or run collection.",
+        },
         { status: 403 },
       );
     if (

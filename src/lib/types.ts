@@ -72,4 +72,10 @@ export interface DashboardData {
   sources: Source[];
   runs: Run[];
   authenticated: boolean;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: "owner" | "member";
+  } | null;
 }

@@ -55,10 +55,10 @@ export function databaseConfig(
     ...(tls
       ? { ssl: { rejectUnauthorized: true, ...(ca ? { ca } : {}) } }
       : {}),
-    max: 5,
-    connectionTimeoutMillis: 8000,
+    max: Math.max(1, Math.min(10, Number(env.DATABASE_POOL_MAX || 2))),
+    connectionTimeoutMillis: 15000,
     idleTimeoutMillis: 20000,
+    keepAlive: true,
     application_name: "jobradar",
   };
 }
-

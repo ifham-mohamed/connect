@@ -2,7 +2,7 @@
 
 ## Problem and scope
 
-Reduce repeated visits to Sri Lankan and remote job websites. Capture listings from supported feeds, retain their origin and discovery history, match personal interests, and support a shortlist/application workflow. The first release serves a single owner workspace; public readers can view source listings. Saved statuses and monitors are shared workspace data, not private per-user data.
+Reduce repeated visits to Sri Lankan and remote job websites. Capture listings from supported feeds, retain their origin and discovery history, match personal interests, and support a shortlist/application workflow. The first release serves one private shared workspace with owner and member accounts. Saved statuses and monitors are shared workspace data, not per-user data.
 
 ## System shape
 
@@ -21,7 +21,7 @@ flowchart LR
 
 One TypeScript codebase is organized into independently understandable boundaries:
 
-- `src/components`: presentation and browser-only demo state.
+- `src/components`: presentation, responsive navigation, account entry, and dashboard interaction state.
 - `src/app/api`: request/response, authentication, validation and authorization.
 - `src/lib/connectors.ts`: fixed source endpoints and source-specific validation/normalization.
 - `src/lib/sync.ts`: scheduling, collection orchestration, transactional storage and match rebuilding.
@@ -82,9 +82,9 @@ No absence-based closure is inferred from limited feeds. The initial release doe
 
 ## Security and trust boundaries
 
-- Read endpoints expose a public, shared workspace. Owner mutations require an authenticated session and a same-origin request.
-- The owner password comes from the deployment secret environment. It is compared using timing-safe comparison; session cookies are HMAC signed and expire after 12 hours.
-- Login is limited in PostgreSQL, globally across instances, to 10 attempts per five-minute window. This simple control can cause temporary global lockouts; replace it with provider-backed identity and a trusted edge rate limiter when inviting more users.
+- Dashboard reads and mutations require an active database session. The first registered account becomes owner; subsequent accounts are members.
+- Passwords use salted scrypt hashes. Browsers receive an opaque HTTP-only, same-site session token whose SHA-256 hash and seven-day expiry are stored in PostgreSQL.
+- Account attempts are limited per normalized-email bucket in PostgreSQL to 10 attempts per five-minute window. Source management and manual collection additionally require the owner role.
 - `APP_URL` must equal the production HTTPS origin; it also determines the secure-cookie flag. Configure HTTPS at the host/reverse proxy.
 - Cron access requires a separate Bearer secret. Source URLs and job descriptions cannot trigger backend requests.
 - SQL is parameterized. Job HTML is displayed as React-escaped plain text, never through `dangerouslySetInnerHTML`. XML DTD/entity declarations are rejected. CSV cells are escaped and spreadsheet formula prefixes are neutralized.
@@ -101,7 +101,7 @@ The web and worker are separate processes and can be deployed independently. The
 | Many employer boards cause a collection to exceed request limits | Always use the independent worker. Add a PostgreSQL queue such as pg-boss, leases per source, bounded concurrency, retries with jitter, and domain-specific request budgets. Verify the queue’s deployment requirements first. |
 | Multiple worker instances are needed                             | Replace the global lock with a source-level lease plus a durable queue; make all tasks idempotent and fence stale lease holders.                                                                                               |
 | Database connection count grows with web instances               | Give web reads/writes a transaction-pooled connection. Keep a separate direct/session-pooled worker connection for session advisory locks.                                                                                     |
-| Users need private shortlists and monitors                       | Add provider-backed authentication, workspaces and memberships, owner/workspace foreign keys, authorization on every query, and tenant-isolation tests before inviting users.                                                  |
+| Users need separate private shortlists and monitors              | Add workspaces and memberships, user/workspace foreign keys, authorization on every query, and tenant-isolation tests before promising per-user privacy.                                                                       |
 | Users need email/push notifications                              | Add an outbox keyed by `(monitor, job, channel)` in the same import transaction, then deliver separately with retries and opt-in preferences.                                                                                  |
 | Older record volume becomes significant                          | Establish an explicit retention policy, keep provenance, archive old descriptions, and partition large run/event tables if measurements justify it.                                                                            |
 

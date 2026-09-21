@@ -60,6 +60,7 @@ import {
   type LinkedInWorkplace,
 } from "@/lib/linkedin";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
+import { AuthGate } from "@/components/auth-gate";
 
 type View =
   | "overview"
@@ -73,7 +74,6 @@ type Modal =
   | { type: "monitor"; monitor?: Monitor }
   | { type: "source" }
   | { type: "job"; job: Job }
-  | { type: "login" }
   | { type: "help" }
   | null;
 type Theme = "light" | "dark";
@@ -181,6 +181,7 @@ function LinkedInMark() {
 
 export default function Dashboard({ initialView = "overview" }: { initialView?: View }) {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [authRequired, setAuthRequired] = useState(false);
   const [error, setError] = useState("");
   const [now, setNow] = useState(0);
   const [view, setView] = useState<View>(initialView);
@@ -243,6 +244,12 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     try {
       const response = await fetch("/api/dashboard", { cache: "no-store" });
       const result = await response.json();
+      if (response.status === 401 && result.code === "AUTH_REQUIRED") {
+        setData(null);
+        setAuthRequired(true);
+        setError("");
+        return;
+      }
       if (!response.ok) throw new Error(result.error);
       if (result.mode === "demo") {
         try {
@@ -261,6 +268,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
         }
       }
       setData(result);
+      setAuthRequired(false);
       hasLoadedRef.current = true;
       setNow(Date.now());
       setError("");
@@ -579,10 +587,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       saveDemo(next);
       return;
     }
-    if (!data.authenticated) {
-      openModal({ type: "login" });
+    if (!data.authenticated)
       throw new Error("Sign in to manage this workspace.");
-    }
     const response = await fetch("/api/actions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -676,6 +682,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     URL.revokeObjectURL(url);
     setToast(`Exported ${filtered.length} opportunities.`);
   }
+  if (!data && authRequired)
+    return <AuthGate onAuthenticated={refresh} />;
   if (!data)
     return error ? (
       <div className="boot">
@@ -836,25 +844,31 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           <ArrowUpRight size={14} />
         </button>
         <div className="profile">
-          <span className="profile-avatar" data-tooltip="Your workspace">YO</span>
+          <span
+            className="profile-avatar"
+            data-tooltip={data.user?.name || "Your workspace"}
+          >
+            {(data.user?.name || "Your workspace")
+              .split(/\s+/)
+              .map((part) => part[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()}
+          </span>
           <span>
-            <strong>Your workspace</strong>
+            <strong>{data.user?.name || "Your workspace"}</strong>
             <small>
               {data.mode === "demo"
                 ? "Demo explorer"
-                : data.authenticated
+                : data.user?.role === "owner"
                   ? "Workspace owner"
-                  : "Public viewer"}
+                  : "Workspace member"}
             </small>
           </span>
           <button
             className="icon-btn"
             aria-label="Workspace account"
-            onClick={() =>
-              data.mode === "demo"
-                ? navigate("settings")
-                : openModal({ type: "login" })
-            }
+            onClick={() => navigate("settings")}
           >
             <MoreHorizontal size={18} />
           </button>
@@ -2259,29 +2273,27 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 <div className="setting-row">
                   <span>Access</span>
                   <strong>
-                    {data.authenticated
-                      ? "Owner"
-                      : data.mode === "demo"
-                        ? "Demo explorer"
-                        : "Public viewer"}
+                    {data.mode === "demo"
+                      ? "Demo explorer"
+                      : data.user?.role === "owner"
+                        ? "Owner"
+                        : "Member"}
                   </strong>
                 </div>
                 {data.mode === "live" && (
                   <button
                     className="btn primary"
                     onClick={async () => {
-                      if (data.authenticated) {
-                        const r = await fetch("/api/auth", {
-                          method: "DELETE",
-                        });
-                        if (r.ok) {
-                          await refresh();
-                          setToast("Signed out.");
-                        }
-                      } else openModal({ type: "login" });
+                      const r = await fetch("/api/auth", {
+                        method: "DELETE",
+                      });
+                      if (r.ok) {
+                        setData(null);
+                        setAuthRequired(true);
+                      }
                     }}
                   >
-                    {data.authenticated ? "Sign out" : "Sign in as owner"}
+                    Sign out
                     <ArrowRight size={15} />
                   </button>
                 )}
@@ -2306,7 +2318,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   <li>
                     <span>2</span>
                     <div>
-                      <strong>Set your workspace password</strong>
+                      <strong>Create the owner account</strong>
                       <p>
                         Owner access protects your monitors, saved jobs, and
                         collection controls.
@@ -2326,8 +2338,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 </ol>
                 <p className="settings-hint">
                   <ShieldCheck size={16} />
-                  Source listings are publicly readable. This first release has
-                  one shared owner workspace.
+                  The dashboard requires an account. Members can manage their
+                  search workflow; owners also control sources and collection.
                 </p>
               </section>
               <section className="info-panel">
@@ -2394,9 +2406,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 ? "Connect a new source"
                 : modal.type === "job"
                   ? "Opportunity details"
-                  : modal.type === "login"
-                    ? "Welcome to your workspace"
-                    : "A calmer way to find what’s next"
+                  : "A calmer way to find what’s next"
           }
           close={() => closeModal()}
         >
@@ -2439,22 +2449,6 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
               job={jobs.find((j) => j.id === modal.job.id) || modal.job}
               demo={data.mode === "demo"}
               onStatus={changeStatus}
-            />
-          )}
-          {modal.type === "login" && (
-            <LoginForm
-              onSave={async (password) => {
-                const response = await fetch("/api/auth", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ password }),
-                });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error);
-                await refresh();
-                closeModal();
-                setToast("You’re signed in. Welcome back.");
-              }}
             />
           )}
           {modal.type === "help" && (
@@ -3104,60 +3098,5 @@ function JobDetail({
           : "Archive this opportunity"}
       </button>
     </div>
-  );
-}
-function LoginForm({
-  onSave,
-}: {
-  onSave: (password: string) => Promise<void>;
-}) {
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  return (
-    <form
-      className="form"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        setBusy(true);
-        try {
-          await onSave(password);
-        } catch (e) {
-          setError((e as Error).message);
-        } finally {
-          setBusy(false);
-        }
-      }}
-    >
-      <p className="form-intro">
-        Sign in as the owner to manage sources, edit monitors, and update your
-        shortlist.
-      </p>
-      <label>
-        Workspace password
-        <input
-          type="password"
-          autoComplete="current-password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </label>
-      {error && (
-        <p className="inline-error" role="alert">
-          {error}
-        </p>
-      )}
-      <div className="form-footer">
-        <button className="btn primary" disabled={busy}>
-          {busy ? (
-            <LoaderCircle size={16} className="spin" />
-          ) : (
-            <ShieldCheck size={16} />
-          )}
-          Sign in
-        </button>
-      </div>
-    </form>
   );
 }

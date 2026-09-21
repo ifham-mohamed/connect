@@ -2,16 +2,15 @@
 
 ## Configuration
 
-| Variable            | Purpose                                                                                                                   |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`      | PostgreSQL connection. Omit entirely for the browser-only demo. Use a direct or session-pooled endpoint for this release. |
-| `ADMIN_PASSWORD`    | Owner sign-in; at least 16 characters. Use a long, random value.                                                          |
-| `SESSION_SECRET`    | HMAC signing key; at least 32 characters. Rotate to invalidate existing sessions.                                         |
-| `CRON_SECRET`       | Separate scheduler Bearer secret; at least 24 characters.                                                                 |
-| `APP_URL`           | Exact origin, for example `https://jobs.example.com`. Controls same-origin writes and secure session cookies.             |
-| `POSTGRES_PASSWORD` | Compose-managed database password; use a strong URL-safe value outside local development.                                 |
+| Variable            | Purpose                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`      | PostgreSQL connection for workspace data, accounts, and sessions. Use a direct or session-pooled endpoint.    |
+| `DATABASE_POOL_MAX` | Optional web pool limit; defaults to 2 to fit conservative hosted PostgreSQL limits.                          |
+| `CRON_SECRET`       | Separate scheduler Bearer secret; at least 24 characters.                                                     |
+| `APP_URL`           | Exact origin, for example `https://jobs.example.com`. Controls same-origin writes and secure session cookies. |
+| `POSTGRES_PASSWORD` | Compose-managed database password; use a strong URL-safe value outside local development.                     |
 
-Keep `.env` out of version control and container build context. Set deployment variables through the host’s secret manager. Only the web service needs owner and scheduler secrets; the worker only needs its database connection.
+Keep `.env` out of version control and container build context. Set deployment variables through the host’s secret manager. Only the web service needs the scheduler secret; the worker only needs its database connection.
 
 ## First deployment
 
@@ -19,7 +18,7 @@ Keep `.env` out of version control and container build context. Set deployment v
 2. Apply `npm run db:migrate` before starting web traffic or collection. Migrations run in a transaction and are serialized by an advisory lock.
 3. Run `npm run build` and start the web process, or use the provided image’s `web` target.
 4. Start the `worker` target as a separate long-running service, or configure the protected cron endpoint. A live web app alone does not collect in the background.
-5. Verify `/api/health` returns `status: ok`; verify owner sign-in, a successful run, and source-attributed jobs.
+5. Verify `/api/health` returns `status: ok`; create the first owner account, verify sign-in, a successful run, and source-attributed jobs.
 6. Put HTTPS in front of the app and set the matching `APP_URL`. Use persistent database storage, scheduled backups, and a tested restore procedure.
 
 ## Observability
@@ -42,7 +41,7 @@ Monitoring services and external alerts are deployment configuration, not provis
 - **Worker stopped mid-import:** PostgreSQL rolls back the open transaction. The connection’s lock is released. A subsequent collector marks orphaned runs failed and retries according to the recorded interval.
 - **Duplicate scheduler invocation:** the second invocation sees the global lock and skips. This relies on a direct/session-mode connection.
 - **Source throttles:** keep the recorded cooldown. Do not repeatedly remove the attempt timestamp to force requests.
-- **Owner password changed:** also rotate `SESSION_SECRET` if existing sessions must be invalidated immediately.
+- **Account access issue:** an owner can remove that user’s rows from `user_sessions` to revoke active sessions before resetting credentials through an approved recovery procedure.
 
 ## Backups and restore
 
