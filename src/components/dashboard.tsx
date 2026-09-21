@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Activity,
   ArrowDown,
@@ -60,7 +61,6 @@ import {
   type LinkedInWorkplace,
 } from "@/lib/linkedin";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
-import { AuthGate } from "@/components/auth/auth-gate";
 
 type View =
   | "overview"
@@ -78,13 +78,13 @@ type Modal =
   | null;
 type Theme = "light" | "dark";
 const viewPaths: Record<View, string> = {
-  overview: "/",
-  jobs: "/jobs",
-  saved: "/saved",
-  monitors: "/monitors",
-  sources: "/sources",
-  activity: "/activity",
-  settings: "/settings",
+  overview: "/app/dashboard",
+  jobs: "/app/jobs",
+  saved: "/app/saved",
+  monitors: "/app/monitors",
+  sources: "/app/sources",
+  activity: "/app/activity",
+  settings: "/app/settings",
 };
 const pathViews = Object.fromEntries(
   Object.entries(viewPaths).map(([key, value]) => [value, key as View]),
@@ -180,8 +180,8 @@ function LinkedInMark() {
 }
 
 export default function Dashboard({ initialView = "overview" }: { initialView?: View }) {
+  const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
-  const [authRequired, setAuthRequired] = useState(false);
   const [error, setError] = useState("");
   const [now, setNow] = useState(0);
   const [view, setView] = useState<View>(initialView);
@@ -246,8 +246,11 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       const result = await response.json();
       if (response.status === 401 && result.code === "AUTH_REQUIRED") {
         setData(null);
-        setAuthRequired(true);
         setError("");
+        const next = encodeURIComponent(
+          `${window.location.pathname}${window.location.search}`,
+        );
+        window.location.replace(`/auth?next=${next}`);
         return;
       }
       if (!response.ok) throw new Error(result.error);
@@ -268,7 +271,6 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
         }
       }
       setData(result);
-      setAuthRequired(false);
       hasLoadedRef.current = true;
       setNow(Date.now());
       setError("");
@@ -682,8 +684,6 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     URL.revokeObjectURL(url);
     setToast(`Exported ${filtered.length} opportunities.`);
   }
-  if (!data && authRequired)
-    return <AuthGate onAuthenticated={refresh} />;
   if (!data)
     return error ? (
       <div className="boot">
@@ -827,7 +827,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
         </div>
         <Link
           className={`nav-item ${view === "settings" ? "selected" : ""}`}
-          href="/settings"
+          href={viewPaths.settings}
           onClick={(event) => navigate("settings", event)}
           data-tooltip="Workspace settings"
         >
@@ -2289,7 +2289,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       });
                       if (r.ok) {
                         setData(null);
-                        setAuthRequired(true);
+                        router.replace("/auth");
                       }
                     }}
                   >

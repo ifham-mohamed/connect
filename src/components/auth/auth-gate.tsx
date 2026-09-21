@@ -19,10 +19,12 @@ import { AuthVisual } from "./auth-visual";
 
 export function AuthGate({
   onAuthenticated,
+  initialMode = "sign-in",
 }: {
   onAuthenticated: () => Promise<void>;
+  initialMode?: "sign-in" | "sign-up";
 }) {
-  const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const [mode, setMode] = useState<"sign-in" | "sign-up">(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -1,5 +1,5 @@
-import Dashboard from "@/components/dashboard";
+import { redirect } from "next/navigation";
 
 export default function SourcesPage() {
-  return <Dashboard initialView="sources" />;
+  redirect("/app/sources");
 }

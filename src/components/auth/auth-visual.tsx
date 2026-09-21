@@ -1,4 +1,4 @@
-import { Bookmark, BriefcaseBusiness, Radio, ShieldCheck } from "lucide-react";
+import { Bookmark, BriefcaseBusiness, Radio } from "lucide-react";
 
 const paths = Array.from({ length: 14 }, (_, index) => ({
   id: index,
@@ -30,13 +30,6 @@ export function AuthVisual() {
       </div>
       <div className="auth-orbit auth-orbit-three">
         <Bookmark size={17} />
-      </div>
-      <div className="auth-visual-card">
-        <ShieldCheck size={18} />
-        <span>
-          <strong>Private by default</strong>
-          <small>Protected workspace sessions</small>
-        </span>
       </div>
     </div>
   );

@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
-import { currentUser } from "@/lib/auth";
+import { currentSessionToken, currentUser } from "@/lib/auth";
 import { getDashboard } from "@/lib/repository";
 import { db } from "@/lib/db";
 export const dynamic = "force-dynamic";
 export async function GET() {
+  if (!(await currentSessionToken()))
+    return NextResponse.json(
+      { error: "Sign in to open this workspace.", code: "AUTH_REQUIRED" },
+      { status: 401 },
+    );
   if (!process.env.DATABASE_URL)
     return NextResponse.json(
       { error: "Configure the workspace database and run its migrations." },

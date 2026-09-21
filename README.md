@@ -47,6 +47,8 @@ npm run dev
 
 Open [localhost:3000](http://localhost:3000). PostgreSQL is required for accounts and live workspace data. Apply the migrations, then create the first account; it becomes the workspace owner.
 
+The public overview lives at `/`, account access lives at `/auth`, and the signed-in workspace uses `/app/*` routes such as `/app/dashboard`, `/app/jobs`, and `/app/saved`. Previous top-level workspace URLs redirect to their new `/app/*` locations.
+
 ## Start the complete system with Docker
 
 1. Install/start Docker Desktop or Docker Engine with Compose.
