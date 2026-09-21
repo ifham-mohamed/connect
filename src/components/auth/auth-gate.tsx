@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
+  ArrowLeft,
   ArrowRight,
   AtSign,
   Eye,
@@ -84,6 +86,10 @@ export function AuthGate({
       </section>
 
       <section className="auth-panel" aria-labelledby="auth-title">
+        <Link className="auth-back" href="/" aria-label="Back to Jobradar home">
+          <ArrowLeft size={16} />
+          <span>Back home</span>
+        </Link>
         <button
           className="icon-btn auth-theme"
           type="button"
