@@ -743,16 +743,24 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     easyApply: !jobViews && linkedInEasyApply,
     underTenApplicants: !jobViews && linkedInUnderTen,
   });
-  const linkedInPostSearchUrl = linkedInJobPostsSearchUrl({
-    monitor: linkedInMonitor,
-    query: jobViews ? query : linkedInQuery,
-    location:
-      jobViews && region === "remote"
-        ? "Worldwide"
-        : jobViews && region === "sri-lanka"
-          ? "Sri Lanka"
-          : linkedInLocation,
-  });
+  const linkedInPostSearchUrls = {
+    sriLanka: linkedInJobPostsSearchUrl({
+      monitor: linkedInMonitor,
+      query: jobViews ? query : linkedInQuery,
+      audience: "sri-lanka",
+    }),
+    qatarNetwork: linkedInJobPostsSearchUrl({
+      monitor: linkedInMonitor,
+      query: jobViews ? query : linkedInQuery,
+      audience: "qatar",
+      firstDegreeOnly: true,
+    }),
+    global: linkedInJobPostsSearchUrl({
+      monitor: linkedInMonitor,
+      query: jobViews ? query : linkedInQuery,
+      audience: "global",
+    }),
+  };
   const savedCount = jobs.filter((j) => j.status === "saved").length;
   const newCount = jobs.filter(
     (j) => now - new Date(j.firstSeenAt).getTime() < 86400000,
@@ -1927,20 +1935,61 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <span><Globe2 size={15} /> Jobs in my network</span>
                       <ExternalLink size={13} />
                     </a>
-                    <a
-                      className="linkedin-path-link"
-                      href={linkedInPostSearchUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <span><Activity size={15} /> Job-related posts</span>
-                      <ExternalLink size={13} />
-                    </a>
                     <p>
-                      LinkedIn ranks these searches using your signed-in network.
-                      Reactions by connections are not available as a search filter.
+                      LinkedIn ranks this job search using your signed-in network.
                     </p>
                   </div>
+                  <section className="linkedin-post-discovery" aria-labelledby="linkedin-post-search-title">
+                    <div className="linkedin-post-heading">
+                      <span aria-hidden="true"><Activity size={17} /></span>
+                      <div>
+                        <strong id="linkedin-post-search-title">LinkedIn Post Search</strong>
+                        <p>
+                          Find member posts mentioning hiring, vacancies, opportunities,
+                          and job openings. These open Posts results, not job listings.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="linkedin-post-options">
+                      <a
+                        href={linkedInPostSearchUrls.sriLanka}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <span>
+                          <strong>Sri Lanka posts</strong>
+                          <small>Colombo, Western Province, and Sri Lanka signals</small>
+                        </span>
+                        <ExternalLink size={14} />
+                      </a>
+                      <a
+                        href={linkedInPostSearchUrls.qatarNetwork}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <span>
+                          <strong>Qatar network posts</strong>
+                          <small>Qatar and Doha posts from first-degree connections</small>
+                        </span>
+                        <ExternalLink size={14} />
+                      </a>
+                      <a
+                        href={linkedInPostSearchUrls.global}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <span>
+                          <strong>Global posts</strong>
+                          <small>Remote, worldwide, and global hiring signals</small>
+                        </span>
+                        <ExternalLink size={14} />
+                      </a>
+                    </div>
+                    <p className="linkedin-post-note">
+                      LinkedIn may further personalize results. Use its Posted by and
+                      Content type filters after opening a search when available.
+                    </p>
+                  </section>
                 </div>
               </div>
               <div className="jobs-panel admin-table-panel">

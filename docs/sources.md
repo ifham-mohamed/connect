@@ -23,3 +23,5 @@ LinkedIn is represented as a monitor-powered discovery search, not a connected c
 The LinkedIn panel also links to the supported **In my network** job search and to LinkedIn’s member-post search for hiring, vacancy, opportunity, and job-opening language. LinkedIn does not expose “posts reacted to by my connections” as a dependable search filter, so Jobradar does not claim to monitor that private engagement signal.
 
 Additional discovery controls cover result order, location radius, Easy Apply, and roles with fewer than ten applicants. The seeded monitor set includes focused early-career searches for Sri Lanka and Qatar plus a remote React/full-stack search for worldwide listings.
+
+Member-post discovery is presented separately from job listings. It provides Sri Lanka, Qatar first-degree-network, and global searches using regional hiring language. LinkedIn controls the final Post results and may expose additional **Posted by** and **Content type** filters after the search opens.

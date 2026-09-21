@@ -129,7 +129,11 @@ describe("LinkedIn job discovery", () => {
       linkedInNetworkJobsSearchUrl({ monitor, location: "Colombo" }),
     );
     const postsUrl = new URL(
-      linkedInJobPostsSearchUrl({ monitor, location: "Qatar" }),
+      linkedInJobPostsSearchUrl({
+        monitor,
+        audience: "qatar",
+        firstDegreeOnly: true,
+      }),
     );
 
     expect(networkUrl.pathname).toBe("/jobs/search/");
@@ -139,7 +143,22 @@ describe("LinkedIn job discovery", () => {
     expect(postsUrl.pathname).toBe("/search/results/content/");
     expect(postsUrl.searchParams.get("keywords")).toContain("Engineering");
     expect(postsUrl.searchParams.get("keywords")).toContain("hiring OR vacancy");
-    expect(postsUrl.searchParams.get("keywords")).toContain("Qatar");
+    expect(postsUrl.searchParams.get("keywords")).toContain("Qatar OR Doha");
+    expect(postsUrl.searchParams.get("network")).toBe('["F"]');
+    expect(postsUrl.searchParams.get("sortBy")).toBe("date_posted");
+  });
+  it("builds distinct Sri Lankan and global member-post searches", () => {
+    const sriLanka = new URL(
+      linkedInJobPostsSearchUrl({ monitor, audience: "sri-lanka" }),
+    );
+    const global = new URL(
+      linkedInJobPostsSearchUrl({ monitor, audience: "global" }),
+    );
+
+    expect(sriLanka.pathname).toBe("/search/results/content/");
+    expect(sriLanka.searchParams.get("keywords")).toContain("Western Province");
+    expect(global.searchParams.get("keywords")).toContain("remote OR worldwide");
+    expect(global.searchParams.has("network")).toBe(false);
   });
   it("keeps a geographic monitor label out of the position query", () => {
     const url = new URL(

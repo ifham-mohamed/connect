@@ -22,6 +22,13 @@ export type LinkedInJobType =
 export type LinkedInDatePosted = "any" | "day" | "week" | "month";
 export type LinkedInSort = "relevant" | "recent";
 export type LinkedInDistance = "0" | "10" | "25" | "50" | "100";
+export type LinkedInPostAudience = "sri-lanka" | "qatar" | "global";
+
+const postAudienceTerms: Record<LinkedInPostAudience, string> = {
+  "sri-lanka": '("Sri Lanka" OR Colombo OR "Western Province")',
+  qatar: "(Qatar OR Doha)",
+  global: "(remote OR worldwide OR global)",
+};
 
 const workplaceCodes: Record<Exclude<LinkedInWorkplace, "any">, string> = {
   "on-site": "1",
@@ -145,19 +152,27 @@ export function linkedInNetworkJobsSearchUrl(
 export function linkedInJobPostsSearchUrl({
   monitor,
   query = "",
-  location = "",
-}: Pick<
-  Parameters<typeof linkedInJobsSearchUrl>[0],
-  "monitor" | "query" | "location"
->) {
+  audience = "global",
+  firstDegreeOnly = false,
+}: {
+  monitor?: Monitor;
+  query?: string;
+  audience?: LinkedInPostAudience;
+  firstDegreeOnly?: boolean;
+}) {
   const role = query.trim() || monitorPosition(monitor);
-  const targetLocation = location.trim() || monitor?.location.trim();
   const keywords = [
     role,
-    "hiring OR vacancy OR opportunity OR \"job opening\"",
-    targetLocation,
+    '(hiring OR vacancy OR opportunity OR "job opening" OR "we are hiring")',
+    postAudienceTerms[audience],
   ]
     .filter(Boolean)
     .join(" ");
-  return `${LINKEDIN_POSTS_URL}?${new URLSearchParams({ keywords }).toString()}`;
+  const params = new URLSearchParams({
+    keywords,
+    origin: "GLOBAL_SEARCH_HEADER",
+    sortBy: "date_posted",
+  });
+  if (firstDegreeOnly) params.set("network", '["F"]');
+  return `${LINKEDIN_POSTS_URL}?${params.toString()}`;
 }

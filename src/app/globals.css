@@ -1849,7 +1849,7 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
 .linkedin-search-paths {
   display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   padding-top: 2px;
 }
@@ -1891,9 +1891,91 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
   font-size: 11px;
   line-height: 1.45;
 }
+.linkedin-post-discovery {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 15px;
+  border: 1px solid hsl(210 90% 45% / .2);
+  border-radius: 11px;
+  background: hsl(var(--card) / .74);
+}
+.linkedin-post-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.linkedin-post-heading > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  place-items: center;
+  border-radius: 9px;
+  background: hsl(210 90% 45% / .12);
+  color: hsl(210 90% 42%);
+}
+.linkedin-post-heading strong {
+  color: hsl(var(--foreground));
+  font-size: 13px;
+}
+.linkedin-post-heading p,
+.linkedin-post-note {
+  margin: 2px 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  line-height: 1.45;
+}
+.linkedin-post-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.linkedin-post-options > a {
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 9px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  transition: border-color .15s ease, background .15s ease;
+}
+.linkedin-post-options > a:hover {
+  border-color: hsl(210 90% 45% / .42);
+  background: hsl(210 90% 45% / .06);
+}
+.linkedin-post-options > a > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.linkedin-post-options strong {
+  font-size: 12px;
+}
+.linkedin-post-options small {
+  overflow: hidden;
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+}
+.linkedin-post-options svg {
+  flex: none;
+  color: hsl(210 90% 42%);
+}
 @media (max-width: 900px) {
   .linkedin-search-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .linkedin-post-options {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (max-width: 640px) {
@@ -1933,6 +2015,9 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
   }
   .linkedin-search-paths p {
     grid-column: auto;
+  }
+  .linkedin-post-discovery {
+    padding: 12px;
   }
   .linkedin-discovery-submit {
     width: 100%;
