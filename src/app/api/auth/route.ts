@@ -87,6 +87,7 @@ export async function POST(request: Request) {
       email: string;
       role: "owner" | "member";
       onboardingCompleted: boolean;
+      preferences: Record<string, unknown>;
     };
     await client.query("BEGIN");
     if (parsed.data.mode === "sign-up") {
@@ -108,7 +109,7 @@ export async function POST(request: Request) {
       const role = count.rows[0]?.count === 0 ? "owner" : "member";
       const created = await client.query<typeof user>(
         `INSERT INTO users(name,email,password_hash,role) VALUES($1,$2,$3,$4)
-         RETURNING id,name,email,role,false AS "onboardingCompleted"`,
+         RETURNING id,name,email,role,false AS "onboardingCompleted",preferences`,
         [parsed.data.name, email, await hashPassword(password), role],
       );
       user = created.rows[0];
@@ -119,7 +120,7 @@ export async function POST(request: Request) {
     } else {
       const found = await client.query<typeof user & { passwordHash: string }>(
         `SELECT id,name,email,role,password_hash AS "passwordHash",
-                (onboarding_completed_at IS NOT NULL) AS "onboardingCompleted"
+                (onboarding_completed_at IS NOT NULL) AS "onboardingCompleted",preferences
            FROM users WHERE lower(email)=lower($1) LIMIT 1`,
         [email],
       );

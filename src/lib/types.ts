@@ -12,6 +12,12 @@ export type SourceKind =
   | "greenhouse"
   | "lever";
 export type JobStatus = "new" | "saved" | "applied" | "archived";
+export interface UserPreferences {
+  experience?: "internship" | "entry" | "mid" | "senior";
+  roles?: string[];
+  locations?: string[];
+  workModes?: Array<"onsite" | "hybrid" | "remote">;
+}
 export interface Job {
   id: string;
   externalId: string;
@@ -30,6 +36,7 @@ export interface Job {
   firstSeenAt: string;
   lastSeenAt: string;
   status: JobStatus;
+  reviewed: boolean;
   active: boolean;
   matchedMonitors: string[];
 }
@@ -79,5 +86,6 @@ export interface DashboardData {
     email: string;
     role: "owner" | "member";
     onboardingCompleted: boolean;
+    preferences: UserPreferences;
   } | null;
 }

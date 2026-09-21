@@ -20,6 +20,8 @@ export async function POST(request: Request) {
           "source-add",
           "source-toggle",
           "job-status",
+          "job-reviewed",
+          "profile-update",
           "sync",
         ]),
         id: z.string().uuid().optional(),
@@ -56,7 +58,24 @@ export async function POST(request: Request) {
       const status = z
         .enum(["new", "saved", "applied", "archived"])
         .parse(body.data);
-      await db().query("UPDATE jobs SET status=$2 WHERE id=$1", [id, status]);
+      await db().query(
+        `INSERT INTO job_user_states(user_id,job_id,status,reviewed_at)
+         VALUES($1,$2,$3,now())
+         ON CONFLICT(user_id,job_id) DO UPDATE
+         SET status=excluded.status,reviewed_at=COALESCE(job_user_states.reviewed_at,now()),updated_at=now()`,
+        [user.id, id, status],
+      );
+    } else if (body.action === "job-reviewed") {
+      const id = z.string().uuid().parse(body.id);
+      await db().query(
+        `INSERT INTO job_user_states(user_id,job_id,status,reviewed_at)
+         VALUES($1,$2,'new',now())
+         ON CONFLICT(user_id,job_id) DO UPDATE SET reviewed_at=now(),updated_at=now()`,
+        [user.id, id],
+      );
+    } else if (body.action === "profile-update") {
+      const value = z.object({ name: z.string().trim().min(2).max(80) }).parse(body.data);
+      await db().query("UPDATE users SET name=$2 WHERE id=$1", [user.id, value.name]);
     } else {
       const client = await db().connect();
       try {

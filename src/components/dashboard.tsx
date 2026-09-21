@@ -125,7 +125,7 @@ const titles: Record<View, [string, string]> = {
   ],
   settings: [
     "Workspace settings.",
-    "Connection status, access, and operational details.",
+    "Profile, preferences, privacy, and workspace access.",
   ],
 };
 const kindNames: Record<SourceKind, string> = {
@@ -227,6 +227,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const [refreshing, setRefreshing] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const [accountMenu, setAccountMenu] = useState<"top" | "sidebar" | null>(null);
+  const [profileName, setProfileName] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -287,6 +288,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
         }
       }
       setData(result);
+      setProfileName(result.user?.name || "");
       hasLoadedRef.current = true;
       setNow(Date.now());
       setError("");
@@ -402,6 +404,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       })) || [],
     [data],
   );
+  const ownerAccess = data?.mode === "demo" || data?.user?.role === "owner";
+  const activeTab = !ownerAccess && tab === "all" && view !== "saved" ? "matched" : tab;
   const filtered = useMemo(
     () =>
       jobs
@@ -412,7 +416,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             (!query || text.includes(query.toLowerCase())) &&
             (view === "saved"
               ? j.status === "saved" || j.status === "applied"
-              : tab === "archived"
+              : activeTab === "archived"
                 ? j.status === "archived"
                 : j.status !== "archived") &&
             (region === "all" ||
@@ -422,9 +426,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             (sourceFilter === "all" || j.sourceId === sourceFilter) &&
             (monitorFilter === "all" ||
               j.matchedMonitors.includes(monitorFilter)) &&
-            (tab !== "matched" || j.matchedMonitors.length > 0) &&
-            (tab !== "new" || j.status === "new") &&
-            (tab !== "applied" || j.status === "applied")
+            (activeTab !== "matched" || j.matchedMonitors.length > 0) &&
+            (activeTab !== "new" || !j.reviewed) &&
+            (activeTab !== "applied" || j.status === "applied")
           );
         })
         .sort((a, b) =>
@@ -433,7 +437,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             : new Date(b.publishedAt || b.firstSeenAt).getTime() -
               new Date(a.publishedAt || a.firstSeenAt).getTime(),
         ),
-    [jobs, query, view, region, sourceFilter, monitorFilter, tab, sort],
+    [jobs, query, view, region, sourceFilter, monitorFilter, activeTab, sort],
   );
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -506,6 +510,13 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     }
   }
   function openModal(next: Exclude<Modal, null>) {
+    if (next.type === "job" && !next.job.reviewed) {
+      setData((current) => current ? {
+        ...current,
+        jobs: current.jobs.map((job) => job.id === next.job.id ? { ...job, reviewed: true } : job),
+      } : current);
+      void action("job-reviewed", next.job.id).catch((cause) => setToast(cause.message));
+    }
     if (typeof window !== "undefined") {
       const nextState = {
         ...(window.history.state || {}),
@@ -561,7 +572,11 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       let next = { ...data };
       if (actionName === "job-status")
         next.jobs = data.jobs.map((j) =>
-          j.id === id ? { ...j, status: value as JobStatus } : j,
+          j.id === id ? { ...j, status: value as JobStatus, reviewed: true } : j,
+        );
+      if (actionName === "job-reviewed")
+        next.jobs = data.jobs.map((j) =>
+          j.id === id ? { ...j, reviewed: true } : j,
         );
       if (actionName === "monitor-save") {
         const monitor = {
@@ -735,6 +750,19 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       <DashboardSkeleton view={initialView} />
     );
   const activeMonitors = data.monitors.filter((m) => m.enabled);
+  const isOwner = ownerAccess;
+  const preferences = data.user?.preferences || {};
+  const preferenceRoles = preferences.roles || [];
+  const preferenceLocations = preferences.locations || [];
+  const preferenceWorkModes = preferences.workModes || [];
+  const focusLocationLabel = preferenceLocations.length
+    ? preferenceLocations.length > 2
+      ? `${preferenceLocations.slice(0, 2).join(" & ")} +${preferenceLocations.length - 2}`
+      : preferenceLocations.join(" & ")
+    : "Sri Lanka & remote";
+  const focusRoleLabel = preferenceRoles.length
+    ? preferenceRoles.slice(0, 3).join(", ")
+    : "your active monitor roles";
   const jobViews = ["overview", "jobs", "saved"].includes(view);
   const linkedInMonitor =
     data.monitors.find((monitor) => monitor.id === monitorFilter) ||
@@ -891,10 +919,10 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
               onClick={(event) => navigate(item.id, event)}
               className={`nav-item ${view === item.id ? "selected" : ""}`}
               aria-current={view === item.id ? "page" : undefined}
-              data-tooltip={item.label}
+              data-tooltip={item.id === "jobs" && !isOwner ? "My opportunities" : item.label}
             >
               <item.icon size={18} />
-              <span>{item.label}</span>
+              <span>{item.id === "jobs" && !isOwner ? "My opportunities" : item.label}</span>
               {item.id === "saved" && savedCount > 0 && (
                 <span className="nav-count">{savedCount}</span>
               )}
@@ -1005,7 +1033,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           </div>
           <div className="topbar-right">
             <span className="region-label">
-              <Globe2 size={14} /> Sri Lanka & remote
+              <Globe2 size={14} /> {focusLocationLabel}
             </span>
             <button
               className="icon-btn"
@@ -1062,8 +1090,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   ? "YOUR CAREER, IN FOCUS"
                   : "A MORE THOUGHTFUL JOB SEARCH"}
               </div>
-              <h1>{titles[view][0]}</h1>
-              <p>{titles[view][1]}</p>
+              <h1>{view === "overview" ? `Role matches for ${focusLocationLabel}.` : view === "monitors" ? "Your personal monitors." : view === "jobs" && !isOwner ? "Opportunities matched to you." : titles[view][0]}</h1>
+              <p>{view === "overview" ? `Focused on ${focusRoleLabel} from your saved preferences.` : view === "monitors" ? "Add, edit, pause, or remove the searches that shape your Relevant feed." : view === "jobs" && !isOwner ? "Review roles selected by your personal monitors, then save, apply, or archive them." : titles[view][1]}</p>
             </div>
             {view !== "monitors" && view !== "sources" && view !== "activity" && (
               <button
@@ -1094,7 +1122,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   label="Relevant opportunities"
                   value={matchedJobs.length}
                   icon={<BriefcaseBusiness size={18} />}
-                  detail={`${jobs.length} total records collected`}
+                  detail={isOwner ? `${jobs.length} total records collected` : `${jobs.length} personal opportunities available`}
                   trend={`${newCount} new records today`}
                 />
                 <Stat
@@ -1167,14 +1195,16 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                     </p>
                   </div>
                   <div className="heading-actions">
-                    <button
-                      className="icon-btn"
-                      aria-label="Refresh sources"
-                      onClick={sync}
-                      disabled={busy}
-                    >
-                      <RefreshCw size={17} className={busy ? "spin" : ""} />
-                    </button>
+                    {isOwner && (
+                      <button
+                        className="icon-btn"
+                        aria-label="Refresh sources"
+                        onClick={sync}
+                        disabled={busy}
+                      >
+                        <RefreshCw size={17} className={busy ? "spin" : ""} />
+                      </button>
+                    )}
                     <button className="btn small" onClick={exportJobs}>
                       <ArrowDownToLine size={14} />
                       Export
@@ -1188,12 +1218,18 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                           ["all", "Shortlist"],
                           ["applied", "Applied"],
                         ]
-                      : [
-                          ["matched", "Relevant"],
-                          ["all", "All collected"],
-                          ["new", "Unreviewed"],
-                          ["archived", "Archived"],
-                        ]
+                      : isOwner
+                        ? [
+                            ["matched", "Relevant"],
+                            ["all", "All collected"],
+                            ["new", "Unreviewed"],
+                            ["archived", "Archived"],
+                          ]
+                        : [
+                            ["matched", "Relevant"],
+                            ["new", "Unreviewed"],
+                            ["archived", "Archived"],
+                          ]
                     ).map(([key, label]) => (
                       <button
                         key={key}
@@ -1201,7 +1237,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                           setTab(key);
                           setPage(1);
                         }}
-                        className={tab === key ? "active" : ""}
+                        className={activeTab === key ? "active" : ""}
                       >
                         {key === "matched" && <Sparkles size={13} />} {label}
                         {key === "all" && (
@@ -1863,9 +1899,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
               <div className="sources-intro">
                 <ShieldCheck size={20} />
                 <p>
-                  Sources use public APIs and feeds. Every opportunity links
-                  back to its original publisher. Collection respects each
-                  source’s check interval.
+                  {isOwner
+                    ? "Manage the public APIs, feeds, and employer boards used by the workspace. Every opportunity keeps its original publisher link."
+                    : "View the feeds and employer boards maintained by the workspace owner. Every opportunity keeps its original publisher link."}
                 </p>
               </div>
               <div className="linkedin-discovery-panel">
@@ -2154,16 +2190,18 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <kbd>⌘ K</kbd>
                     )}
                   </label>
-                  <div className="toolbar-actions source-toolbar-actions">
-                    <button className="btn filter-btn" onClick={sync} disabled={busy}>
-                      <RefreshCw size={15} className={busy ? "spin" : ""} />
-                      <span>Check sources</span>
-                    </button>
-                    <button className="btn filter-btn" onClick={() => openModal({ type: "source" })}>
-                      <Plus size={16} />
-                      <span>Connect source</span>
-                    </button>
-                  </div>
+                  {isOwner && (
+                    <div className="toolbar-actions source-toolbar-actions">
+                      <button className="btn filter-btn" onClick={sync} disabled={busy}>
+                        <RefreshCw size={15} className={busy ? "spin" : ""} />
+                        <span>Check sources</span>
+                      </button>
+                      <button className="btn filter-btn" onClick={() => openModal({ type: "source" })}>
+                        <Plus size={16} />
+                        <span>Connect source</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="results-row">
                   <span><strong>{filteredSources.length}</strong> sources <span className="muted">in this view</span></span>
@@ -2201,7 +2239,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                             <td>
                               <button
                                 className={`source-state table-state ${!source.enabled ? "is-paused" : source.lastError ? "is-failed" : "is-connected"}`}
-                                onClick={() => action("source-toggle", source.id, !source.enabled).catch((e) => setToast(e.message))}
+                                onClick={isOwner ? () => action("source-toggle", source.id, !source.enabled).catch((e) => setToast(e.message)) : undefined}
+                                disabled={!isOwner}
+                                title={isOwner ? "Change source status" : "Only the workspace owner can change sources"}
                               >
                                 <i className={`status-dot ${source.lastError ? "failed" : !source.enabled ? "paused" : ""}`} />
                                 {!source.enabled ? "Paused" : source.lastError ? "Needs attention" : "Connected"}
@@ -2217,7 +2257,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   <Empty
                     icon={<Link2 size={25} />}
                     title="No sources match that view."
-                    description="Clear the search or connect a new Sri Lanka or remote job source."
+                    description={isOwner ? "Clear the search or connect a new Sri Lanka or remote job source." : "Clear the search to review the sources maintained by your workspace owner."}
                     action={() => { setQuery(""); setWorkspaceFilter("all"); setPage(1); }}
                     label="Clear filters"
                   />
@@ -2286,10 +2326,12 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <kbd>⌘ K</kbd>
                     )}
                   </label>
-                  <button className="btn filter-btn" onClick={sync} disabled={busy}>
-                    <RefreshCw size={15} className={busy ? "spin" : ""} />
-                    <span>Check sources</span>
-                  </button>
+                  {isOwner && (
+                    <button className="btn filter-btn" onClick={sync} disabled={busy}>
+                      <RefreshCw size={15} className={busy ? "spin" : ""} />
+                      <span>Check sources</span>
+                    </button>
+                  )}
                 </div>
                 <div className="results-row">
                   <span><strong>{filteredRuns.length}</strong> source checks <span className="muted">in this view</span></span>
@@ -2331,7 +2373,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   <Empty
                     icon={<Activity size={25} />}
                     title="No source checks match that view."
-                    description="Clear the search or run a fresh source check."
+                    description={isOwner ? "Clear the search or run a fresh source check." : "Clear the search to review recent collection activity."}
                     action={() => { setQuery(""); setWorkspaceFilter("all"); setPage(1); }}
                     label="Clear filters"
                   />
@@ -2352,118 +2394,58 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           )}
           {view === "settings" && (
             <div className="settings-grid">
-              <section className="settings-card">
-                <span className="settings-icon">
-                  <Database size={22} />
-                </span>
-                <h2>
-                  {data.mode === "demo"
-                    ? "Turn your preview into a workspace."
-                    : "Your workspace is connected."}
-                </h2>
-                <p>
-                  {data.mode === "demo"
-                    ? "Connect PostgreSQL to store real opportunities, keep your monitors, and collect new jobs automatically."
-                    : "Your jobs, monitors, and source history are stored in PostgreSQL."}
-                </p>
-                <div className="setting-row">
-                  <span>Workspace mode</span>
-                  <strong>
-                    {data.mode === "demo"
-                      ? "Interactive demo"
-                      : "Live collection"}
-                  </strong>
+              <section className="settings-card settings-profile-card">
+                <div className="settings-card-heading">
+                  <span className="settings-profile-avatar">{accountInitials(data.user?.name || "Workspace")}</span>
+                  <span><small>Personal profile</small><h2>{data.user?.name || "Your workspace"}</h2></span>
+                  <em className={`access-pill ${isOwner ? "owner" : "member"}`}>{isOwner ? "Owner" : "Member"}</em>
                 </div>
-                <div className="setting-row">
-                  <span>Primary focus</span>
-                  <strong>Sri Lanka & remote</strong>
+                <p>Your identity and job activity are private to this account.</p>
+                <label className="settings-field">
+                  <span>Display name</span>
+                  <input value={profileName} onChange={(event) => setProfileName(event.target.value)} maxLength={80} />
+                </label>
+                <div className="setting-row"><span>Email address</span><strong>{data.user?.email || "Demo account"}</strong></div>
+                <div className="settings-actions">
+                  <button className="btn primary" disabled={data.mode !== "live" || profileName.trim().length < 2 || profileName.trim() === data.user?.name} onClick={async () => {
+                    try {
+                      await action("profile-update", undefined, { name: profileName.trim() });
+                      setToast("Profile updated.");
+                    } catch (cause) { setToast((cause as Error).message); }
+                  }}>Save profile</button>
+                  {data.mode === "live" && <button className="btn" onClick={signOut}><LogOut size={14} /> Sign out</button>}
                 </div>
-                <div className="setting-row">
-                  <span>Access</span>
-                  <strong>
-                    {data.mode === "demo"
-                      ? "Demo explorer"
-                      : data.user?.role === "owner"
-                        ? "Owner"
-                        : "Member"}
-                  </strong>
-                </div>
-                {data.mode === "live" && (
-                  <button
-                    className="btn primary"
-                    onClick={async () => {
-                      await signOut();
-                    }}
-                  >
-                    Sign out
-                    <ArrowRight size={15} />
-                  </button>
-                )}
               </section>
-              <section className="settings-card">
-                <h3>
-                  {data.mode === "demo"
-                    ? "Three steps to your next chapter"
-                    : "Reliable by design"}
-                </h3>
-                <ol className="setup-steps">
-                  <li>
-                    <span>1</span>
-                    <div>
-                      <strong>Connect a database</strong>
-                      <p>
-                        Follow the included README to use local PostgreSQL or a
-                        managed provider.
-                      </p>
-                    </div>
-                  </li>
-                  <li>
-                    <span>2</span>
-                    <div>
-                      <strong>Create the owner account</strong>
-                      <p>
-                        Owner access protects your monitors, saved jobs, and
-                        collection controls.
-                      </p>
-                    </div>
-                  </li>
-                  <li>
-                    <span>3</span>
-                    <div>
-                      <strong>Start the collector</strong>
-                      <p>
-                        Run the included worker or configure the protected
-                        scheduled endpoint.
-                      </p>
-                    </div>
-                  </li>
-                </ol>
-                <p className="settings-hint">
-                  <ShieldCheck size={16} />
-                  The dashboard requires an account. Members can manage their
-                  search workflow; owners also control sources and collection.
-                </p>
+              <section className="settings-card settings-preferences-card">
+                <div className="settings-card-heading compact">
+                  <span className="settings-icon"><Target size={20} /></span>
+                  <span><small>Matching profile</small><h3>Your job preferences</h3></span>
+                </div>
+                <p>These choices shape your monitors and the opportunities shown in Relevant.</p>
+                <div className="preference-group"><span>Career stage</span><div className="preference-chips"><i>{preferences.experience?.replace("entry", "Entry level") || "Not set"}</i></div></div>
+                <div className="preference-group"><span>Roles</span><div className="preference-chips">{preferenceRoles.map((role) => <i key={role}>{role}</i>)}</div></div>
+                <div className="preference-group"><span>Locations</span><div className="preference-chips">{preferenceLocations.map((location) => <i key={location}>{location}</i>)}</div></div>
+                <div className="preference-group"><span>Work style</span><div className="preference-chips">{preferenceWorkModes.map((mode) => <i key={mode}>{mode === "onsite" ? "On-site" : mode}</i>)}</div></div>
+                <div className="settings-actions">
+                  <Link className="btn primary" href="/onboarding?edit=1"><Settings2 size={14} /> Update preferences</Link>
+                  <button className="btn" onClick={() => navigate("monitors")}><Radio size={14} /> Manage monitors</button>
+                </div>
+              </section>
+              <section className="settings-card settings-access-card">
+                <div className="settings-card-heading compact">
+                  <span className="settings-icon">{isOwner ? <Database size={20} /> : <ShieldCheck size={20} />}</span>
+                  <span><small>{isOwner ? "Workspace operations" : "Private account"}</small><h3>{isOwner ? "Collection controls" : "Your data stays personal"}</h3></span>
+                </div>
+                <p>{isOwner ? "Owners manage shared sources and can review every collected listing. Members receive only opportunities matching their own monitors." : "Your saves, applications, archives, reviewed jobs, preferences, and monitors are separate from every other member."}</p>
+                <div className="setting-row"><span>Opportunity access</span><strong>{isOwner ? "All collected + relevant" : "Relevant opportunities"}</strong></div>
+                <div className="setting-row"><span>Source permissions</span><strong>{isOwner ? "Manage and collect" : "View coverage"}</strong></div>
+                {isOwner && <div className="settings-actions"><button className="btn primary" onClick={() => navigate("sources")}>Manage sources</button><button className="btn" onClick={() => navigate("activity")}>Collection history</button></div>}
               </section>
               <section className="info-panel">
-                <h3>Your data, clearly labeled.</h3>
+                <h3>Personal context, clearly separated.</h3>
                 <p>
-                  Publication dates come from the original source when
-                  available. Discovery dates show when Jobradar first collected
-                  a listing. “Remote” does not guarantee eligibility from Sri
-                  Lanka; always check location requirements.
+                  Saved, applied, archived, and reviewed states belong to you. Source listings remain shared so collection stays efficient, while every match is calculated from your own monitors and preferences.
                 </p>
-                {data.mode === "demo" && (
-                  <button
-                    className="btn"
-                    onClick={() => {
-                      localStorage.removeItem("jobradar-demo-v2");
-                      refresh().catch((e) => setToast(e.message));
-                      setToast("Demo workspace reset.");
-                    }}
-                  >
-                    Reset demo changes
-                  </button>
-                )}
               </section>
             </div>
           )}

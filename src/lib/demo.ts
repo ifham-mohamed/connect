@@ -433,6 +433,7 @@ export function demoData(): DashboardData {
     firstSeenAt: ago(i * 5 + 0.5),
     lastSeenAt: ago(0.3),
     status: i === 4 || i === 8 ? "saved" : i === 7 ? "applied" : "new",
+    reviewed: i % 3 === 0,
     active: true,
   }));
   sources.forEach((source) => {

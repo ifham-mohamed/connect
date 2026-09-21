@@ -11,8 +11,30 @@ export async function getDashboard(
 ): Promise<DashboardData> {
   const client = existingClient || (await db().connect());
   try {
+    const memberScope = user.role === "owner"
+      ? ""
+      : `WHERE EXISTS (
+           SELECT 1 FROM monitor_matches visible_match
+           JOIN monitors visible_monitor ON visible_monitor.id=visible_match.monitor_id
+           WHERE visible_match.job_id=j.id AND visible_monitor.user_id=$1 AND visible_monitor.enabled
+         ) OR personal_state.job_id IS NOT NULL`;
     const jobs = await client.query(
-      `${jobSelect.replace("WHERE mm.job_id=j.id AND m.enabled", "WHERE mm.job_id=j.id AND m.enabled AND m.user_id=$1")} ORDER BY COALESCE(j.published_at,j.first_seen_at) DESC LIMIT 1000`,
+      `SELECT j.id, j.external_id AS "externalId", j.source_id AS "sourceId", s.name AS "sourceName",
+              j.title, j.company, j.location, j.remote, j.employment_type AS "employmentType",
+              j.salary, j.tags, j.description, j.url, j.published_at AS "publishedAt",
+              j.first_seen_at AS "firstSeenAt", j.last_seen_at AS "lastSeenAt",
+              COALESCE(personal_state.status, 'new') AS status,
+              (personal_state.reviewed_at IS NOT NULL) AS reviewed, j.active,
+              COALESCE((
+                SELECT array_agg(mm.monitor_id::text) FROM monitor_matches mm
+                JOIN monitors m ON m.id=mm.monitor_id
+                WHERE mm.job_id=j.id AND m.enabled AND m.user_id=$1
+              ), ARRAY[]::text[]) AS "matchedMonitors"
+         FROM jobs j JOIN sources s ON s.id=j.source_id
+         LEFT JOIN job_user_states personal_state
+           ON personal_state.job_id=j.id AND personal_state.user_id=$1
+         ${memberScope}
+         ORDER BY COALESCE(j.published_at,j.first_seen_at) DESC LIMIT 1000`,
       [user.id],
     );
     const monitors = await client.query<Monitor>(

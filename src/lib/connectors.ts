@@ -11,6 +11,7 @@ export type IncomingJob = Omit<
   | "status"
   | "active"
   | "matchedMonitors"
+  | "reviewed"
 >;
 type IncomingJobBase = Pick<
   IncomingJob,

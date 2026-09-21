@@ -21,6 +21,7 @@ try {
     "006_linkedin_search_monitors",
     "007_user_auth",
     "008_personal_onboarding",
+    "009_personal_job_states",
   ];
   for (const name of migrations) {
     const applied = await client.query(

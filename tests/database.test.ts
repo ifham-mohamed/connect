@@ -24,6 +24,9 @@ beforeAll(async () => {
   await database.exec(
     await readFile(new URL("../db/008_personal_onboarding.sql", import.meta.url), "utf8"),
   );
+  await database.exec(
+    await readFile(new URL("../db/009_personal_job_states.sql", import.meta.url), "utf8"),
+  );
 });
 afterAll(async () => {
   await database.close();
@@ -115,6 +118,27 @@ describe("PostgreSQL schema and matching integration", () => {
     );
     expect(owned.rows[0].count).toBeGreaterThan(0);
     expect(profile.rows[0].completed).toBe(true);
+  });
+  it("keeps saved, applied, archived, and reviewed state personal", async () => {
+    const users = await database.query<{ id: string }>(
+      `INSERT INTO users(name,email,password_hash)
+       VALUES('First Person','first@example.com','hash'),('Second Person','second@example.com','hash') RETURNING id`,
+    );
+    const job = await database.query<{ id: string }>("SELECT id FROM jobs LIMIT 1");
+    await database.query(
+      `INSERT INTO job_user_states(user_id,job_id,status,reviewed_at)
+       VALUES($1,$3,'saved',now()),($2,$3,'archived',NULL)`,
+      [users.rows[0].id, users.rows[1].id, job.rows[0].id],
+    );
+    const states = await database.query<{ userId: string; status: string; reviewed: boolean }>(
+      `SELECT user_id AS "userId",status,reviewed_at IS NOT NULL AS reviewed
+       FROM job_user_states WHERE job_id=$1 AND user_id=ANY($2::uuid[]) ORDER BY status`,
+      [job.rows[0].id, users.rows.map((user) => user.id)],
+    );
+    expect(states.rows).toEqual([
+      { userId: users.rows[1].id, status: "archived", reviewed: false },
+      { userId: users.rows[0].id, status: "saved", reviewed: true },
+    ]);
   });
   it("enforces unique source identity and valid application status", async () => {
     await expect(

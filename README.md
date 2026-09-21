@@ -10,7 +10,7 @@ A working first release of a job-monitoring workspace for **Sri Lanka and remote
 - LinkedIn discovery paths for jobs in your network and job-related member posts, plus focused Sri Lanka and Qatar software-role monitors.
 - LinkedIn refinements for relevance or recency, search radius, Easy Apply, and lower-applicant opportunities, with early-career and remote monitor presets.
 - A separate LinkedIn member-post search for Sri Lankan hiring signals, Qatar posts from first-degree connections, and global remote opportunities.
-- Saved, applied, and archived job states stored in PostgreSQL in live mode.
+- Per-account saved, applied, archived, and reviewed job states stored in PostgreSQL in live mode.
 - Collectors for **ITPro.lk RSS, Remotive, Lever, Greenhouse, and Arbeitnow**. ITPro.lk, Remotive, and Dijital Team’s Lever board are seeded by the migration.
 - Source-specific identifiers, original URLs and source attribution; publication, first discovery, and last observation timestamps.
 - Idempotent imports; previously saved/application states survive re-imports.
@@ -19,7 +19,7 @@ A working first release of a job-monitoring workspace for **Sri Lanka and remote
 - Guided first-run onboarding that creates editable, user-owned monitors from career stage, role, location, and work-arrangement preferences.
 - Docker Compose setup, a standalone worker, and a protected endpoint for external schedulers.
 
-This is a **single shared source catalog**, not a multi-tenant recruiting SaaS. Every live dashboard request requires an account. Sources and collected listings are shared operational data, while each account owns its monitor rules and personalized matches.
+This is a **single shared source catalog**, not a multi-tenant recruiting SaaS. Every live dashboard request requires an account. Owners manage sources and can review the full collection. Members receive jobs matched to their monitors. Monitor rules, matches, review state, shortlists, applications, archives, and preference profiles belong to each account.
 
 ## Technology choices
 

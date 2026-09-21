@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Monitor, UserPreferences } from "@/lib/types";
 import {
   ArrowLeft,
   ArrowRight,
@@ -94,14 +95,34 @@ function makeMonitors(
   });
 }
 
-export function OnboardingFlow({ userName }: { userName: string }) {
+export function OnboardingFlow({
+  userName,
+  editMode = false,
+  initialPreferences = {},
+  initialMonitors = [],
+}: {
+  userName: string;
+  editMode?: boolean;
+  initialPreferences?: UserPreferences;
+  initialMonitors?: Monitor[];
+}) {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [experience, setExperience] = useState<Experience | "">("");
-  const [roles, setRoles] = useState<string[]>([]);
-  const [locations, setLocations] = useState<string[]>([]);
-  const [workModes, setWorkModes] = useState<WorkMode[]>(["hybrid", "remote"]);
-  const [monitors, setMonitors] = useState<MonitorDraft[]>([]);
+  const [experience, setExperience] = useState<Experience | "">(initialPreferences.experience || "");
+  const [roles, setRoles] = useState<string[]>(initialPreferences.roles || []);
+  const [locations, setLocations] = useState<string[]>(initialPreferences.locations || []);
+  const [workModes, setWorkModes] = useState<WorkMode[]>(initialPreferences.workModes || ["hybrid", "remote"]);
+  const [monitors, setMonitors] = useState<MonitorDraft[]>(
+    initialMonitors.map((monitor) => ({
+      clientId: monitor.id,
+      name: monitor.name,
+      keywords: monitor.keywords,
+      excludedKeywords: monitor.excludedKeywords,
+      location: monitor.location,
+      remoteOnly: monitor.remoteOnly,
+      enabled: monitor.enabled,
+    })),
+  );
   const [customName, setCustomName] = useState("");
   const [customKeywords, setCustomKeywords] = useState("");
   const [error, setError] = useState("");
@@ -170,7 +191,7 @@ export function OnboardingFlow({ userName }: { userName: string }) {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not save your preferences.");
-      router.replace("/app/dashboard");
+      router.replace(editMode ? "/app/settings" : "/app/dashboard");
       router.refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not save your preferences.");
@@ -184,8 +205,8 @@ export function OnboardingFlow({ userName }: { userName: string }) {
       <aside className="onboarding-aside">
         <div className="brand onboarding-brand"><span className="brand-icon"><Radio size={22} /></span>jobradar<span className="brand-dot">.</span></div>
         <div className="onboarding-aside-copy">
-          <span className="onboarding-kicker"><Sparkles size={14} /> Personal setup</span>
-          <h1>Make every search feel like yours.</h1>
+          <span className="onboarding-kicker"><Sparkles size={14} /> {editMode ? "Preference profile" : "Personal setup"}</span>
+          <h1>{editMode ? "Keep your search aligned." : "Make every search feel like yours."}</h1>
           <p>We ask only for the preferences needed to build your monitors. You can edit, pause, add, or delete them later.</p>
         </div>
         <ol className="onboarding-progress">
@@ -286,7 +307,7 @@ export function OnboardingFlow({ userName }: { userName: string }) {
             {step < 3 ? (
               <button className="btn primary" disabled={!canContinue} onClick={continueFlow}>Continue <ArrowRight size={15} /></button>
             ) : (
-              <button className="btn primary" disabled={!canContinue || busy} onClick={finish}>{busy ? <LoaderCircle className="spin" size={16} /> : <Sparkles size={16} />} Build my workspace <ArrowRight size={15} /></button>
+              <button className="btn primary" disabled={!canContinue || busy} onClick={finish}>{busy ? <LoaderCircle className="spin" size={16} /> : <Sparkles size={16} />} {editMode ? "Save preferences" : "Build my workspace"} <ArrowRight size={15} /></button>
             )}
           </footer>
         </div>
