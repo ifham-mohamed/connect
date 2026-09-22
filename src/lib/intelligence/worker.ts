@@ -13,6 +13,7 @@ import { classifyJobWithJev } from "../jev/client";
 import type { JevConfig } from "../jev/config";
 import type { ValidatedJobClassification } from "../jev/contract";
 import { reviewShadowDecision } from "../jev/policy";
+import { rebuildMatchesForJobs } from "../sync";
 import {
   claimIntelligenceTasks,
   currentTaskState,
@@ -145,6 +146,10 @@ async function saveEvaluation(
         WHERE id=$1`,
       [task.id],
     );
+    if (process.env.JEV_MODE === "assisted") {
+      await client.query("SELECT pg_advisory_xact_lock(741210)");
+      await rebuildMatchesForJobs(client, [task.jobId]);
+    }
     await client.query("COMMIT");
     return true;
   } catch (error) {

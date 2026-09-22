@@ -90,6 +90,11 @@ beforeAll(async () => {
     "016_location_work_modes_and_numbered_levels",
     "017_worldwide_remote_matching",
     "018_job_intelligence",
+    "019_assisted_matching",
+    "020_requirement_evidence",
+    "021_candidate_workspace",
+    "022_assisted_corrections",
+    "023_assisted_rule_lookup",
   ];
   for (const migration of migrations)
     await database.exec(
@@ -103,6 +108,49 @@ beforeAll(async () => {
 afterAll(async () => database.close());
 
 describe("JEV queue and shadow persistence", () => {
+  it("keeps assisted matching off until a source field is enabled and preserves explicit senior exclusions", async () => {
+    const inserted = await database.query<{ id: string }>(
+      `INSERT INTO jobs(source_id,external_id,title,company,location,url)
+       SELECT id,'jev-assisted-test','Software Engineer','Acme','Colombo','https://example.com/assisted'
+       FROM sources WHERE kind='itpro' LIMIT 1 RETURNING id`,
+    );
+    const jobId = inserted.rows[0].id;
+    await queueJobsForIntelligence(client, [jobId]);
+    const result = await processIntelligenceBatch(
+      client,
+      async () => ({
+        result: validResponse(),
+        requestId: undefined,
+        latencyMs: 10,
+      }),
+      { batchSize: 1, maxAttempts: 3 },
+      "assisted-test",
+    );
+    expect(result.succeeded).toBe(1);
+    const matched = async (title: string) =>
+      (
+        await database.query<{ allowed: boolean }>(
+          `SELECT jobradar_assisted_match($1,'itpro',$2,'Colombo',false,ARRAY['onsite']::text[],'entry') AS allowed`,
+          [jobId, title],
+        )
+      ).rows[0].allowed;
+    expect(await matched("Software Engineer")).toBe(false);
+    await database.query(`INSERT INTO jev_rollout_rules(source_kind,field,min_confidence,enabled,rationale)
+      VALUES('itpro','career_stage',0.9,true,'Approved controlled test for ambiguous stages.')`);
+    expect(await matched("Software Engineer")).toBe(true);
+    expect(await matched("Senior Software Engineer")).toBe(false);
+    await database.query(
+      `INSERT INTO jev_corrections(job_id,field,value,reason)
+      VALUES($1,'career_stage','mid','Owner reviewed title')`,
+      [jobId],
+    );
+    expect(await matched("Software Engineer")).toBe(false);
+    expect(await matched("Senior Software Engineer")).toBe(false);
+    await database.query(
+      "UPDATE jev_rollout_rules SET enabled=false WHERE source_kind='itpro' AND field='career_stage'",
+    );
+    expect(await matched("Software Engineer")).toBe(false);
+  });
   it("queues each content version once and processes it with a fake classifier", async () => {
     const inserted = await database.query<{ id: string }>(
       `INSERT INTO jobs(source_id,external_id,title,company,location,employment_type,tags,description,url)
@@ -193,8 +241,8 @@ describe("JEV queue and shadow persistence", () => {
   it("backfills idempotently and reports owner-safe shadow health", async () => {
     expect(await backfillJobIntelligence(client, 100)).toBe(0);
     const health = await getIntelligenceHealth(client);
-    expect(health.evaluations.total).toBe(2);
+    expect(health.evaluations.total).toBe(3);
     expect(health.evaluations.review).toBe(1);
-    expect(health.sources.some((source) => source.evaluated === 2)).toBe(true);
+    expect(health.sources.some((source) => source.evaluated === 3)).toBe(true);
   });
 });

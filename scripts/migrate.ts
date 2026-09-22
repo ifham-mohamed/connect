@@ -31,6 +31,13 @@ try {
     "016_location_work_modes_and_numbered_levels",
     "017_worldwide_remote_matching",
     "018_job_intelligence",
+    "019_assisted_matching",
+    "020_requirement_evidence",
+    "021_candidate_workspace",
+    "022_assisted_corrections",
+    "023_assisted_rule_lookup",
+    "024_candidate_cv",
+    "025_job_cv_reviews",
   ];
   for (const name of migrations) {
     const applied = await client.query(

@@ -87,18 +87,125 @@ beforeAll(async () => {
   );
   await database.exec(
     await readFile(
-      new URL("../db/014_career_stages_and_remove_devjobs.sql", import.meta.url),
+      new URL(
+        "../db/014_career_stages_and_remove_devjobs.sql",
+        import.meta.url,
+      ),
       "utf8",
     ),
   );
-  await database.exec(await readFile(new URL("../db/015_distinct_early_career_and_location_coverage.sql", import.meta.url), "utf8"));
-  await database.exec(await readFile(new URL("../db/016_location_work_modes_and_numbered_levels.sql", import.meta.url), "utf8"));
-  await database.exec(await readFile(new URL("../db/017_worldwide_remote_matching.sql", import.meta.url), "utf8"));
+  await database.exec(
+    await readFile(
+      new URL(
+        "../db/015_distinct_early_career_and_location_coverage.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  await database.exec(
+    await readFile(
+      new URL(
+        "../db/016_location_work_modes_and_numbered_levels.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  await database.exec(
+    await readFile(
+      new URL("../db/017_worldwide_remote_matching.sql", import.meta.url),
+      "utf8",
+    ),
+  );
+  for (const migration of [
+    "018_job_intelligence",
+    "019_assisted_matching",
+    "020_requirement_evidence",
+    "021_candidate_workspace",
+    "022_assisted_corrections",
+    "023_assisted_rule_lookup",
+    "024_candidate_cv",
+    "025_job_cv_reviews",
+  ])
+    await database.exec(
+      await readFile(
+        new URL(`../db/${migration}.sql`, import.meta.url),
+        "utf8",
+      ),
+    );
 });
 afterAll(async () => {
   await database.close();
 });
 describe("PostgreSQL schema and matching integration", () => {
+  it("keeps reviewed CVs per account and removes them with the account", async () => {
+    const users = await database.query<{ id: string }>(
+      `INSERT INTO users(name,email,password_hash) VALUES
+       ('CV One','cv-one@example.com','hash'),('CV Two','cv-two@example.com','hash') RETURNING id`,
+    );
+    await database.query(
+      `INSERT INTO candidate_cvs(user_id,profile) VALUES($1,$3::jsonb),($2,$4::jsonb)`,
+      [
+        users.rows[0].id,
+        users.rows[1].id,
+        JSON.stringify({ name: "One" }),
+        JSON.stringify({ name: "Two" }),
+      ],
+    );
+    const reviewJob = await database.query<{ id: string }>(
+      `INSERT INTO jobs(source_id,external_id,title,company,location,url)
+       SELECT id,'cv-review-test','Example Engineer','Example Co','Colombo','https://example.com/cv-review-test'
+       FROM sources LIMIT 1 RETURNING id`,
+    );
+    await database.query(
+      `INSERT INTO job_cv_reviews(user_id,job_id,cv_revision,job_hash,result,model_identifier)
+       VALUES($1,$3,1,$4,'{}'::jsonb,'test-jev'),($2,$3,1,$4,'{}'::jsonb,'test-jev')`,
+      [
+        users.rows[0].id,
+        users.rows[1].id,
+        reviewJob.rows[0].id,
+        "a".repeat(64),
+      ],
+    );
+    const first = await database.query<{ profile: { name: string } }>(
+      "SELECT profile FROM candidate_cvs WHERE user_id=$1",
+      [users.rows[0].id],
+    );
+    expect(first.rows).toEqual([{ profile: { name: "One" } }]);
+    await database.query("DELETE FROM users WHERE id=$1", [users.rows[0].id]);
+    expect(
+      (
+        await database.query("SELECT 1 FROM job_cv_reviews WHERE user_id=$1", [
+          users.rows[0].id,
+        ])
+      ).rowCount,
+    ).toBe(0);
+    expect(
+      (
+        await database.query("SELECT 1 FROM job_cv_reviews WHERE user_id=$1", [
+          users.rows[1].id,
+        ])
+      ).rowCount,
+    ).toBe(1);
+    expect(
+      (
+        await database.query("SELECT 1 FROM candidate_cvs WHERE user_id=$1", [
+          users.rows[0].id,
+        ])
+      ).rowCount,
+    ).toBe(0);
+    expect(
+      (
+        await database.query("SELECT 1 FROM candidate_cvs WHERE user_id=$1", [
+          users.rows[1].id,
+        ])
+      ).rowCount,
+    ).toBe(1);
+    await database.query("DELETE FROM jobs WHERE id=$1", [
+      reviewJob.rows[0].id,
+    ]);
+  });
   it("matches literal skill names consistently with the frontend", async () => {
     const result = await database.query<{
       ui: boolean;
@@ -171,13 +278,23 @@ describe("PostgreSQL schema and matching integration", () => {
     expect(result.rows[0].first_seen_at).toEqual(first.rows[0].first_seen_at);
   });
   it("matches numeric and Roman role levels consistently in PostgreSQL", async () => {
-    const result = await database.query<{ entry_numeric: boolean; entry_roman: boolean; mid: boolean; senior: boolean }>(
+    const result = await database.query<{
+      entry_numeric: boolean;
+      entry_roman: boolean;
+      mid: boolean;
+      senior: boolean;
+    }>(
       `SELECT jobradar_experience_match('Full Stack Developer (1)','entry') entry_numeric,
               jobradar_experience_match('Full Stack Developer I','entry') entry_roman,
               jobradar_experience_match('Full Stack Developer II','mid') mid,
               jobradar_experience_match('Full Stack Developer (3)','senior') senior`,
     );
-    expect(result.rows[0]).toEqual({ entry_numeric: true, entry_roman: true, mid: true, senior: true });
+    expect(result.rows[0]).toEqual({
+      entry_numeric: true,
+      entry_roman: true,
+      mid: true,
+      senior: true,
+    });
   });
   it("matches seeded role monitors and refreshes matches after a pause", async () => {
     await rebuildMatches(client);
@@ -259,10 +376,10 @@ describe("PostgreSQL schema and matching integration", () => {
     await database.query("UPDATE monitors SET enabled=true WHERE id=$1", [
       monitors.rows[0].id,
     ]);
-    await database.query(
-      "UPDATE users SET preferences=$2::jsonb WHERE id=$1",
-      [users.rows[0].id, JSON.stringify({ experience: "entry" })],
-    );
+    await database.query("UPDATE users SET preferences=$2::jsonb WHERE id=$1", [
+      users.rows[0].id,
+      JSON.stringify({ experience: "entry" }),
+    ]);
     await database.query(
       "UPDATE jobs SET description='Private full opportunity detail' WHERE id=$1",
       [jobs.rows[0].id],
@@ -366,6 +483,57 @@ describe("PostgreSQL schema and matching integration", () => {
       { userId: users.rows[1].id, status: "archived", reviewed: false },
       { userId: users.rows[0].id, status: "saved", reviewed: true },
     ]);
+  });
+  it("keeps candidate profiles and application notes scoped to each account", async () => {
+    const users = await database.query<{ id: string }>(
+      `INSERT INTO users(name,email,password_hash)
+       VALUES('Candidate One','candidate-one@example.com','hash'),('Candidate Two','candidate-two@example.com','hash') RETURNING id`,
+    );
+    const job = await database.query<{ id: string }>(
+      "SELECT id FROM jobs LIMIT 1",
+    );
+    await database.query(
+      `INSERT INTO candidate_profiles(user_id,skills,evidence_summary,consented_at)
+       VALUES($1,ARRAY['React'],'Built a public portfolio',now()),($2,ARRAY['Go'],'Maintained an API',now())`,
+      [users.rows[0].id, users.rows[1].id],
+    );
+    await database.query(
+      `INSERT INTO job_user_states(user_id,job_id,status,application_note,applied_at)
+       VALUES($1,$3,'applied','Applied on company site',now()),($2,$3,'saved','Ask for referral',NULL)`,
+      [users.rows[0].id, users.rows[1].id, job.rows[0].id],
+    );
+    const first = await database.query<{
+      skills: string[];
+      note: string;
+      applied: boolean;
+    }>(
+      `SELECT p.skills,s.application_note AS note,s.applied_at IS NOT NULL AS applied
+       FROM candidate_profiles p JOIN job_user_states s ON s.user_id=p.user_id
+       WHERE p.user_id=$1 AND s.job_id=$2`,
+      [users.rows[0].id, job.rows[0].id],
+    );
+    expect(first.rows).toEqual([
+      { skills: ["React"], note: "Applied on company site", applied: true },
+    ]);
+    await database.query("DELETE FROM candidate_profiles WHERE user_id=$1", [
+      users.rows[0].id,
+    ]);
+    expect(
+      (
+        await database.query(
+          "SELECT 1 FROM candidate_profiles WHERE user_id=$1",
+          [users.rows[0].id],
+        )
+      ).rowCount,
+    ).toBe(0);
+    expect(
+      (
+        await database.query<{ application_note: string }>(
+          "SELECT application_note FROM job_user_states WHERE user_id=$1 AND job_id=$2",
+          [users.rows[0].id, job.rows[0].id],
+        )
+      ).rows[0].application_note,
+    ).toBe("Applied on company site");
   });
   it("enforces unique source identity and valid application status", async () => {
     await expect(

@@ -1,0 +1,38 @@
+# Stages 4–6: implemented boundaries and verification
+
+## Stage 4: assisted matching
+
+Matching still defaults to the deterministic classifier. `JEV_MODE=shadow` evaluates jobs without changing the feed. `JEV_MODE=assisted` makes current, successful, non-review JEV profiles eligible, but each source and question field remains off until the owner records a reviewed rationale and confidence threshold in `/app/intelligence`. There is no blanket switch that promotes every answer.
+The technical rollout and correction controls now live on the owner-only `/app/intelligence` page, so normal account settings stay focused on profile, preferences, access, and data export.
+
+The assisted matcher can suppress a high-confidence non-job or non-technology listing, and resolve an ambiguous work arrangement or career stage. Explicit title stage and explicit work arrangement always win. Owner corrections are append-only and take effect only for their enabled source field; a correction cannot override an explicit career stage or work arrangement. Profile materialization rematches only its job. Rule changes rematch the workspace. Job details list the personal monitors that caused a Relevant match. Rules and recent corrections are visible only to the owner.
+
+**Promotion gate:** the current live shadow sample is not sufficient to enable assisted production matching. The first controlled sample processed 25 jobs with one career-stage disagreement and no work-arrangement disagreement. Review more jobs per source and career level and meet `evaluation-and-rollout.md` before setting `JEV_MODE=assisted`. Keep the current environment in shadow mode meanwhile.
+
+**Rollback:** disable the affected source field in `/app/intelligence`. To leave assisted mode entirely, set `JEV_MODE=shadow` or `off` for the web and worker processes, restart them, then run `npm run jev:rematch:deterministic`. The command rebuilds stored matches using deterministic rules. The old profiles remain available for investigation. Run a representative job and member-visibility check after rollback.
+
+## Stage 5: sourced requirement evidence
+
+The controlled evaluator extracts candidate sentences from the normalized original description, stores exact offsets and a description hash, and asks JEV only to classify those supplied phrases. The model cannot add requirement text. The API checks the hash and each exact offset against the current description before showing a phrase. AND/OR wording is preserved as a group label; it is not split into unsupported individual obligations. Listings with no qualifying phrase simply show no requirements.
+
+Run `npm run jev:requirements -- --limit=10` for a bounded evaluation. Inspect the evidence in job detail against the original listing. The first ten-job run found one listing with eight candidate phrases; this is a pipeline check, not a quality gate. Expand the labeled review by source and measure false requirements before treating the labels as reliable. Candidate skills are compared only as literal mentions in evidence labeled `skill`; the UI does not calculate a hiring score.
+
+## Stage 6: private candidate and application tools
+
+Each signed-in user can export their personal data as JSON, keep a private note per job, and see when they marked it applied. The older optional skills-profile API remains for existing records, but its separate Settings card has been removed in favor of the reviewed CV. These records are scoped by `user_id`; an owner cannot read another user's candidate data through the personal APIs. No generated candidate claims, outbound application, or automatic submission is implemented.
+
+`/app/profile/cv` is a dedicated, responsive career-profile page. PDF.js reads a text-based PDF (or a TXT file) in the browser, and a deterministic parser organizes identity, summary, categorized skills, education, work, projects, research, and other sections. Page-by-page extraction progress appears before review. The PDF bytes are never uploaded. The user can correct the structured fields and inspect the original extracted text, then explicitly approve and save both to the private `candidate_cvs` row for their account. The page renders the saved content as a readable profile, with edit, export, and delete controls. Revision checks prevent an old browser tab from silently overwriting a newer save. The account-data export includes the CV, and deleting the account cascades to its CV. The raw PDF and full CV profile are never sent to JEV. The legacy optional candidate skills API remains separate and is never automatically filled from the CV. Text extraction cannot read image-only scans; those need a text-based export because OCR is absent from this workflow.
+
+Each job dialog now offers an explicit JEV CV review. It sends bounded, selected role/skill/experience excerpts from the approved CV and source job, with contact details redacted; it never sends the PDF, raw extracted text, or saved contact fields. JEV returns three controlled labels attached to the exact evidence supplied. Missing source requirements result in “unclear,” not a claimed CV gap. Reviews are saved per account, job, CV revision, and listing/version hash, reused on reopen, and invalidated when the CV or listing changes. Deleting a CV cascades to its reviews. The account-data export includes saved reviews. A daily cap prevents accidental bulk model calls. These labels are guidance, not application or hiring decisions.
+
+The existing application note and saved/applied statuses remain separate when the candidate skills profile or CV is deleted.
+
+## Manual checks
+
+1. Open `/app/intelligence` as the owner. Check JEV health, current mode, and source rules. In shadow mode, saving a rule records it but does not alter matching. Disable it again after reviewing the control.
+2. Open an opportunity from Relevant. Check that the listed monitor name matches the reason it appears, and that every extracted requirement is a literal excerpt from the source description.
+3. In Settings, check account details, preferences, workspace access, and the personal-data export. Confirm the CV, skills, and owner JEV cards are no longer present there.
+4. Save a private job note, mark the job applied, refresh, and confirm the note and applied time persist. Sign in as another member and confirm they cannot see those personal records or owner JEV controls.
+5. For a rollback drill, stay in shadow mode and run `npm run jev:rematch:deterministic`; confirm Relevant and member visibility still work. Do not enable assisted mode until the source-specific review gate passes.
+6. Open My CV, choose a text-based PDF or TXT CV, and watch extraction progress. Review identity, skills, and each collapsible section; edit a field and select Approve and save. Refresh or sign in from another browser to see the same profile. Export a JSON copy and remove it. A scanned PDF should show a text-extraction error. The original file should never appear in the browser Network panel; the approved JSON should be posted only after the save action.
+7. Open a relevant job. Choose Review with JEV and check the role, skills, and experience evidence. Close and reopen: the saved review should appear without another model request. A listing with only “refer to vacancy” should show unclear requirements. Sign in as another user to confirm their review is separate. Update or delete the CV and confirm the old review is no longer current.

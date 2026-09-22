@@ -1,0 +1,188 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { authorizeWrite, currentUser } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { cvProfileSchema } from "@/lib/cv/schema";
+import { getJobDetail } from "@/lib/repository";
+import { createJevClient } from "@/lib/jev/client";
+import { jevConfig } from "@/lib/jev/config";
+import { jobCvHash, reviewJobAgainstCv } from "@/lib/intelligence/cv-review";
+
+export const dynamic = "force-dynamic";
+const jobIdSchema = z.string().uuid();
+type Context = { params: Promise<{ id: string }> };
+
+export async function GET(_request: Request, context: Context) {
+  const jobId = jobIdSchema.safeParse((await context.params).id);
+  if (!jobId.success)
+    return NextResponse.json({ error: "Job not found." }, { status: 404 });
+  const client = await db()
+    .connect()
+    .catch(() => null);
+  if (!client)
+    return NextResponse.json(
+      { error: "The workspace is temporarily unavailable." },
+      { status: 503 },
+    );
+  try {
+    const user = await currentUser(client);
+    if (!user)
+      return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+    const job = await getJobDetail(user, jobId.data, client);
+    if (!job)
+      return NextResponse.json({ error: "Job not found." }, { status: 404 });
+    const cv = await client.query<{ revision: number }>(
+      "SELECT revision FROM candidate_cvs WHERE user_id=$1",
+      [user.id],
+    );
+    if (!cv.rowCount)
+      return NextResponse.json(
+        { cvAvailable: false, review: null, stale: false },
+        { headers: { "Cache-Control": "no-store" } },
+      );
+    const latest = await client.query<{
+      id: string;
+      result: unknown;
+      model: string;
+      createdAt: string;
+      cvRevision: number;
+      jobHash: string;
+    }>(
+      `SELECT id,result,model_identifier AS model,created_at AS "createdAt",cv_revision AS "cvRevision",job_hash AS "jobHash"
+       FROM job_cv_reviews WHERE user_id=$1 AND job_id=$2 ORDER BY created_at DESC LIMIT 1`,
+      [user.id, jobId.data],
+    );
+    const row = latest.rows[0];
+    const stale = Boolean(
+      row &&
+      (row.cvRevision !== cv.rows[0].revision ||
+        row.jobHash !== jobCvHash(job)),
+    );
+    return NextResponse.json(
+      { cvAvailable: true, review: stale ? null : row || null, stale },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  } catch (error) {
+    console.error("CV job review read failed", error);
+    return NextResponse.json(
+      { error: "The job review could not be loaded." },
+      { status: 503 },
+    );
+  } finally {
+    client.release();
+  }
+}
+
+export async function POST(request: Request, context: Context) {
+  const jobId = jobIdSchema.safeParse((await context.params).id);
+  if (!jobId.success)
+    return NextResponse.json({ error: "Job not found." }, { status: 404 });
+  let user;
+  try {
+    user = await authorizeWrite(request);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message === "FORBIDDEN")
+      return NextResponse.json(
+        { error: "Request origin is not allowed." },
+        { status: 403 },
+      );
+    if (message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+    return NextResponse.json(
+      { error: "The workspace is temporarily unavailable." },
+      { status: 503 },
+    );
+  }
+  const client = await db()
+    .connect()
+    .catch(() => null);
+  if (!client)
+    return NextResponse.json(
+      { error: "The workspace is temporarily unavailable." },
+      { status: 503 },
+    );
+  try {
+    const job = await getJobDetail(user, jobId.data, client);
+    if (!job)
+      return NextResponse.json({ error: "Job not found." }, { status: 404 });
+    const cvRow = await client.query<{ profile: unknown; revision: number }>(
+      "SELECT profile,revision FROM candidate_cvs WHERE user_id=$1",
+      [user.id],
+    );
+    if (!cvRow.rowCount)
+      return NextResponse.json(
+        { error: "Save your reviewed CV before analyzing a job." },
+        { status: 409 },
+      );
+    const parsedCv = cvProfileSchema.safeParse(cvRow.rows[0].profile);
+    if (!parsedCv.success)
+      return NextResponse.json(
+        { error: "The saved CV needs to be reviewed again." },
+        { status: 409 },
+      );
+    const cv = parsedCv.data;
+    const revision = cvRow.rows[0].revision;
+    const hash = jobCvHash(job);
+    const existing = await client.query(
+      `SELECT id,result,model_identifier AS model,created_at AS "createdAt"
+       FROM job_cv_reviews WHERE user_id=$1 AND job_id=$2 AND cv_revision=$3 AND job_hash=$4`,
+      [user.id, jobId.data, revision, hash],
+    );
+    if (existing.rowCount)
+      return NextResponse.json({ review: existing.rows[0], cached: true });
+    const daily = await client.query<{ count: string }>(
+      "SELECT count(*)::text AS count FROM job_cv_reviews WHERE user_id=$1 AND created_at>now()-interval '1 day'",
+      [user.id],
+    );
+    if (Number(daily.rows[0].count) >= 100)
+      return NextResponse.json(
+        { error: "Daily review limit reached. Try again tomorrow." },
+        { status: 429 },
+      );
+    const config = jevConfig();
+    if (!config.apiKey)
+      return NextResponse.json(
+        { error: "JEV review is not configured yet." },
+        { status: 503 },
+      );
+    const analyzed = await reviewJobAgainstCv(createJevClient(config), job, cv);
+    const currentJob = await getJobDetail(user, jobId.data, client);
+    if (!currentJob || jobCvHash(currentJob) !== hash)
+      return NextResponse.json(
+        { error: "This listing changed during review. Try again." },
+        { status: 409 },
+      );
+    const inserted = await client.query(
+      `INSERT INTO job_cv_reviews(user_id,job_id,cv_revision,job_hash,result,model_identifier)
+       SELECT $1,$2,$3,$4,$5::jsonb,$6 FROM candidate_cvs WHERE user_id=$1 AND revision=$3
+       ON CONFLICT(user_id,job_id,cv_revision,job_hash) DO NOTHING
+       RETURNING id,result,model_identifier AS model,created_at AS "createdAt"`,
+      [
+        user.id,
+        jobId.data,
+        revision,
+        hash,
+        JSON.stringify(analyzed.result),
+        analyzed.model,
+      ],
+    );
+    if (!inserted.rowCount)
+      return NextResponse.json(
+        { error: "Your CV changed during review. Try again." },
+        { status: 409 },
+      );
+    return NextResponse.json({ review: inserted.rows[0], cached: false });
+  } catch (error) {
+    console.error(
+      "CV job review failed",
+      error instanceof Error ? error.name : "unknown",
+    );
+    return NextResponse.json(
+      { error: "JEV could not review this job right now. Try again later." },
+      { status: 503 },
+    );
+  } finally {
+    client.release();
+  }
+}

@@ -21,6 +21,7 @@ export async function POST(request: Request) {
           "source-toggle",
           "job-status",
           "job-reviewed",
+          "job-note",
           "profile-update",
           "sync",
         ]),
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
       request,
       ownerAction ? "owner" : "member",
     );
-    if (["job-status", "job-reviewed"].includes(body.action)) {
+    if (["job-status", "job-reviewed", "job-note"].includes(body.action)) {
       const jobId = z.string().uuid().parse(body.id);
       const access = await db().query(
         `SELECT 1 FROM jobs j
@@ -79,11 +80,21 @@ export async function POST(request: Request) {
         .enum(["new", "saved", "applied", "archived"])
         .parse(body.data);
       await db().query(
-        `INSERT INTO job_user_states(user_id,job_id,status,reviewed_at)
-         VALUES($1,$2,$3,now())
+        `INSERT INTO job_user_states(user_id,job_id,status,reviewed_at,applied_at)
+         VALUES($1,$2,$3,now(),CASE WHEN $3='applied' THEN now() ELSE NULL END)
          ON CONFLICT(user_id,job_id) DO UPDATE
-         SET status=excluded.status,reviewed_at=COALESCE(job_user_states.reviewed_at,now()),updated_at=now()`,
+         SET status=excluded.status,reviewed_at=COALESCE(job_user_states.reviewed_at,now()),
+             applied_at=CASE WHEN excluded.status='applied' THEN COALESCE(job_user_states.applied_at,now()) ELSE job_user_states.applied_at END,
+             updated_at=now()`,
         [user.id, id, status],
+      );
+    } else if (body.action === "job-note") {
+      const id = z.string().uuid().parse(body.id);
+      const note = z.string().trim().max(2000).parse(body.data);
+      await db().query(
+        `INSERT INTO job_user_states(user_id,job_id,application_note) VALUES($1,$2,$3)
+         ON CONFLICT(user_id,job_id) DO UPDATE SET application_note=excluded.application_note,updated_at=now()`,
+        [user.id, id, note],
       );
     } else if (body.action === "job-reviewed") {
       const id = z.string().uuid().parse(body.id);
@@ -125,7 +136,8 @@ export async function POST(request: Request) {
                 v.excludedKeywords,
                 v.location,
                 v.remoteOnly,
-                v.workModes || (v.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
+                v.workModes ||
+                  (v.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
                 v.enabled,
               ],
             );
@@ -141,7 +153,8 @@ export async function POST(request: Request) {
                 v.excludedKeywords,
                 v.location,
                 v.remoteOnly,
-                v.workModes || (v.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
+                v.workModes ||
+                  (v.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
                 v.enabled,
               ],
             );

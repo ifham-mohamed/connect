@@ -26,6 +26,8 @@ export async function getDashboard(
               j.first_seen_at AS "firstSeenAt", j.last_seen_at AS "lastSeenAt",
               COALESCE(personal_state.status, 'new') AS status,
               (personal_state.reviewed_at IS NOT NULL) AS reviewed, j.active,
+              COALESCE(personal_state.application_note,'') AS "applicationNote",
+              personal_state.applied_at AS "appliedAt",
               COALESCE((
                 SELECT array_agg(mm.monitor_id::text) FROM monitor_matches mm
                 JOIN monitors m ON m.id=mm.monitor_id
@@ -82,6 +84,8 @@ export async function getJobDetail(
               j.first_seen_at AS "firstSeenAt", j.last_seen_at AS "lastSeenAt",
               COALESCE(personal_state.status, 'new') AS status,
               (personal_state.reviewed_at IS NOT NULL) AS reviewed, j.active,
+              COALESCE(personal_state.application_note,'') AS "applicationNote",
+              personal_state.applied_at AS "appliedAt",
               COALESCE((
                 SELECT array_agg(mm.monitor_id::text) FROM monitor_matches mm
                 JOIN monitors m ON m.id=mm.monitor_id

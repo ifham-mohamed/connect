@@ -11,7 +11,8 @@ export type SourceKind =
   | "greenhouse"
   | "lever";
 export type JobStatus = "new" | "saved" | "applied" | "archived";
-export type ExperienceLevel = "internship" | "entry" | "mid" | "senior" | "other";
+export type ExperienceLevel =
+  "internship" | "entry" | "mid" | "senior" | "other";
 export type WorkMode = "onsite" | "hybrid" | "remote";
 export interface UserPreferences {
   experience?: ExperienceLevel;
@@ -41,6 +42,16 @@ export interface Job {
   reviewed: boolean;
   active: boolean;
   matchedMonitors: string[];
+  applicationNote?: string;
+  appliedAt?: string | null;
+  requirements?: Array<{
+    evidence: string;
+    category: string;
+    importance: string;
+    groupKind: string;
+    confidence: number;
+  }>;
+  profileSkillMatches?: string[];
 }
 export interface Monitor {
   id: string;

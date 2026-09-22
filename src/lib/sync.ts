@@ -6,17 +6,22 @@ import type { Source } from "./types";
 import { jevQueueEnabled } from "./jev/config";
 import { queueJobsForIntelligence } from "./intelligence/queue";
 
+const assistedMatching = process.env.JEV_MODE === "assisted";
+const modeAndExperiencePredicate = assistedMatching
+  ? `jobradar_assisted_match(j.id,s.kind,j.title||' '||array_to_string(j.tags,' '),j.location,j.remote,m.work_modes,
+      COALESCE((SELECT u.preferences->>'experience' FROM users u WHERE u.id=m.user_id), ''))`
+  : `jobradar_work_mode_match(j.remote,j.title||' '||array_to_string(j.tags,' ')||' '||j.location,m.work_modes)
+    AND jobradar_experience_match(j.title||' '||array_to_string(j.tags,' '), COALESCE((SELECT u.preferences->>'experience' FROM users u WHERE u.id=m.user_id), ''))`;
 const matchPredicate = `(NOT m.remote_only OR j.remote)
-    AND jobradar_work_mode_match(j.remote,j.title||' '||array_to_string(j.tags,' ')||' '||j.location,m.work_modes)
+    AND ${modeAndExperiencePredicate}
     AND (m.location='' OR strpos(lower(j.location),lower(m.location))>0 OR (lower(m.location)='sri lanka' AND lower(j.location) ~ '\\m(sri lanka|western province|central province|southern province|northern province|eastern province|north western province|north central province|uva province|sabaragamuwa province|colombo|kandy|galle|jaffna|gampaha|negombo|matara|kurunegala|anuradhapura|polonnaruwa|badulla|ratnapura|trincomalee|batticaloa|kalutara|hambantota|kilinochchi|mannar|mullaitivu|vavuniya|puttalam|matale|nuwara eliya|kegalle|monaragala|ampara)\\M'))
-    AND jobradar_experience_match(j.title||' '||array_to_string(j.tags,' '), COALESCE((SELECT u.preferences->>'experience' FROM users u WHERE u.id=m.user_id), ''))
     AND EXISTS(SELECT 1 FROM unnest(m.keywords) k WHERE jobradar_keyword_match(j.title||' '||array_to_string(j.tags,' '),k))
     AND NOT EXISTS(SELECT 1 FROM unnest(m.excluded_keywords) k WHERE jobradar_keyword_match(j.title||' '||array_to_string(j.tags,' '),k))`;
 
 export async function rebuildMatches(client: Pick<PoolClient, "query">) {
   await client.query("DELETE FROM monitor_matches");
   await client.query(`INSERT INTO monitor_matches(monitor_id,job_id)
-    SELECT m.id,j.id FROM monitors m CROSS JOIN jobs j WHERE m.enabled
+    SELECT m.id,j.id FROM monitors m CROSS JOIN jobs j JOIN sources s ON s.id=j.source_id WHERE m.enabled
     AND ${matchPredicate}
     ON CONFLICT DO NOTHING`);
 }
@@ -32,7 +37,7 @@ export async function rebuildMatchesForJobs(
   );
   await client.query(
     `INSERT INTO monitor_matches(monitor_id,job_id)
-     SELECT m.id,j.id FROM monitors m CROSS JOIN jobs j
+     SELECT m.id,j.id FROM monitors m CROSS JOIN jobs j JOIN sources s ON s.id=j.source_id
      WHERE j.id=ANY($1::uuid[]) AND m.enabled AND ${matchPredicate}
      ON CONFLICT DO NOTHING`,
     [jobIds],
@@ -48,7 +53,7 @@ export async function rebuildMatchesForMonitor(
   ]);
   await client.query(
     `INSERT INTO monitor_matches(monitor_id,job_id)
-     SELECT m.id,j.id FROM monitors m CROSS JOIN jobs j
+     SELECT m.id,j.id FROM monitors m CROSS JOIN jobs j JOIN sources s ON s.id=j.source_id
      WHERE m.id=$1 AND m.enabled AND ${matchPredicate}
      ON CONFLICT DO NOTHING`,
     [monitorId],
@@ -65,13 +70,17 @@ export async function rebuildMatchesForUser(
   );
   await client.query(
     `INSERT INTO monitor_matches(monitor_id,job_id)
-     SELECT m.id,j.id FROM monitors m CROSS JOIN jobs j
+     SELECT m.id,j.id FROM monitors m CROSS JOIN jobs j JOIN sources s ON s.id=j.source_id
      WHERE m.user_id=$1 AND m.enabled AND ${matchPredicate}
      ON CONFLICT DO NOTHING`,
     [userId],
   );
 }
-export async function syncSources() {
+export async function syncSources(options?: {
+  kind?: Source["kind"];
+  board?: string;
+  force?: boolean;
+}) {
   const client = await db().connect();
   let locked = false;
   const results: {
@@ -90,8 +99,13 @@ export async function syncSources() {
     await client.query(
       "UPDATE sync_runs SET status='failed', finished_at=now(), error='Collector interrupted; next scheduled run will retry.' WHERE status='running'",
     );
+    const selected = options?.kind ? " AND s.kind=$1 AND s.board=$2" : "";
+    const due = options?.force
+      ? ""
+      : " AND (s.last_attempt_at IS NULL OR s.last_attempt_at < now()-make_interval(mins=>s.interval_minutes))";
     const sources = await client.query<Source>(
-      `${sourceSelect} WHERE s.enabled AND (s.last_attempt_at IS NULL OR s.last_attempt_at < now()-make_interval(mins=>s.interval_minutes)) ORDER BY s.name`,
+      `${sourceSelect} WHERE s.enabled${selected}${due} ORDER BY s.name`,
+      options?.kind ? [options.kind, options.board || ""] : [],
     );
     for (const source of sources.rows) {
       await client.query(

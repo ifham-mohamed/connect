@@ -3,6 +3,11 @@ import { z } from "zod";
 import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getJobDetail } from "@/lib/repository";
+import { containsKeyword } from "@/lib/matching";
+import {
+  requirementDescriptionHash,
+  requirementText,
+} from "@/lib/intelligence/requirements";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +44,43 @@ export async function GET(
     const job = await getJobDetail(user, parsed.data, client);
     if (!job)
       return NextResponse.json({ error: "Job not found." }, { status: 404 });
-    return NextResponse.json({ job });
+    const text = requirementText(job.description);
+    const [requirements, profile] = await Promise.all([
+      client.query<{
+        evidence: string;
+        startOffset: number;
+        endOffset: number;
+        category: string;
+        importance: string;
+        groupKind: string;
+        confidence: number;
+      }>(
+        `SELECT evidence,start_offset AS "startOffset",end_offset AS "endOffset",category,importance,group_kind AS "groupKind",confidence
+         FROM job_requirements WHERE job_id=$1 AND description_hash=$2
+         ORDER BY start_offset LIMIT 12`,
+        [parsed.data, requirementDescriptionHash(text)],
+      ),
+      client.query<{ skills: string[] }>(
+        "SELECT skills FROM candidate_profiles WHERE user_id=$1",
+        [user.id],
+      ),
+    ]);
+    const skills = profile.rows[0]?.skills || [];
+    const supported = requirements.rows.filter(
+      (row) => text.slice(row.startOffset, row.endOffset) === row.evidence,
+    );
+    return NextResponse.json({
+      job: {
+        ...job,
+        requirements: supported,
+        profileSkillMatches: skills.filter((skill) =>
+          supported.some(
+            (row) =>
+              row.category === "skill" && containsKeyword(row.evidence, skill),
+          ),
+        ),
+      },
+    });
   } catch (error) {
     console.error("Job detail read failed", error);
     return NextResponse.json(

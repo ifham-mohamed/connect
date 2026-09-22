@@ -19,6 +19,8 @@
     "jev:worker": "tsx --env-file-if-exists=.env scripts/intelligence-worker.ts",
     "jev:worker:once": "tsx --env-file-if-exists=.env scripts/intelligence-worker.ts --once",
     "jev:report": "tsx --env-file-if-exists=.env scripts/report-jev.ts",
+    "jev:requirements": "tsx --env-file-if-exists=.env scripts/evaluate-requirements.ts",
+    "jev:rematch:deterministic": "tsx --env-file-if-exists=.env scripts/rematch-deterministic.ts --confirm",
     "format": "prettier --write src scripts tests docs README.md",
     "db:check": "tsx --env-file-if-exists=.env scripts/check-database.ts"
   },
@@ -31,6 +33,7 @@
     "fast-xml-parser": "^5.11.1",
     "lucide-react": "^1.47.0",
     "next": "^16.3.5",
+    "pdfjs-dist": "^6.3.289",
     "pg": "^8.23.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
