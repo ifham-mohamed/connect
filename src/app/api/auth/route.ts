@@ -11,7 +11,8 @@ import {
   setSessionCookie,
   verifyPassword,
 } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { connectDatabase, db } from "@/lib/db";
+import { databaseError } from "@/lib/database-error";
 
 const credentialsSchema = z.discriminatedUnion("mode", [
   z.object({
@@ -58,9 +59,10 @@ export async function POST(request: Request) {
       },
       { status: 400 },
     );
-  const client = await db()
-    .connect()
-    .catch(() => null);
+  const client = await connectDatabase().catch((error) => {
+    console.error("Authentication connection failed", databaseError(error));
+    return null;
+  });
   if (!client)
     return NextResponse.json(
       { error: "Sign in is temporarily unavailable." },

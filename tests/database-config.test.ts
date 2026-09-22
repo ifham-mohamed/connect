@@ -1,5 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { databaseConfig } from "../src/lib/database-config";
+import { connectDatabase } from "../src/lib/db";
+import type { PoolClient } from "pg";
 describe("database connection configuration", () => {
   it("rejects placeholders before connecting", () => {
     expect(() =>
@@ -41,5 +43,26 @@ describe("database connection configuration", () => {
         DATABASE_POOL_MAX: "50",
       }).max,
     ).toBe(10);
+  });
+  it("retries one transient terminated connection", async () => {
+    const client = { release: vi.fn() } as unknown as PoolClient;
+    const connect = vi
+      .fn<() => Promise<PoolClient>>()
+      .mockRejectedValueOnce(
+        new Error("Connection terminated due to connection timeout"),
+      )
+      .mockResolvedValueOnce(client);
+
+    await expect(connectDatabase({ connect }, 0)).resolves.toBe(client);
+    expect(connect).toHaveBeenCalledTimes(2);
+  });
+  it("does not retry permanent database errors", async () => {
+    const error = Object.assign(new Error("password authentication failed"), {
+      code: "28P01",
+    });
+    const connect = vi.fn<() => Promise<PoolClient>>().mockRejectedValue(error);
+
+    await expect(connectDatabase({ connect }, 0)).rejects.toBe(error);
+    expect(connect).toHaveBeenCalledTimes(1);
   });
 });

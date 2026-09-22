@@ -54,6 +54,27 @@ describe("keyword matching", () => {
       ),
     ).toBe(false);
   });
+  it("applies the same compatibility rule to every career stage", () => {
+    expect(
+      matchesExperience("Software Engineer Internship", "internship"),
+    ).toBe(true);
+    expect(matchesExperience("Junior Software Engineer", "internship")).toBe(
+      false,
+    );
+    expect(matchesExperience("Intermediate Software Engineer", "mid")).toBe(
+      true,
+    );
+    expect(matchesExperience("Graduate Software Engineer", "mid")).toBe(
+      false,
+    );
+    expect(matchesExperience("Lead Software Engineer", "senior")).toBe(true);
+    expect(matchesExperience("Level II Software Engineer", "senior")).toBe(
+      false,
+    );
+    expect(matchesExperience("Software Engineer", "internship")).toBe(true);
+    expect(matchesExperience("Software Engineer", "mid")).toBe(true);
+    expect(matchesExperience("Software Engineer", "senior")).toBe(true);
+  });
   it("recognizes known Sri Lankan cities without changing source location text", () => {
     expect(matchesLocation("Colombo", "Sri Lanka")).toBe(true);
     expect(matchesLocation("US only", "Sri Lanka")).toBe(false);
