@@ -3,18 +3,22 @@ import { ZodError } from "zod";
 import { authorizeWrite } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { rebuildMatchesForUser } from "@/lib/sync";
-import { onboardingSchema } from "@/lib/validation";
+import { onboardingSchema, ownerOnboardingSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
   try {
-    if (Number(request.headers.get("content-length") || 0) > 30000)
+    const user = await authorizeWrite(request);
+    const requestLimit = user.role === "owner" ? 512_000 : 60_000;
+    const rawBody = await request.text();
+    if (Buffer.byteLength(rawBody, "utf8") > requestLimit)
       return NextResponse.json(
         { error: "Request is too large." },
         { status: 413 },
       );
-
-    const user = await authorizeWrite(request);
-    const preferences = onboardingSchema.parse(await request.json());
+    const preferences = (user.role === "owner"
+      ? ownerOnboardingSchema
+      : onboardingSchema
+    ).parse(JSON.parse(rawBody));
     const client = await db().connect();
     try {
       await client.query("BEGIN");

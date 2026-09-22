@@ -14,7 +14,7 @@ import {
   linkedInNetworkJobsSearchUrl,
   linkedInSearchTerms,
 } from "../src/lib/linkedin";
-import { monitorSchema, onboardingSchema, sourceSchema } from "../src/lib/validation";
+import { monitorSchema, onboardingSchema, ownerOnboardingSchema, sourceSchema } from "../src/lib/validation";
 import type { Monitor, Source } from "../src/lib/types";
 const monitor: Monitor = {
   id: "m",
@@ -39,16 +39,17 @@ const source: Source = {
   jobCount: 0,
 };
 describe("keyword matching", () => {
-  it("combines internship and entry roles into one early-career stage", () => {
-    expect(matchesExperience("Senior Software Engineer", "early")).toBe(false);
-    expect(matchesExperience("Software Engineer Internship", "early")).toBe(true);
-    expect(matchesExperience("Intermediate Software Engineer", "early")).toBe(false);
-    expect(matchesExperience("Graduate Software Engineer", "early")).toBe(true);
+  it("keeps internship and entry roles in distinct career stages", () => {
+    expect(matchesExperience("Senior Software Engineer", "entry")).toBe(false);
+    expect(matchesExperience("Software Engineer Internship", "internship")).toBe(true);
+    expect(matchesExperience("Software Engineer Internship", "entry")).toBe(false);
+    expect(matchesExperience("Graduate Software Engineer", "entry")).toBe(true);
+    expect(matchesExperience("Junior Software Engineer", "internship")).toBe(false);
     expect(
       matchesMonitor(
         { ...job, title: "Senior React engineer" },
         monitor,
-        "early",
+        "entry",
       ),
     ).toBe(false);
   });
@@ -68,6 +69,8 @@ describe("keyword matching", () => {
   });
   it("recognizes known Sri Lankan cities without changing source location text", () => {
     expect(matchesLocation("Colombo", "Sri Lanka")).toBe(true);
+    expect(matchesLocation("Western Province", "Sri Lanka")).toBe(true);
+    expect(matchesLocation("Batticaloa", "Sri Lanka")).toBe(true);
     expect(matchesLocation("US only", "Sri Lanka")).toBe(false);
   });
   it("does not match short skills inside unrelated words", () => {
@@ -131,7 +134,7 @@ describe("LinkedIn job discovery", () => {
         query: "Frontend Engineer",
         location: "Colombo",
         workplace: "hybrid",
-        experience: "early",
+        experience: "entry",
         jobType: "full-time",
         datePosted: "day",
         sort: "recent",
@@ -144,7 +147,7 @@ describe("LinkedIn job discovery", () => {
     expect(url.searchParams.get("keywords")).toBe("Frontend Engineer");
     expect(url.searchParams.get("location")).toBe("Colombo");
     expect(url.searchParams.get("f_WT")).toBe("3");
-    expect(url.searchParams.get("f_E")).toBe("1,2");
+    expect(url.searchParams.get("f_E")).toBe("2,3");
     expect(url.searchParams.get("f_JT")).toBe("F");
     expect(url.searchParams.get("f_TPR")).toBe("r86400");
     expect(url.searchParams.get("sortBy")).toBe("DD");
@@ -288,7 +291,7 @@ describe("source normalization and trust boundaries", () => {
     ).toBe(true);
     expect(
       onboardingSchema.safeParse({
-        experience: "early",
+        experience: "entry",
         roles: ["Software Engineer"],
         locations: ["Sri Lanka"],
         workModes: ["hybrid", "remote"],
@@ -304,5 +307,22 @@ describe("source normalization and trust boundaries", () => {
         ],
       }).success,
     ).toBe(true);
+    const manyLocations = Array.from({ length: 30 }, (_, index) => `Country ${index}`);
+    const ownerPayload = {
+      experience: "entry" as const,
+      roles: ["Software Engineer"],
+      locations: manyLocations,
+      workModes: ["hybrid" as const],
+      monitors: [{ name: "Global software", keywords: ["software engineer"], excludedKeywords: ["senior"], location: "", remoteOnly: false, enabled: true }],
+    };
+    expect(onboardingSchema.safeParse(ownerPayload).success).toBe(false);
+    expect(ownerOnboardingSchema.safeParse(ownerPayload).success).toBe(true);
+    expect(onboardingSchema.safeParse({
+      experience: "entry",
+      roles: ["Software Engineer"],
+      locations: ["Sri Lanka"],
+      workModes: ["hybrid"],
+      monitors: [{ name: "Entry software", keywords: ["software engineer"], excludedKeywords: Array.from({ length: 30 }, (_, index) => `excluded ${index}`), location: "Sri Lanka", remoteOnly: false, enabled: true }],
+    }).success).toBe(true);
   });
 });

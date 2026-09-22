@@ -32,9 +32,14 @@ type MonitorDraft = {
 
 const experiences: { id: Experience; label: string; detail: string }[] = [
   {
-    id: "early",
-    label: "Internship / Entry",
-    detail: "Internships, trainee, junior, associate, and graduate roles",
+    id: "internship",
+    label: "Internship",
+    detail: "Internships, trainee, apprentice, and placement roles",
+  },
+  {
+    id: "entry",
+    label: "Entry level",
+    detail: "Junior, associate, graduate, and level-one roles",
   },
   {
     id: "mid",
@@ -64,7 +69,7 @@ const rolePresets = [
   { label: "Data / AI", keywords: ["data engineer", "data analyst", "machine learning engineer", "ai engineer"] },
 ];
 
-const locationOptions = ["Sri Lanka", "Colombo", "Western Province", "Qatar", "Worldwide"];
+const locationOptions = ["Sri Lanka", "Qatar", "United Arab Emirates", "Saudi Arabia", "Singapore", "United Kingdom", "United States", "Canada", "Australia", "Germany", "Worldwide"];
 const workModeOptions: { id: WorkMode; label: string }[] = [
   { id: "onsite", label: "On-site" },
   { id: "hybrid", label: "Hybrid" },
@@ -84,11 +89,15 @@ function exclusionsFor(experience: Experience) {
 
 function experienceKeywords(role: string, experience: Experience) {
   const value = role.toLowerCase();
-  if (experience === "early")
+  if (experience === "internship")
     return [
       `${value} intern`,
       `intern ${value}`,
       `trainee ${value}`,
+      `apprentice ${value}`,
+    ];
+  if (experience === "entry")
+    return [
       `junior ${value}`,
       `associate ${value}`,
       `graduate ${value}`,
@@ -100,15 +109,23 @@ function experienceKeywords(role: string, experience: Experience) {
   return [];
 }
 
+const sriLankaLocations = new Set(["colombo", "western province", "kandy", "galle", "jaffna", "gampaha", "negombo", "matara", "kurunegala"]);
+function monitorLocations(locations: string[]) {
+  if (locations.includes("Worldwide")) return ["Worldwide"];
+  const coversSriLanka = locations.includes("Sri Lanka");
+  return locations.filter((location, index) => locations.indexOf(location) === index && (!coversSriLanka || !sriLankaLocations.has(location.toLowerCase())));
+}
+
 function makeMonitors(
   roles: string[],
   experience: Experience,
   locations: string[],
   workModes: WorkMode[],
 ): MonitorDraft[] {
+  const targets = monitorLocations(locations);
   return roles.flatMap((role) => {
     const preset = rolePresets.find((item) => item.label === role);
-    return locations.map((location) => ({
+    return targets.map((location) => ({
       clientId: `generated-${role}-${location}`,
       name: `${role} · ${location}`,
       keywords: [...new Set([...(preset?.keywords || [role.toLowerCase()]), ...experienceKeywords(role, experience)])],
@@ -122,11 +139,13 @@ function makeMonitors(
 
 export function OnboardingFlow({
   userName,
+  userRole,
   editMode = false,
   initialPreferences = {},
   initialMonitors = [],
 }: {
   userName: string;
+  userRole: "owner" | "member";
   editMode?: boolean;
   initialPreferences?: UserPreferences;
   initialMonitors?: Monitor[];
@@ -150,6 +169,7 @@ export function OnboardingFlow({
   );
   const [customName, setCustomName] = useState("");
   const [customKeywords, setCustomKeywords] = useState("");
+  const [customLocation, setCustomLocation] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -183,8 +203,8 @@ export function OnboardingFlow({
       setError("Give the monitor a name and at least one comma-separated keyword.");
       return;
     }
-    if (monitors.length >= 12) {
-      setError("You can start with up to 12 monitors. Remove one before adding another.");
+    if (userRole !== "owner" && monitors.length >= 24) {
+      setError("You can keep up to 24 personal monitors.");
       return;
     }
     setMonitors((current) => [
@@ -201,6 +221,18 @@ export function OnboardingFlow({
     ]);
     setCustomName("");
     setCustomKeywords("");
+    setError("");
+  }
+
+  function addLocation() {
+    const value = customLocation.trim().replace(/\s+/g, " ");
+    if (!value || locations.some((location) => location.toLowerCase() === value.toLowerCase())) return;
+    if (userRole !== "owner" && locations.length >= 6) {
+      setError("Workspace members can select up to six locations.");
+      return;
+    }
+    setLocations((current) => [...current, value]);
+    setCustomLocation("");
     setError("");
   }
 
@@ -269,7 +301,7 @@ export function OnboardingFlow({
 
           {step === 1 && (
             <>
-              <p className="onboarding-selection-note">Select up to four roles. Each role becomes a monitor for every location you choose.</p>
+              <p className="onboarding-selection-note">Select up to four roles. Each role becomes a focused monitor for every country you choose.</p>
               <div className="onboarding-options roles">
                 {rolePresets.map((item) => (
                   <button className={roles.includes(item.label) ? "selected" : ""} onClick={() => setRoles((current) => toggle(current, item.label, 4))} key={item.label}>
@@ -283,10 +315,12 @@ export function OnboardingFlow({
           {step === 2 && (
             <div className="onboarding-preferences">
               <fieldset>
-                <legend><MapPin size={16} /> Preferred locations <small>Select up to three</small></legend>
+                <legend><MapPin size={16} /> Preferred countries <small>{userRole === "owner" ? "Add every country you need" : "Select up to six"}</small></legend>
                 <div className="onboarding-chips">
-                  {locationOptions.map((location) => <button type="button" className={locations.includes(location) ? "selected" : ""} onClick={() => setLocations((current) => toggle(current, location, 3))} key={location}>{locations.includes(location) && <Check size={13} />}{location}</button>)}
+                  {[...new Set([...locationOptions, ...locations])].map((location) => <button type="button" className={locations.includes(location) ? "selected" : ""} onClick={() => setLocations((current) => toggle(current, location, userRole === "owner" ? Infinity : 6))} key={location}>{locations.includes(location) && <Check size={13} />}{location}</button>)}
                 </div>
+                <div className="onboarding-location-entry"><input aria-label="Add another country" placeholder="Add another country" value={customLocation} onChange={(event) => setCustomLocation(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); addLocation(); } }} /><button className="btn" type="button" onClick={addLocation}><Plus size={14} /> Add country</button></div>
+                {locations.includes("Sri Lanka") && <p className="onboarding-coverage-note"><Check size={13} /> Sri Lanka includes Colombo, Western Province, Kandy, Galle, Jaffna, Gampaha, Negombo, Matara, Kurunegala, and other provinces and districts.</p>}
               </fieldset>
               <fieldset>
                 <legend><BriefcaseBusiness size={16} /> Work arrangement <small>Select every arrangement you would accept</small></legend>
@@ -294,7 +328,7 @@ export function OnboardingFlow({
                   {workModeOptions.map((mode) => <button type="button" className={workModes.includes(mode.id) ? "selected" : ""} onClick={() => setWorkModes((current) => toggle(current, mode.id))} key={mode.id}>{workModes.includes(mode.id) && <Check size={13} />}{mode.label}</button>)}
                 </div>
               </fieldset>
-              <div className="onboarding-why"><Sparkles size={16} /><span><strong>Why we ask</strong><small>Location limits collected-job matches. Choosing only Remote creates remote-only monitors; mixed choices keep remote and local roles visible.</small></span></div>
+              <div className="onboarding-why"><Sparkles size={16} /><span><strong>Why we ask</strong><small>A country automatically covers its recognized cities and regions, so one Sri Lanka monitor can match Colombo, Western Province, Kandy, Jaffna, and other local listings. Choosing only Remote creates remote-only monitors.</small></span></div>
             </div>
           )}
 
@@ -303,7 +337,7 @@ export function OnboardingFlow({
               <div className="onboarding-list-panel">
                 <div className="onboarding-list-heading">
                   <strong>Your monitors</strong>
-                  <span>{monitors.length} of 12 · four visible at a time</span>
+                  <span>{monitors.length}{userRole === "owner" ? "" : " of 24"} · four visible at a time</span>
                 </div>
                 <div className="onboarding-monitor-list" aria-live="polite">
                   {monitors.map((monitor) => (
@@ -319,8 +353,8 @@ export function OnboardingFlow({
                 <div><strong>Add another monitor</strong><small>Use a name and comma-separated role or skill keywords.</small></div>
                 <input aria-label="Custom monitor name" placeholder="e.g. TypeScript roles" value={customName} onChange={(event) => setCustomName(event.target.value)} />
                 <input aria-label="Custom monitor keywords" placeholder="typescript developer, typescript engineer" value={customKeywords} onChange={(event) => setCustomKeywords(event.target.value)} />
-                <button className="btn" type="button" disabled={monitors.length >= 12} onClick={addCustomMonitor}>
-                  <Plus size={15} /> {monitors.length >= 12 ? "Monitor limit reached" : "Add monitor"}
+                <button className="btn" type="button" disabled={userRole !== "owner" && monitors.length >= 24} onClick={addCustomMonitor}>
+                  <Plus size={15} /> {userRole !== "owner" && monitors.length >= 24 ? "Monitor limit reached" : "Add monitor"}
                 </button>
               </div>
             </div>

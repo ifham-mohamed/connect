@@ -11,7 +11,7 @@ export type SourceKind =
   | "greenhouse"
   | "lever";
 export type JobStatus = "new" | "saved" | "applied" | "archived";
-export type ExperienceLevel = "early" | "mid" | "senior" | "other";
+export type ExperienceLevel = "internship" | "entry" | "mid" | "senior" | "other";
 export interface UserPreferences {
   experience?: ExperienceLevel;
   roles?: string[];

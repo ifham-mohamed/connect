@@ -27,6 +27,7 @@ try {
     "012_incremental_matching",
     "013_experience_matching",
     "014_career_stages_and_remove_devjobs",
+    "015_distinct_early_career_and_location_coverage",
   ];
   for (const name of migrations) {
     const applied = await client.query(

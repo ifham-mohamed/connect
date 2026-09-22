@@ -142,7 +142,8 @@ const kindNames: Record<SourceKind, string> = {
   lever: "Lever",
 };
 const experienceNames = {
-  early: "Internship / Entry",
+  internship: "Internship",
+  entry: "Entry level",
   mid: "Mid level",
   senior: "Senior",
   other: "Other / unspecified",
@@ -2058,7 +2059,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       }
                     >
                       <option value="any">Any level</option>
-                      <option value="early">Internship / Entry</option>
+                      <option value="internship">Internship</option>
+                      <option value="entry">Entry / associate</option>
                       <option value="mid">Mid level</option>
                       <option value="senior">Senior level</option>
                       <option value="other">Other / unspecified</option>

@@ -6,7 +6,8 @@ const LINKEDIN_POSTS_URL = "https://www.linkedin.com/search/results/content/";
 export type LinkedInWorkplace = "any" | "on-site" | "remote" | "hybrid";
 export type LinkedInExperience =
   | "any"
-  | "early"
+  | "internship"
+  | "entry"
   | "mid"
   | "senior"
   | "other";
@@ -34,8 +35,9 @@ const workplaceCodes: Record<Exclude<LinkedInWorkplace, "any">, string> = {
   hybrid: "3",
 };
 const experienceCodes: Record<Exclude<LinkedInExperience, "any">, string> = {
-  early: "1,2",
-  mid: "3",
+  internship: "1",
+  entry: "2,3",
+  mid: "4",
   senior: "4,5,6",
   other: "",
 };

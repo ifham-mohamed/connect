@@ -91,6 +91,7 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  await database.exec(await readFile(new URL("../db/015_distinct_early_career_and_location_coverage.sql", import.meta.url), "utf8"));
 });
 afterAll(async () => {
   await database.close();
@@ -127,7 +128,7 @@ describe("PostgreSQL schema and matching integration", () => {
           "SELECT preferences->>'experience' AS experience FROM users WHERE email='legacy-entry@example.com'",
         )
       ).rows[0].experience,
-    ).toBe("early");
+    ).toBe("entry");
     expect(
       (
         await database.query<{ count: number }>(
@@ -249,7 +250,7 @@ describe("PostgreSQL schema and matching integration", () => {
     ]);
     await database.query(
       "UPDATE users SET preferences=$2::jsonb WHERE id=$1",
-      [users.rows[0].id, JSON.stringify({ experience: "early" })],
+      [users.rows[0].id, JSON.stringify({ experience: "entry" })],
     );
     await database.query(
       "UPDATE jobs SET description='Private full opportunity detail' WHERE id=$1",
@@ -279,7 +280,7 @@ describe("PostgreSQL schema and matching integration", () => {
           [monitors.rows[0].id, jobs.rows[3].id],
         )
       ).rows[0].count,
-    ).toBe(1);
+    ).toBe(0);
 
     const scopedUser = {
       id: users.rows[0].id,
@@ -287,7 +288,7 @@ describe("PostgreSQL schema and matching integration", () => {
       email: "scoped-one@example.com",
       role: "member" as const,
       onboardingCompleted: true,
-      preferences: { experience: "early" as const },
+      preferences: { experience: "entry" as const },
     };
     const dashboard = await getDashboard(scopedUser, client);
     expect(

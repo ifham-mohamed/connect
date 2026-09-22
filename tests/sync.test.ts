@@ -66,6 +66,7 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  await database.exec(await readFile(new URL("../db/015_distinct_early_career_and_location_coverage.sql", import.meta.url), "utf8"));
   await database.query("UPDATE sources SET enabled=false WHERE kind='lever'");
 });
 afterAll(async () => {

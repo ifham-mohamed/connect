@@ -8,20 +8,22 @@ export function matchesLocation(location: string, target: string) {
   if (location.toLowerCase().includes(target.toLowerCase())) return true;
   return (
     target.toLowerCase() === "sri lanka" &&
-    /\b(colombo|kandy|galle|jaffna|gampaha|negombo|matara|kurunegala)\b/i.test(
+    /\b(sri lanka|western province|central province|southern province|northern province|eastern province|north western province|north central province|uva province|sabaragamuwa province|colombo|kandy|galle|jaffna|gampaha|negombo|matara|kurunegala|anuradhapura|polonnaruwa|badulla|ratnapura|trincomalee|batticaloa|kalutara|hambantota|kilinochchi|mannar|mullaitivu|vavuniya|puttalam|matale|nuwara eliya|kegalle|monaragala|ampara)\b/i.test(
       location,
     )
   );
 }
 
 const experienceSignals: Record<ExperienceLevel, string[]> = {
-  early: [
+  internship: [
     "intern",
     "internship",
     "trainee",
     "apprentice",
     "apprenticeship",
     "placement",
+  ],
+  entry: [
     "junior",
     "jr",
     "jr.",
@@ -55,21 +57,23 @@ const experienceSignals: Record<ExperienceLevel, string[]> = {
 
 export function experienceExclusions(experience: ExperienceLevel) {
   const incompatible: ExperienceLevel[] =
-    experience === "early"
-      ? ["mid", "senior"]
+    experience === "internship"
+      ? ["entry", "mid", "senior"]
+      : experience === "entry"
+        ? ["internship", "mid", "senior"]
       : experience === "mid"
-        ? ["early", "senior"]
+        ? ["internship", "entry", "senior"]
         : experience === "senior"
-          ? ["early", "mid"]
-          : ["early", "mid", "senior"];
+          ? ["internship", "entry", "mid"]
+          : ["internship", "entry", "mid", "senior"];
   return [...new Set(incompatible.flatMap((level) => experienceSignals[level]))];
 }
 
 export function detectExperience(text: string): ExperienceLevel {
   // A senior marker wins over a lower-level word in compound titles such as
   // "Senior Associate Engineer". The remaining order favors the clearest
-  // early-career label before mid-level wording.
-  for (const level of ["senior", "early", "mid"] as const) {
+  // internship label before entry and mid-level wording.
+  for (const level of ["senior", "internship", "entry", "mid"] as const) {
     if (experienceSignals[level].some((signal) => containsKeyword(text, signal)))
       return level;
   }

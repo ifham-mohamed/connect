@@ -23,6 +23,7 @@ export default async function OnboardingPage({
   return (
     <OnboardingFlow
       userName={user.name}
+      userRole={user.role}
       editMode={editMode}
       initialPreferences={user.preferences}
       initialMonitors={monitors}

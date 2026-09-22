@@ -2286,6 +2286,11 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
 .onboarding-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .onboarding-chips button { display: inline-flex; min-height: 36px; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--card)); color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 650; }
 .onboarding-chips button.selected { border-color: hsl(var(--primary) / .35); background: hsl(var(--primary) / .1); color: hsl(var(--primary)); }
+.onboarding-location-entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 10px; }
+.onboarding-location-entry input { width: 100%; min-width: 0; height: 38px; padding: 0 11px; border: 1px solid hsl(var(--input)); border-radius: 9px; outline: 0; background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: 11px; }
+.onboarding-location-entry input:focus { border-color: hsl(var(--ring)); box-shadow: 0 0 0 3px hsl(var(--ring) / .1); }
+.onboarding-coverage-note { display: flex; align-items: flex-start; gap: 6px; margin-top: 9px; color: hsl(var(--muted-foreground)); font-size: 9px; line-height: 1.5; }
+.onboarding-coverage-note svg { flex: 0 0 auto; margin-top: 1px; color: hsl(var(--success)); }
 .onboarding-why { display: flex; align-items: flex-start; gap: 10px; padding: 13px; border: 1px solid hsl(var(--primary) / .16); border-radius: 11px; background: hsl(var(--primary) / .06); color: hsl(var(--primary)); }
 .onboarding-why span { display: grid; }
 .onboarding-why strong { font-size: 11px; }
@@ -2343,6 +2348,8 @@ html.jobradar-sidebar-collapsed .skeleton-topbar > span:nth-child(1) {
   .onboarding-list-heading { align-items: flex-start; flex-direction: column; gap: 2px; }
   .onboarding-monitor-list { max-height: 256px; padding-right: 3px; }
   .onboarding-monitor-list article { height: 58px; }
+  .onboarding-location-entry { grid-template-columns: 1fr; }
+  .onboarding-location-entry .btn { width: 100%; }
   .onboarding-card > footer { position: sticky; bottom: 0; z-index: 5; margin-inline: -14px; padding: 12px 14px; background: hsl(var(--background) / .94); backdrop-filter: blur(12px); }
   .onboarding-card > footer .btn { width: auto; min-height: 38px; }
 }
