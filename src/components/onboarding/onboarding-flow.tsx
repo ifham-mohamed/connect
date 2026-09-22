@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Monitor, UserPreferences } from "@/lib/types";
+import type { ExperienceLevel, Monitor, UserPreferences } from "@/lib/types";
 import { experienceExclusions } from "@/lib/matching";
 import {
   ArrowLeft,
@@ -18,7 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-type Experience = "internship" | "entry" | "mid" | "senior";
+type Experience = ExperienceLevel;
 type WorkMode = "onsite" | "hybrid" | "remote";
 type MonitorDraft = {
   clientId: string;
@@ -31,10 +31,26 @@ type MonitorDraft = {
 };
 
 const experiences: { id: Experience; label: string; detail: string }[] = [
-  { id: "internship", label: "Internship", detail: "Placements, internships, and trainee roles" },
-  { id: "entry", label: "Entry level", detail: "Junior, associate, and graduate opportunities" },
-  { id: "mid", label: "Mid level", detail: "Independent contributor roles without senior leadership" },
-  { id: "senior", label: "Senior", detail: "Senior, lead, and staff-level opportunities" },
+  {
+    id: "early",
+    label: "Internship / Entry",
+    detail: "Internships, trainee, junior, associate, and graduate roles",
+  },
+  {
+    id: "mid",
+    label: "Mid level",
+    detail: "Independent contributor roles without senior leadership",
+  },
+  {
+    id: "senior",
+    label: "Senior",
+    detail: "Senior, lead, and staff-level opportunities",
+  },
+  {
+    id: "other",
+    label: "Other / unspecified",
+    detail: "Roles whose titles do not state a career level",
+  },
 ];
 
 const rolePresets = [
@@ -68,8 +84,18 @@ function exclusionsFor(experience: Experience) {
 
 function experienceKeywords(role: string, experience: Experience) {
   const value = role.toLowerCase();
-  if (experience === "internship") return [`${value} intern`, `intern ${value}`, `trainee ${value}`];
-  if (experience === "entry") return [`junior ${value}`, `associate ${value}`, `graduate ${value}`, `entry level ${value}`];
+  if (experience === "early")
+    return [
+      `${value} intern`,
+      `intern ${value}`,
+      `trainee ${value}`,
+      `junior ${value}`,
+      `associate ${value}`,
+      `graduate ${value}`,
+      `entry level ${value}`,
+    ];
+  if (experience === "mid")
+    return [`mid level ${value}`, `intermediate ${value}`];
   if (experience === "senior") return [`senior ${value}`, `lead ${value}`];
   return [];
 }

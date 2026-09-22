@@ -39,28 +39,20 @@ const source: Source = {
   jobCount: 0,
 };
 describe("keyword matching", () => {
-  it("keeps explicitly incompatible career stages out of entry-level results", () => {
-    expect(matchesExperience("Senior Software Engineer", "entry")).toBe(false);
-    expect(matchesExperience("Staff Frontend Engineer", "entry")).toBe(false);
-    expect(matchesExperience("Software Engineer Internship", "entry")).toBe(false);
-    expect(matchesExperience("Intermediate Software Engineer", "entry")).toBe(false);
-    expect(matchesExperience("Graduate Software Engineer", "entry")).toBe(true);
-    expect(matchesExperience("Software Engineer", "entry")).toBe(true);
+  it("combines internship and entry roles into one early-career stage", () => {
+    expect(matchesExperience("Senior Software Engineer", "early")).toBe(false);
+    expect(matchesExperience("Software Engineer Internship", "early")).toBe(true);
+    expect(matchesExperience("Intermediate Software Engineer", "early")).toBe(false);
+    expect(matchesExperience("Graduate Software Engineer", "early")).toBe(true);
     expect(
       matchesMonitor(
         { ...job, title: "Senior React engineer" },
         monitor,
-        "entry",
+        "early",
       ),
     ).toBe(false);
   });
   it("applies the same compatibility rule to every career stage", () => {
-    expect(
-      matchesExperience("Software Engineer Internship", "internship"),
-    ).toBe(true);
-    expect(matchesExperience("Junior Software Engineer", "internship")).toBe(
-      false,
-    );
     expect(matchesExperience("Intermediate Software Engineer", "mid")).toBe(
       true,
     );
@@ -71,9 +63,8 @@ describe("keyword matching", () => {
     expect(matchesExperience("Level II Software Engineer", "senior")).toBe(
       false,
     );
-    expect(matchesExperience("Software Engineer", "internship")).toBe(true);
-    expect(matchesExperience("Software Engineer", "mid")).toBe(true);
-    expect(matchesExperience("Software Engineer", "senior")).toBe(true);
+    expect(matchesExperience("Software Engineer", "other")).toBe(true);
+    expect(matchesExperience("Junior Software Engineer", "other")).toBe(false);
   });
   it("recognizes known Sri Lankan cities without changing source location text", () => {
     expect(matchesLocation("Colombo", "Sri Lanka")).toBe(true);
@@ -140,7 +131,7 @@ describe("LinkedIn job discovery", () => {
         query: "Frontend Engineer",
         location: "Colombo",
         workplace: "hybrid",
-        experience: "entry",
+        experience: "early",
         jobType: "full-time",
         datePosted: "day",
         sort: "recent",
@@ -153,7 +144,7 @@ describe("LinkedIn job discovery", () => {
     expect(url.searchParams.get("keywords")).toBe("Frontend Engineer");
     expect(url.searchParams.get("location")).toBe("Colombo");
     expect(url.searchParams.get("f_WT")).toBe("3");
-    expect(url.searchParams.get("f_E")).toBe("2");
+    expect(url.searchParams.get("f_E")).toBe("1,2");
     expect(url.searchParams.get("f_JT")).toBe("F");
     expect(url.searchParams.get("f_TPR")).toBe("r86400");
     expect(url.searchParams.get("sortBy")).toBe("DD");
@@ -297,7 +288,7 @@ describe("source normalization and trust boundaries", () => {
     ).toBe(true);
     expect(
       onboardingSchema.safeParse({
-        experience: "entry",
+        experience: "early",
         roles: ["Software Engineer"],
         locations: ["Sri Lanka"],
         workModes: ["hybrid", "remote"],

@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFile } from "node:fs/promises";
 import type { Source } from "../src/lib/types";
 const database = new PGlite();
-const enabledSeedSources = 11;
+const enabledSeedSources = 9;
 let locked = false;
 const collectMock = vi.fn(async (source: Source) => [
   {
@@ -59,6 +59,12 @@ beforeAll(async () => {
   );
   await database.exec(
     await readFile(new URL("../db/013_experience_matching.sql", import.meta.url), "utf8"),
+  );
+  await database.exec(
+    await readFile(
+      new URL("../db/014_career_stages_and_remove_devjobs.sql", import.meta.url),
+      "utf8",
+    ),
   );
   await database.query("UPDATE sources SET enabled=false WHERE kind='lever'");
 });

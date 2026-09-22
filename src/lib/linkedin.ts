@@ -6,12 +6,10 @@ const LINKEDIN_POSTS_URL = "https://www.linkedin.com/search/results/content/";
 export type LinkedInWorkplace = "any" | "on-site" | "remote" | "hybrid";
 export type LinkedInExperience =
   | "any"
-  | "internship"
-  | "entry"
-  | "associate"
-  | "mid-senior"
-  | "director"
-  | "executive";
+  | "early"
+  | "mid"
+  | "senior"
+  | "other";
 export type LinkedInJobType =
   | "any"
   | "full-time"
@@ -36,12 +34,10 @@ const workplaceCodes: Record<Exclude<LinkedInWorkplace, "any">, string> = {
   hybrid: "3",
 };
 const experienceCodes: Record<Exclude<LinkedInExperience, "any">, string> = {
-  internship: "1",
-  entry: "2",
-  associate: "3",
-  "mid-senior": "4",
-  director: "5",
-  executive: "6",
+  early: "1,2",
+  mid: "3",
+  senior: "4,5,6",
+  other: "",
 };
 const jobTypeCodes: Record<Exclude<LinkedInJobType, "any">, string> = {
   "full-time": "F",
@@ -128,7 +124,8 @@ export function linkedInJobsSearchUrl({
 
   if (selectedWorkplace !== "any")
     params.set("f_WT", workplaceCodes[selectedWorkplace]);
-  if (experience !== "any") params.set("f_E", experienceCodes[experience]);
+  if (experience !== "any" && experienceCodes[experience])
+    params.set("f_E", experienceCodes[experience]);
   if (jobType !== "any") params.set("f_JT", jobTypeCodes[jobType]);
   if (datePosted !== "any") params.set("f_TPR", datePostedCodes[datePosted]);
   if (sort === "recent") params.set("sortBy", "DD");

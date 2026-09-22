@@ -63,6 +63,34 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  const legacy = await database.query<{ id: string }>(
+    `INSERT INTO users(name,email,password_hash,preferences)
+     VALUES('Legacy Entry','legacy-entry@example.com','hash','{"experience":"entry"}'::jsonb)
+     RETURNING id`,
+  );
+  const legacyJob = await database.query<{ id: string }>(
+    `INSERT INTO jobs(source_id,external_id,title,company,location,url)
+     SELECT id,'legacy-devjobs','Junior Software Engineer','Legacy Co','Colombo','https://devjobs.lk/legacy'
+     FROM sources WHERE kind='devjobs' LIMIT 1 RETURNING id`,
+  );
+  const legacyRun = await database.query<{ id: string }>(
+    `INSERT INTO sync_runs(source_id,status,finished_at)
+     SELECT id,'success',now() FROM sources WHERE kind='devjobs' LIMIT 1 RETURNING id`,
+  );
+  await database.query(
+    "INSERT INTO sync_run_jobs(run_id,job_id,is_new) VALUES($1,$2,true)",
+    [legacyRun.rows[0].id, legacyJob.rows[0].id],
+  );
+  await database.query(
+    "INSERT INTO job_user_states(user_id,job_id,status) VALUES($1,$2,'saved')",
+    [legacy.rows[0].id, legacyJob.rows[0].id],
+  );
+  await database.exec(
+    await readFile(
+      new URL("../db/014_career_stages_and_remove_devjobs.sql", import.meta.url),
+      "utf8",
+    ),
+  );
 });
 afterAll(async () => {
   await database.close();
@@ -90,6 +118,23 @@ describe("PostgreSQL schema and matching integration", () => {
         "Dijital Team",
       ]),
     );
+    expect(sources.rows.some((source) => source.name.includes("DevJobs"))).toBe(
+      false,
+    );
+    expect(
+      (
+        await database.query<{ experience: string }>(
+          "SELECT preferences->>'experience' AS experience FROM users WHERE email='legacy-entry@example.com'",
+        )
+      ).rows[0].experience,
+    ).toBe("early");
+    expect(
+      (
+        await database.query<{ count: number }>(
+          "SELECT count(*)::int AS count FROM jobs WHERE external_id='legacy-devjobs'",
+        )
+      ).rows[0].count,
+    ).toBe(0);
   });
   it("retains first-seen dates and saved state when a listing is imported again", async () => {
     const source = await database.query<{ id: string }>(
@@ -151,7 +196,7 @@ describe("PostgreSQL schema and matching integration", () => {
     );
     const jobs = await database.query<{ id: string }>(
       `INSERT INTO jobs(source_id,external_id,title,company,location,url)
-       VALUES($1,'scoped-backend','Backend Engineer','Acme','Colombo','https://example.com/backend'),
+       VALUES($1,'scoped-backend','Junior Backend Engineer','Acme','Colombo','https://example.com/backend'),
              ($1,'scoped-design','Product Designer','Acme','Colombo','https://example.com/design'),
              ($1,'scoped-senior','Senior Backend Engineer','Acme','Colombo','https://example.com/senior'),
              ($1,'scoped-intern','Backend Engineer Internship','Acme','Colombo','https://example.com/intern')
@@ -204,7 +249,7 @@ describe("PostgreSQL schema and matching integration", () => {
     ]);
     await database.query(
       "UPDATE users SET preferences=$2::jsonb WHERE id=$1",
-      [users.rows[0].id, JSON.stringify({ experience: "entry" })],
+      [users.rows[0].id, JSON.stringify({ experience: "early" })],
     );
     await database.query(
       "UPDATE jobs SET description='Private full opportunity detail' WHERE id=$1",
@@ -222,11 +267,19 @@ describe("PostgreSQL schema and matching integration", () => {
     expect(
       (
         await database.query<{ count: number }>(
-          "SELECT count(*)::int AS count FROM monitor_matches WHERE monitor_id=$1 AND job_id=ANY($2::uuid[])",
-          [monitors.rows[0].id, [jobs.rows[2].id, jobs.rows[3].id]],
+          "SELECT count(*)::int AS count FROM monitor_matches WHERE monitor_id=$1 AND job_id=$2",
+          [monitors.rows[0].id, jobs.rows[2].id],
         )
       ).rows[0].count,
     ).toBe(0);
+    expect(
+      (
+        await database.query<{ count: number }>(
+          "SELECT count(*)::int AS count FROM monitor_matches WHERE monitor_id=$1 AND job_id=$2",
+          [monitors.rows[0].id, jobs.rows[3].id],
+        )
+      ).rows[0].count,
+    ).toBe(1);
 
     const scopedUser = {
       id: users.rows[0].id,
@@ -234,7 +287,7 @@ describe("PostgreSQL schema and matching integration", () => {
       email: "scoped-one@example.com",
       role: "member" as const,
       onboardingCompleted: true,
-      preferences: { experience: "entry" as const },
+      preferences: { experience: "early" as const },
     };
     const dashboard = await getDashboard(scopedUser, client);
     expect(

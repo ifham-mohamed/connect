@@ -9,7 +9,7 @@ export const monitorSchema = z.object({
   enabled: z.boolean().default(true),
 });
 export const onboardingSchema = z.object({
-  experience: z.enum(["internship", "entry", "mid", "senior"]),
+  experience: z.enum(["early", "mid", "senior", "other"]),
   roles: z.array(z.string().trim().min(2).max(60)).min(1).max(4),
   locations: z.array(z.string().trim().min(2).max(80)).min(1).max(6),
   workModes: z.array(z.enum(["onsite", "hybrid", "remote"])).min(1).max(3),
@@ -26,7 +26,6 @@ export const sourceSchema = z
       "rooster",
       "neojobs",
       "jobster",
-      "devjobs",
       "remotive",
       "arbeitnow",
       "greenhouse",
@@ -43,7 +42,6 @@ export const sourceSchema = z
         "topjobs",
         "xpressjobs",
         "jobeka",
-        "devjobs",
         "greenhouse",
         "lever",
       ].includes(v.kind) ||

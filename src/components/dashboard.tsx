@@ -136,12 +136,17 @@ const kindNames: Record<SourceKind, string> = {
   rooster: "Rooster Jobs",
   neojobs: "Neo Jobs",
   jobster: "Jobster",
-  devjobs: "DevJobs",
   remotive: "Remotive",
   arbeitnow: "Arbeitnow",
   greenhouse: "Greenhouse",
   lever: "Lever",
 };
+const experienceNames = {
+  early: "Internship / Entry",
+  mid: "Mid level",
+  senior: "Senior",
+  other: "Other / unspecified",
+} as const;
 function timeAgo(value: string | null) {
   if (!value) return "Not yet";
   const hours = Math.max(0, (Date.now() - new Date(value).getTime()) / 3600000);
@@ -2053,12 +2058,10 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       }
                     >
                       <option value="any">Any level</option>
-                      <option value="internship">Internship</option>
-                      <option value="entry">Entry level</option>
-                      <option value="associate">Associate</option>
-                      <option value="mid-senior">Mid-Senior level</option>
-                      <option value="director">Director</option>
-                      <option value="executive">Executive</option>
+                      <option value="early">Internship / Entry</option>
+                      <option value="mid">Mid level</option>
+                      <option value="senior">Senior level</option>
+                      <option value="other">Other / unspecified</option>
                     </select>
                   </label>
                   <label className="linkedin-filter-field">
@@ -2506,7 +2509,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   <span><small>Matching profile</small><h3>Your job preferences</h3></span>
                 </div>
                 <p>These choices shape your monitors and the opportunities shown in Relevant.</p>
-                <div className="preference-group"><span>Career stage</span><div className="preference-chips"><i>{preferences.experience?.replace("entry", "Entry level") || "Not set"}</i></div></div>
+                <div className="preference-group"><span>Career stage</span><div className="preference-chips"><i>{preferences.experience ? experienceNames[preferences.experience] : "Not set"}</i></div></div>
                 <div className="preference-group"><span>Roles</span><div className="preference-chips">{preferenceRoles.map((role) => <i key={role}>{role}</i>)}</div></div>
                 <div className="preference-group"><span>Locations</span><div className="preference-chips">{preferenceLocations.map((location) => <i key={location}>{location}</i>)}</div></div>
                 <div className="preference-group"><span>Work style</span><div className="preference-chips">{preferenceWorkModes.map((mode) => <i key={mode}>{mode === "onsite" ? "On-site" : mode}</i>)}</div></div>
@@ -3036,13 +3039,11 @@ function SourceForm({
                 ? "SDQ"
                 : k === "xpressjobs"
                   ? "it"
-                : k === "jobeka"
-                  ? "IT-Software-and-Design"
-                  : k === "devjobs"
-                    ? "fullstack-jobs"
-                  : k === "itpro"
-                    ? "software-engineering"
-                    : "",
+                  : k === "jobeka"
+                    ? "IT-Software-and-Design"
+                    : k === "itpro"
+                      ? "software-engineering"
+                      : "",
             );
           }}
         >
@@ -3062,7 +3063,7 @@ function SourceForm({
           onChange={(e) => setName(e.target.value)}
         />
       </label>
-      {["itpro", "topjobs", "xpressjobs", "jobeka", "devjobs", "greenhouse", "lever"].includes(
+      {["itpro", "topjobs", "xpressjobs", "jobeka", "greenhouse", "lever"].includes(
         kind,
       ) && (
         <label>
@@ -3082,9 +3083,7 @@ function SourceForm({
                       ? "it"
                       : kind === "jobeka"
                         ? "IT-Software-and-Design"
-                        : kind === "devjobs"
-                          ? "fullstack-jobs"
-                          : "software-engineering"
+                        : "software-engineering"
             }
             pattern="[a-zA-Z0-9_-]+"
             value={board}
@@ -3095,9 +3094,7 @@ function SourceForm({
               ? `The employer name in its ${kindNames[kind]} board URL. Enter the identifier, not the full URL.`
               : kind === "xpressjobs"
                 ? "Use it for the XpressJobs IT sector path."
-                : kind === "devjobs"
-                  ? "Use fullstack-jobs, react-jobs, frontend-jobs, php-jobs, or another DevJobs category slug."
-                  : "Use the default category identifier for this public Sri Lankan job source."}
+                : "Use the default category identifier for this public Sri Lankan job source."}
           </small>
         </label>
       )}
@@ -3120,11 +3117,9 @@ function SourceForm({
                         ? "Checks every hour. Tracks Neo Jobs for Sri Lankan tech and remote listings."
                         : kind === "jobster"
                           ? "Checks every 6 hours. Tracks Jobster’s public AI job-search portal."
-                          : kind === "devjobs"
-                            ? "Checks every hour. Imports DevJobs cards from the selected tech category."
-              : kind === "arbeitnow"
-                ? "Checks every 6 hours. Collects the latest page of European jobs; use an employer board for full employer coverage."
-                : "Checks every hour. Connects this specific employer’s publicly listed jobs."}
+                          : kind === "arbeitnow"
+                            ? "Checks every 6 hours. Collects the latest page of European jobs; use an employer board for full employer coverage."
+                            : "Checks every hour. Connects this specific employer’s publicly listed jobs."}
         </p>
       </div>
       {error && (

@@ -94,7 +94,6 @@ const htmlSourceKinds = [
   "rooster",
   "neojobs",
   "jobster",
-  "devjobs",
 ];
 function metaDescription(payload: string) {
   return (
@@ -104,61 +103,6 @@ function metaDescription(payload: string) {
       ?.[1] ||
     ""
   );
-}
-function collectBadges(block: string) {
-  return Array.from(
-    block.matchAll(/<span[^>]*class="[^"]*badge[^"]*"[^>]*>([\s\S]*?)<\/span>/gi),
-  )
-    .map((match) => plainText(match[1]).replace(/\s+/g, " ").trim())
-    .filter(Boolean);
-}
-function normalizeDevJobs(
-  source: Source,
-  payload: string,
-  base: IncomingJobBase,
-) {
-  return Array.from(
-    payload.matchAll(
-      /<a href="(https:\/\/devjobs\.lk\/dev-jobs\/client\/ads\/(\d+))" class="card-link">([\s\S]*?)<\/a>/gi,
-    ),
-  ).map((match) => {
-    const block = match[3];
-    const title = plainText(
-      block.match(/<h5 class="card-title[^"]*">([\s\S]*?)(?:<img|<span|<\/h5>)/i)
-        ?.[1] || "",
-    ).replace(/\s+/g, " ");
-    const company =
-      plainText(
-        block.match(/<p class="card-text mb-0">([\s\S]*?)<\/p>/i)?.[1] || "",
-      ) ||
-      plainText(block.match(/alt="([^"]+)"/i)?.[1] || "") ||
-      "Company not listed";
-    const badges = collectBadges(block);
-    const salary = badges.find((tag) => /LKR|USD|\/monthly|salary/i.test(tag)) || "";
-    const employmentType =
-      badges.find((tag) => /full[-\s]?time|intern|contract|part[-\s]?time/i.test(tag)) ||
-      "";
-    const locationMatch = title.match(/\[\s*([^\]]+)\s*\]/);
-    const location = locationMatch?.[1] || "Sri Lanka";
-    const tags = badges
-      .filter((tag) => tag !== salary && tag !== employmentType)
-      .map((tag) => tag.replace(/^[^\p{L}\p{N}.#+]+/u, "").trim())
-      .filter(Boolean)
-      .slice(0, 12);
-    return {
-      ...base,
-      externalId: `devjobs-${match[2]}`,
-      title,
-      company,
-      location: `${location} · Sri Lanka`,
-      remote: /remote/i.test(location),
-      employmentType,
-      salary,
-      tags: ["Sri Lanka", "DevJobs", ...tags],
-      description: `${title}\n${company}\n${badges.join("\n")}`,
-      url: match[1],
-    };
-  });
 }
 function normalizeSearchableHtml(
   source: Source,
@@ -203,8 +147,6 @@ export function sourceUrl(source: Pick<Source, "kind" | "board">) {
       return "https://www.neojobs.lk/jobs";
     case "jobster":
       return "https://www.jobster.lk/jobs";
-    case "devjobs":
-      return `https://devjobs.lk/${source.board || ""}`;
     case "remotive":
       return "https://remotive.com/api/remote-jobs";
     case "arbeitnow":
@@ -376,11 +318,6 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
     case "jobster": {
       if (typeof payload !== "string") throw new Error("Invalid Jobster page");
       jobs = normalizeSearchableHtml(source, payload, base, "Jobster");
-      break;
-    }
-    case "devjobs": {
-      if (typeof payload !== "string") throw new Error("Invalid DevJobs page");
-      jobs = normalizeDevJobs(source, payload, base);
       break;
     }
     case "remotive":

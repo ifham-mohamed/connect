@@ -15,15 +15,13 @@ export function matchesLocation(location: string, target: string) {
 }
 
 const experienceSignals: Record<ExperienceLevel, string[]> = {
-  internship: [
+  early: [
     "intern",
     "internship",
     "trainee",
     "apprentice",
     "apprenticeship",
     "placement",
-  ],
-  entry: [
     "junior",
     "jr",
     "jr.",
@@ -52,29 +50,30 @@ const experienceSignals: Record<ExperienceLevel, string[]> = {
     "level iv",
     "level 5",
   ],
+  other: [],
 };
 
 export function experienceExclusions(experience: ExperienceLevel) {
   const incompatible: ExperienceLevel[] =
-    experience === "internship"
-      ? ["senior"]
-      : experience === "entry"
-        ? ["internship", "mid", "senior"]
-        : experience === "mid"
-          ? ["internship", "entry", "senior"]
-          : ["internship", "entry", "mid"];
+    experience === "early"
+      ? ["mid", "senior"]
+      : experience === "mid"
+        ? ["early", "senior"]
+        : experience === "senior"
+          ? ["early", "mid"]
+          : ["early", "mid", "senior"];
   return [...new Set(incompatible.flatMap((level) => experienceSignals[level]))];
 }
 
-export function detectExperience(text: string): ExperienceLevel | null {
+export function detectExperience(text: string): ExperienceLevel {
   // A senior marker wins over a lower-level word in compound titles such as
   // "Senior Associate Engineer". The remaining order favors the clearest
   // early-career label before mid-level wording.
-  for (const level of ["senior", "internship", "entry", "mid"] as const) {
+  for (const level of ["senior", "early", "mid"] as const) {
     if (experienceSignals[level].some((signal) => containsKeyword(text, signal)))
       return level;
   }
-  return null;
+  return "other";
 }
 
 export function matchesExperience(
@@ -82,10 +81,7 @@ export function matchesExperience(
   preference?: ExperienceLevel,
 ) {
   if (!preference) return true;
-  const detected = detectExperience(text);
-  // Many source titles omit seniority. Keep those discoverable, while
-  // rejecting every title that explicitly declares an incompatible stage.
-  return detected === null || detected === preference;
+  return detectExperience(text) === preference;
 }
 
 export function matchesMonitor(

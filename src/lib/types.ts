@@ -6,13 +6,12 @@ export type SourceKind =
   | "rooster"
   | "neojobs"
   | "jobster"
-  | "devjobs"
   | "remotive"
   | "arbeitnow"
   | "greenhouse"
   | "lever";
 export type JobStatus = "new" | "saved" | "applied" | "archived";
-export type ExperienceLevel = "internship" | "entry" | "mid" | "senior";
+export type ExperienceLevel = "early" | "mid" | "senior" | "other";
 export interface UserPreferences {
   experience?: ExperienceLevel;
   roles?: string[];
