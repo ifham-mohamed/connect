@@ -14,6 +14,8 @@
     "sync": "tsx --env-file-if-exists=.env scripts/worker.ts --once",
     "itpro:refresh": "tsx --env-file-if-exists=.env scripts/refresh-itpro.ts",
     "topjobs:refresh": "tsx --env-file-if-exists=.env scripts/refresh-topjobs.ts",
+    "rooster:refresh": "tsx --env-file-if-exists=.env scripts/refresh-source.ts rooster",
+    "dijital:refresh": "tsx --env-file-if-exists=.env scripts/refresh-source.ts lever dijital-team-pty-ltd",
     "jev:verify": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts",
     "jev:smoke": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts --live --limit=1",
     "jev:evaluate": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts --live",

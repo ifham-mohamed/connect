@@ -334,6 +334,76 @@ describe("source normalization and trust boundaries", () => {
     expect(job.remote).toBe(false);
     expect(job.url).toBe("https://itpro.lk/job/42/");
   });
+  it("normalizes Rooster search records with their full description", () => {
+    const [job] = normalize(
+      { ...source, kind: "rooster", name: "Rooster Jobs" },
+      {
+        body: {
+          data: [
+            {
+              id: 519633,
+              title: "Software Engineering - Intern",
+              description: "Build full-stack products with TypeScript and React.",
+              company_name: "Rooster",
+              subsidiary_company_name: "Example Labs",
+              job_type: "internship",
+              location: "Colombo, Sri Lanka",
+              department: "Technical Recruitment",
+              tags: ["typescript", "react"],
+              created_at: "2026-09-22 10:30:00",
+              remote: false,
+              min_salary: null,
+              max_salary: null,
+              salary_frequency: null,
+              salary_currency: null,
+            },
+          ],
+        },
+      },
+    );
+
+    expect(job).toMatchObject({
+      externalId: "rooster-519633",
+      title: "Software Engineering - Intern",
+      company: "Example Labs",
+      employmentType: "internship",
+      description: "Build full-stack products with TypeScript and React.",
+      url: "https://rooster.jobs/jobs/519633",
+    });
+    expect(job.publishedAt).toBe("2026-09-22T10:30:00.000Z");
+  });
+  it("uses the current Lever description fields for Dijital Team jobs", () => {
+    const [job] = normalize(
+      {
+        ...source,
+        kind: "lever",
+        name: "Dijital Team",
+        board: "dijital-team-pty-ltd",
+      },
+      [
+        {
+          id: "current-lever-record",
+          text: "Automation Engineer - Rewst",
+          categories: { location: "Colombo", commitment: "Full-time", team: "IT" },
+          description: "",
+          descriptionPlain: "",
+          descriptionBody: "",
+          descriptionBodyPlain: "Build and maintain production automation.",
+          opening: "",
+          openingPlain: "Join a global engineering team.",
+          additional: "",
+          additionalPlain: "Applications are reviewed weekly.",
+          hostedUrl: "https://jobs.lever.co/dijital-team-pty-ltd/current-lever-record",
+          workplaceType: "hybrid",
+          lists: [],
+        },
+      ],
+    );
+
+    expect(job.description).toContain("Build and maintain production automation.");
+    expect(job.description).toContain("Join a global engineering team.");
+    expect(job.description).toContain("Applications are reviewed weekly.");
+  });
   it("does not invent publication dates from employer updated dates", () => {
     const [job] = normalize(
       { ...source, kind: "greenhouse" },

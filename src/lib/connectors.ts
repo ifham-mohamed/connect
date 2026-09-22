@@ -68,12 +68,42 @@ const lever = z.array(
     id: z.string(),
     text: str,
     categories: z.object({ location: str, commitment: str, team: str }),
+    description: str,
     descriptionPlain: str,
+    descriptionBody: str,
+    descriptionBodyPlain: str,
+    opening: str,
+    openingPlain: str,
+    additional: str,
+    additionalPlain: str,
     hostedUrl: z.string(),
     workplaceType: str,
     lists: z.array(z.object({ text: str, content: str })).default([]),
   }),
 );
+const rooster = z.object({
+  body: z.object({
+    data: z.array(
+      z.object({
+        id,
+        title: str,
+        description: str,
+        company_name: str,
+        subsidiary_company_name: z.string().nullable().default(null),
+        job_type: str,
+        location: str,
+        department: str,
+        tags: z.array(z.string()).default([]),
+        created_at: str,
+        remote: z.boolean().default(false),
+        min_salary: z.number().nullable().default(null),
+        max_salary: z.number().nullable().default(null),
+        salary_frequency: z.string().nullable().default(null),
+        salary_currency: z.string().nullable().default(null),
+      }),
+    ),
+  }),
+});
 function absolutize(url: string, base: string) {
   try {
     return new URL(url, base).href;
@@ -91,10 +121,10 @@ const htmlSourceKinds = [
   "topjobs",
   "xpressjobs",
   "jobeka",
-  "rooster",
   "neojobs",
   "jobster",
 ];
+const roosterSearchUrl = "https://api.rooster.jobs/jobSearch/jobs/search";
 function metaDescription(payload: string) {
   return (
     payload.match(
@@ -476,8 +506,33 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
       break;
     }
     case "rooster": {
-      if (typeof payload !== "string") throw new Error("Invalid Rooster page");
-      jobs = normalizeSearchableHtml(source, payload, base, "Rooster");
+      jobs = rooster.parse(payload).body.data.map((job) => {
+        const salaryParts = [
+          job.salary_currency,
+          job.min_salary,
+          job.max_salary ? `– ${job.max_salary}` : "",
+          job.salary_frequency ? `/ ${job.salary_frequency}` : "",
+        ].filter((value) => value !== null && value !== "");
+        return {
+          ...base,
+          externalId: `rooster-${job.id}`,
+          title: job.title,
+          company:
+            job.subsidiary_company_name || job.company_name || "Company not listed",
+          location: job.location || "Location not specified",
+          remote: job.remote || /remote|work from home|wfh/i.test(job.location),
+          employmentType: job.job_type,
+          salary: salaryParts.join(" "),
+          tags: [job.department, ...job.tags, "Rooster"].filter(Boolean),
+          description: plainText(job.description),
+          url: `https://rooster.jobs/jobs/${job.id}`,
+          publishedAt: date(
+            job.created_at && !/[zZ]|[+-]\d{2}:\d{2}$/.test(job.created_at)
+              ? `${job.created_at.replace(" ", "T")}Z`
+              : job.created_at,
+          ),
+        };
+      });
       break;
     }
     case "neojobs": {
@@ -549,7 +604,19 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
         remote: j.workplaceType === "remote",
         employmentType: j.categories.commitment,
         tags: [j.categories.team].filter(Boolean),
-        description: `${j.descriptionPlain}\n\n${j.lists.map((l) => `${l.text}\n${plainText(l.content)}`).join("\n\n")}`,
+        description: [
+          j.descriptionBodyPlain ||
+            j.descriptionPlain ||
+            j.descriptionBody ||
+            j.description,
+          j.openingPlain || j.opening,
+          ...j.lists.map((l) => `${l.text}\n${plainText(l.content)}`),
+          j.additionalPlain || j.additional,
+        ]
+          .map((section) => plainText(section).trim())
+          .filter(Boolean)
+          .filter((section, index, sections) => sections.indexOf(section) === index)
+          .join("\n\n"),
         url: j.hostedUrl,
       }));
       break;
@@ -568,15 +635,37 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
     }));
 }
 export async function collect(source: Source): Promise<IncomingJob[]> {
-  const response = await fetch(sourceUrl(source), {
+  const response = await fetch(
+    source.kind === "rooster" ? roosterSearchUrl : sourceUrl(source),
+    {
+    method: source.kind === "rooster" ? "POST" : "GET",
     signal: AbortSignal.timeout(25000),
     redirect: "error",
     headers: {
       "User-Agent": "Jobradar/1.0 (job monitoring; public feeds)",
+      ...(source.kind === "rooster"
+        ? { "Content-Type": "application/json" }
+        : {}),
       Accept: htmlSourceKinds.includes(source.kind)
         ? "text/html,application/rss+xml"
         : "application/json",
     },
+    body:
+      source.kind === "rooster"
+        ? JSON.stringify({
+            query: [
+              "software",
+              "developer",
+              "engineer",
+              "data",
+              "IT",
+              "technology",
+            ],
+            limit: 1000,
+            page: 1,
+            filters: { country: "Sri Lanka" },
+          })
+        : undefined,
     cache: "no-store",
   });
   if (!response.ok) throw new Error(`Source returned HTTP ${response.status}`);
