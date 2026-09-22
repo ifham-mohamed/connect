@@ -15,6 +15,10 @@
     "jev:verify": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts",
     "jev:smoke": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts --live --limit=1",
     "jev:evaluate": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts --live",
+    "jev:backfill": "tsx --env-file-if-exists=.env scripts/backfill-jev.ts",
+    "jev:worker": "tsx --env-file-if-exists=.env scripts/intelligence-worker.ts",
+    "jev:worker:once": "tsx --env-file-if-exists=.env scripts/intelligence-worker.ts --once",
+    "jev:report": "tsx --env-file-if-exists=.env scripts/report-jev.ts",
     "format": "prettier --write src scripts tests docs README.md",
     "db:check": "tsx --env-file-if-exists=.env scripts/check-database.ts"
   },

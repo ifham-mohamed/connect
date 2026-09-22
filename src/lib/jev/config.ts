@@ -17,6 +17,12 @@ function boundedInteger(
 
 export type JevConfig = ReturnType<typeof jevConfig>;
 
+export function jevQueueEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  return env.JEV_MODE === "shadow" || env.JEV_MODE === "assisted";
+}
+
 export function jevConfig(
   env: Record<string, string | undefined> = process.env,
 ) {
@@ -38,5 +44,7 @@ export function jevConfig(
       60_000,
     ),
     maxRetries: boundedInteger(env.JEV_MAX_RETRIES, 2, 0, 5),
+    maxAttempts: boundedInteger(env.JEV_MAX_ATTEMPTS, 5, 1, 20),
+    batchSize: boundedInteger(env.JEV_BATCH_SIZE, 5, 1, 25),
   } as const;
 }

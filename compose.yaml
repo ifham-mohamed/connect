@@ -37,6 +37,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
       SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
       CRON_SECRET: ${CRON_SECRET:?Set CRON_SECRET in .env}
+      JEV_MODE: ${JEV_MODE:-off}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -47,6 +48,26 @@ services:
       target: worker
     environment:
       DATABASE_URL: postgresql://jobradar:${POSTGRES_PASSWORD:-jobradar}@db:5432/jobradar
+      JEV_MODE: ${JEV_MODE:-off}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+  intelligence:
+    profiles: ["jev"]
+    build:
+      context: .
+      target: worker
+    command: ["npm", "run", "jev:worker"]
+    environment:
+      DATABASE_URL: postgresql://jobradar:${POSTGRES_PASSWORD:-jobradar}@db:5432/jobradar
+      JEV_MODE: ${JEV_MODE:-shadow}
+      TYPESAFE_API_KEY: ${TYPESAFE_API_KEY:-}
+      TYPESAFE_DEFAULT_MODEL: ${TYPESAFE_DEFAULT_MODEL:-jev-latest}
+      JEV_REQUEST_TIMEOUT_MS: ${JEV_REQUEST_TIMEOUT_MS:-10000}
+      JEV_MAX_RETRIES: ${JEV_MAX_RETRIES:-2}
+      JEV_MAX_ATTEMPTS: ${JEV_MAX_ATTEMPTS:-5}
+      JEV_BATCH_SIZE: ${JEV_BATCH_SIZE:-5}
     depends_on:
       migrate:
         condition: service_completed_successfully

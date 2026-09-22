@@ -34,6 +34,7 @@ without allowing incompatible career stages into a user's relevant view.
 | [Evaluation and rollout](evaluation-and-rollout.md) | Gold set, metrics, shadow mode, and promotion criteria                |
 | [ADR 001](adr-001-jev-only-decision-layer.md)       | Why JEV is the sole model-based decision layer                        |
 | [Stage 0–1 status](stage-0-1-status.md)             | Delivered foundation and remaining live verification                  |
+| [Stage 2–3 status](stage-2-3-status.md)             | Queue, shadow worker, health reporting, and live gates                |
 
 ## Source-of-truth order
 

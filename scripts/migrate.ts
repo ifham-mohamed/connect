@@ -30,6 +30,7 @@ try {
     "015_distinct_early_career_and_location_coverage",
     "016_location_work_modes_and_numbered_levels",
     "017_worldwide_remote_matching",
+    "018_job_intelligence",
   ];
   for (const name of migrations) {
     const applied = await client.query(

@@ -12,6 +12,53 @@
 
 Keep `.env` out of version control and container build context. Set deployment variables through the host’s secret manager. Only the web service needs the scheduler secret; the worker only needs its database connection.
 
+## JEV shadow intelligence
+
+JEV is isolated from collection and matching. Keep `JEV_MODE=off` until the
+database migration and one live smoke request have succeeded.
+
+Configure the local ignored `.env` file:
+
+```text
+TYPESAFE_API_KEY=<your TypeSafe key>
+JEV_MODE=shadow
+TYPESAFE_DEFAULT_MODEL=jev-latest
+JEV_REQUEST_TIMEOUT_MS=10000
+JEV_MAX_RETRIES=2
+JEV_MAX_ATTEMPTS=5
+JEV_BATCH_SIZE=5
+```
+
+Never place a real key in `.env.example` or commit it. Apply the additive
+tables, then queue a controlled recent-job sample:
+
+```powershell
+npm run db:migrate
+npm run jev:smoke
+npm run jev:backfill -- --limit=25
+npm run jev:worker:once
+npm run jev:report
+```
+
+For continuous shadow processing, run `npm run jev:worker` as a separate
+service alongside the source worker. New or materially changed jobs are queued
+inside their collection transaction. JEV calls occur later, so a provider
+outage cannot roll back source collection.
+
+With Compose, start the opt-in service after configuring the key:
+
+```powershell
+docker compose --profile jev up -d
+```
+
+The owner can inspect `GET /api/intelligence` while signed in. It returns queue
+counts, evaluation totals, review counts, latency, token usage, deterministic
+disagreements, and source-segmented totals. It never returns API keys,
+descriptions, or raw provider errors.
+
+Shadow profiles do not affect job visibility or matching. Set `JEV_MODE=off`
+and stop the intelligence worker to halt calls immediately.
+
 ## First deployment
 
 1. Create PostgreSQL and configure environment variables.

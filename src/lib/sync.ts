@@ -3,6 +3,8 @@ import { db } from "./db";
 import { collect } from "./connectors";
 import { sourceSelect } from "./repository";
 import type { Source } from "./types";
+import { jevQueueEnabled } from "./jev/config";
+import { queueJobsForIntelligence } from "./intelligence/queue";
 
 const matchPredicate = `(NOT m.remote_only OR j.remote)
     AND jobradar_work_mode_match(j.remote,j.title||' '||array_to_string(j.tags,' ')||' '||j.location,m.work_modes)
@@ -146,6 +148,8 @@ export async function syncSources() {
             ids.add(j.externalId);
           }
         }
+        if (jevQueueEnabled())
+          await queueJobsForIntelligence(client, storedJobIds);
         // Serialize match rebuilding with monitor edits, without blocking reads.
         await client.query("SELECT pg_advisory_xact_lock(741210)");
         await rebuildMatchesForJobs(client, storedJobIds);

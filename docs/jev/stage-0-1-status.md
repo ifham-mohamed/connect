@@ -84,3 +84,6 @@ Open these files during review:
 
 Those gaps are useful evaluation cases. Stage 1 does not change the existing
 matcher to make the baseline appear better.
+
+Stage 2 and Stage 3 implementation and verification are tracked in
+[`stage-2-3-status.md`](stage-2-3-status.md).
