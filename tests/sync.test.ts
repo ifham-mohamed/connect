@@ -46,7 +46,19 @@ beforeAll(async () => {
     await readFile(new URL("../db/001_initial.sql", import.meta.url), "utf8"),
   );
   await database.exec(
+    await readFile(new URL("../db/007_user_auth.sql", import.meta.url), "utf8"),
+  );
+  await database.query(
+    "INSERT INTO users(name,email,password_hash,role) VALUES('Test Owner','owner@example.com','hash','owner')",
+  );
+  await database.exec(
+    await readFile(new URL("../db/008_personal_onboarding.sql", import.meta.url), "utf8"),
+  );
+  await database.exec(
     await readFile(new URL("../db/010_run_job_results.sql", import.meta.url), "utf8"),
+  );
+  await database.exec(
+    await readFile(new URL("../db/013_experience_matching.sql", import.meta.url), "utf8"),
   );
   await database.query("UPDATE sources SET enabled=false WHERE kind='lever'");
 });

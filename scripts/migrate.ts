@@ -25,6 +25,7 @@ try {
     "010_run_job_results",
     "011_run_result_backfill",
     "012_incremental_matching",
+    "013_experience_matching",
   ];
   for (const name of migrations) {
     const applied = await client.query(

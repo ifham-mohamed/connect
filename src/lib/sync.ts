@@ -6,6 +6,7 @@ import type { Source } from "./types";
 
 const matchPredicate = `(NOT m.remote_only OR j.remote)
     AND (m.location='' OR strpos(lower(j.location),lower(m.location))>0 OR (lower(m.location)='sri lanka' AND lower(j.location) ~ '\\m(colombo|kandy|galle|jaffna|gampaha|negombo|matara|kurunegala)\\M'))
+    AND jobradar_experience_match(j.title||' '||array_to_string(j.tags,' '), COALESCE((SELECT u.preferences->>'experience' FROM users u WHERE u.id=m.user_id), ''))
     AND EXISTS(SELECT 1 FROM unnest(m.keywords) k WHERE jobradar_keyword_match(j.title||' '||array_to_string(j.tags,' '),k))
     AND NOT EXISTS(SELECT 1 FROM unnest(m.excluded_keywords) k WHERE jobradar_keyword_match(j.title||' '||array_to_string(j.tags,' '),k))`;
 

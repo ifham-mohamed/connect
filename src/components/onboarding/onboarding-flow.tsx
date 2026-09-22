@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Monitor, UserPreferences } from "@/lib/types";
+import { experienceExclusions } from "@/lib/matching";
 import {
   ArrowLeft,
   ArrowRight,
@@ -62,9 +63,7 @@ const stepDetails = [
 ];
 
 function exclusionsFor(experience: Experience) {
-  if (experience === "senior") return ["intern", "trainee", "junior", "associate", "graduate", "entry level"];
-  if (experience === "mid") return ["intern", "trainee", "graduate", "entry level", "senior", "lead", "principal", "staff"];
-  return ["senior", "lead", "principal", "staff", "manager", "architect"];
+  return experienceExclusions(experience);
 }
 
 function experienceKeywords(role: string, experience: Experience) {

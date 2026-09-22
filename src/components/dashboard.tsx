@@ -199,7 +199,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const [region, setRegion] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [monitorFilter, setMonitorFilter] = useState("all");
-  const [tab, setTab] = useState(initialView === "jobs" ? "matched" : "all");
+  const [tab, setTab] = useState(
+    initialView === "jobs" || initialView === "overview" ? "matched" : "all",
+  );
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
@@ -386,7 +388,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       const next = pathViews[window.location.pathname] || "overview";
       setModalState(null);
       setView(next);
-      setTab(next === "jobs" ? "matched" : "all");
+      setTab(next === "jobs" || next === "overview" ? "matched" : "all");
       setPage(1);
       setMonitorFilter("all");
       setQuery("");
@@ -417,7 +419,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       data?.jobs.map((j) => ({
         ...j,
         matchedMonitors: data.monitors
-          .filter((m) => matchesMonitor(j, m))
+          .filter((m) =>
+            matchesMonitor(j, m, data.user?.preferences.experience),
+          )
           .map((m) => m.id),
       })) || [],
     [data],
@@ -528,7 +532,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   function navigate(next: View, event?: React.MouseEvent<HTMLElement>) {
     event?.preventDefault();
     setView(next);
-    setTab(next === "jobs" ? "matched" : "all");
+    setTab(next === "jobs" || next === "overview" ? "matched" : "all");
     setPage(1);
     setMonitorFilter("all");
     setQuery("");

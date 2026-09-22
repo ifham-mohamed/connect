@@ -57,6 +57,12 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  await database.exec(
+    await readFile(
+      new URL("../db/013_experience_matching.sql", import.meta.url),
+      "utf8",
+    ),
+  );
 });
 afterAll(async () => {
   await database.close();
@@ -146,7 +152,9 @@ describe("PostgreSQL schema and matching integration", () => {
     const jobs = await database.query<{ id: string }>(
       `INSERT INTO jobs(source_id,external_id,title,company,location,url)
        VALUES($1,'scoped-backend','Backend Engineer','Acme','Colombo','https://example.com/backend'),
-             ($1,'scoped-design','Product Designer','Acme','Colombo','https://example.com/design')
+             ($1,'scoped-design','Product Designer','Acme','Colombo','https://example.com/design'),
+             ($1,'scoped-senior','Senior Backend Engineer','Acme','Colombo','https://example.com/senior'),
+             ($1,'scoped-intern','Backend Engineer Internship','Acme','Colombo','https://example.com/intern')
        RETURNING id`,
       [source.rows[0].id],
     );
@@ -195,6 +203,10 @@ describe("PostgreSQL schema and matching integration", () => {
       monitors.rows[0].id,
     ]);
     await database.query(
+      "UPDATE users SET preferences=$2::jsonb WHERE id=$1",
+      [users.rows[0].id, JSON.stringify({ experience: "entry" })],
+    );
+    await database.query(
       "UPDATE jobs SET description='Private full opportunity detail' WHERE id=$1",
       [jobs.rows[0].id],
     );
@@ -207,6 +219,14 @@ describe("PostgreSQL schema and matching integration", () => {
         )
       ).rows[0].count,
     ).toBe(1);
+    expect(
+      (
+        await database.query<{ count: number }>(
+          "SELECT count(*)::int AS count FROM monitor_matches WHERE monitor_id=$1 AND job_id=ANY($2::uuid[])",
+          [monitors.rows[0].id, [jobs.rows[2].id, jobs.rows[3].id]],
+        )
+      ).rows[0].count,
+    ).toBe(0);
 
     const scopedUser = {
       id: users.rows[0].id,
@@ -214,7 +234,7 @@ describe("PostgreSQL schema and matching integration", () => {
       email: "scoped-one@example.com",
       role: "member" as const,
       onboardingCompleted: true,
-      preferences: {},
+      preferences: { experience: "entry" as const },
     };
     const dashboard = await getDashboard(scopedUser, client);
     expect(

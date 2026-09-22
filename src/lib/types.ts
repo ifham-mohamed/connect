@@ -12,8 +12,9 @@ export type SourceKind =
   | "greenhouse"
   | "lever";
 export type JobStatus = "new" | "saved" | "applied" | "archived";
+export type ExperienceLevel = "internship" | "entry" | "mid" | "senior";
 export interface UserPreferences {
-  experience?: "internship" | "entry" | "mid" | "senior";
+  experience?: ExperienceLevel;
   roles?: string[];
   locations?: string[];
   workModes?: Array<"onsite" | "hybrid" | "remote">;

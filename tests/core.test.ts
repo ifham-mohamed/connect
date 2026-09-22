@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   containsKeyword,
+  matchesExperience,
   matchesLocation,
   matchesMonitor,
   plainText,
@@ -38,6 +39,21 @@ const source: Source = {
   jobCount: 0,
 };
 describe("keyword matching", () => {
+  it("keeps explicitly incompatible career stages out of entry-level results", () => {
+    expect(matchesExperience("Senior Software Engineer", "entry")).toBe(false);
+    expect(matchesExperience("Staff Frontend Engineer", "entry")).toBe(false);
+    expect(matchesExperience("Software Engineer Internship", "entry")).toBe(false);
+    expect(matchesExperience("Intermediate Software Engineer", "entry")).toBe(false);
+    expect(matchesExperience("Graduate Software Engineer", "entry")).toBe(true);
+    expect(matchesExperience("Software Engineer", "entry")).toBe(true);
+    expect(
+      matchesMonitor(
+        { ...job, title: "Senior React engineer" },
+        monitor,
+        "entry",
+      ),
+    ).toBe(false);
+  });
   it("recognizes known Sri Lankan cities without changing source location text", () => {
     expect(matchesLocation("Colombo", "Sri Lanka")).toBe(true);
     expect(matchesLocation("US only", "Sri Lanka")).toBe(false);
