@@ -12,6 +12,9 @@
     "db:migrate": "tsx --env-file-if-exists=.env scripts/migrate.ts",
     "worker": "tsx --env-file-if-exists=.env scripts/worker.ts",
     "sync": "tsx --env-file-if-exists=.env scripts/worker.ts --once",
+    "jev:verify": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts",
+    "jev:smoke": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts --live --limit=1",
+    "jev:evaluate": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts --live",
     "format": "prettier --write src scripts tests docs README.md",
     "db:check": "tsx --env-file-if-exists=.env scripts/check-database.ts"
   },
@@ -19,6 +22,7 @@
   "type": "module",
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.3",
+    "@typesafe-ai/sdk": "0.6.0",
     "clsx": "^2.1.1",
     "fast-xml-parser": "^5.11.1",
     "lucide-react": "^1.47.0",

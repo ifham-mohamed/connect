@@ -14,7 +14,9 @@ export function matchesLocation(location: string, target: string) {
   );
 }
 
-const experienceSignals: Record<ExperienceLevel, string[]> = {
+export const experienceSignals: Readonly<
+  Record<ExperienceLevel, readonly string[]>
+> = {
   internship: [
     "intern",
     "internship",
@@ -61,12 +63,14 @@ export function experienceExclusions(experience: ExperienceLevel) {
       ? ["entry", "mid", "senior"]
       : experience === "entry"
         ? ["internship", "mid", "senior"]
-      : experience === "mid"
-        ? ["internship", "entry", "senior"]
-        : experience === "senior"
-          ? ["internship", "entry", "mid"]
-          : ["internship", "entry", "mid", "senior"];
-  return [...new Set(incompatible.flatMap((level) => experienceSignals[level]))];
+        : experience === "mid"
+          ? ["internship", "entry", "senior"]
+          : experience === "senior"
+            ? ["internship", "entry", "mid"]
+            : ["internship", "entry", "mid", "senior"];
+  return [
+    ...new Set(incompatible.flatMap((level) => experienceSignals[level])),
+  ];
 }
 
 export function detectExperience(text: string): ExperienceLevel {
@@ -74,13 +78,17 @@ export function detectExperience(text: string): ExperienceLevel {
   // "Senior Associate Engineer". The remaining order favors the clearest
   // internship label before entry and mid-level wording.
   for (const level of ["senior", "internship"] as const) {
-    if (experienceSignals[level].some((signal) => containsKeyword(text, signal)))
+    if (
+      experienceSignals[level].some((signal) => containsKeyword(text, signal))
+    )
       return level;
   }
   const numberedLevel = detectNumberedLevel(text);
   if (numberedLevel) return numberedLevel;
   for (const level of ["entry", "mid"] as const) {
-    if (experienceSignals[level].some((signal) => containsKeyword(text, signal)))
+    if (
+      experienceSignals[level].some((signal) => containsKeyword(text, signal))
+    )
       return level;
   }
   return "other";
@@ -104,19 +112,32 @@ export function matchesWorkModes(
   modes?: WorkMode[],
 ) {
   if (!modes?.length) return true;
+  return modes.includes(detectWorkMode(job));
+}
+
+export function detectWorkMode(
+  job: Pick<Job, "title" | "tags" | "location" | "remote">,
+): WorkMode {
   const text = `${job.title} ${job.tags.join(" ")} ${job.location}`;
-  const detected: WorkMode = job.remote || containsKeyword(text, "remote") || containsKeyword(text, "worldwide")
+  return job.remote ||
+    containsKeyword(text, "remote") ||
+    containsKeyword(text, "worldwide")
     ? "remote"
     : containsKeyword(text, "hybrid")
       ? "hybrid"
       : "onsite";
-  return modes.includes(detected);
 }
 
-export function matchesExperience(
-  text: string,
-  preference?: ExperienceLevel,
-) {
+export function detectExperienceSignals(text: string) {
+  return Object.fromEntries(
+    Object.entries(experienceSignals).map(([level, signals]) => [
+      level,
+      signals.filter((signal) => containsKeyword(text, signal)),
+    ]),
+  ) as Record<ExperienceLevel, string[]>;
+}
+
+export function matchesExperience(text: string, preference?: ExperienceLevel) {
   if (!preference) return true;
   return detectExperience(text) === preference;
 }

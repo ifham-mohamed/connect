@@ -1,0 +1,254 @@
+[
+  {
+    "id": "itpro-intern",
+    "sourceKind": "itpro",
+    "title": "Software Engineer Intern",
+    "company": "Acme",
+    "location": "Colombo, Sri Lanka",
+    "remote": false,
+    "employmentType": "Internship",
+    "tags": ["software"],
+    "description": "Join our supervised engineering internship and learn with a mentor.",
+    "expected": {
+      "careerStage": "internship",
+      "workArrangement": "onsite",
+      "isTechnologyRole": true,
+      "roleFamily": "software",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "topjobs-entry",
+    "sourceKind": "topjobs",
+    "title": "Graduate Software Engineer (1)",
+    "company": "Orbit",
+    "location": "Western Province, Sri Lanka",
+    "remote": false,
+    "employmentType": "Full time",
+    "tags": ["Java"],
+    "description": "Graduate opportunity building business applications from our office.",
+    "expected": {
+      "careerStage": "entry",
+      "workArrangement": "onsite",
+      "isTechnologyRole": true,
+      "roleFamily": "software",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "xpress-mid",
+    "sourceKind": "xpressjobs",
+    "title": "Backend Engineer II",
+    "company": "Northstar",
+    "location": "Colombo, Sri Lanka",
+    "remote": false,
+    "employmentType": "Full time",
+    "tags": ["Node.js", "API"],
+    "description": "Independent backend contributor. Hybrid work three days in the office.",
+    "expected": {
+      "careerStage": "mid",
+      "workArrangement": "hybrid",
+      "isTechnologyRole": true,
+      "roleFamily": "backend",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "jobeka-senior-associate",
+    "sourceKind": "jobeka",
+    "title": "Senior Associate Software Engineer",
+    "company": "Lumen",
+    "location": "Kandy, Sri Lanka",
+    "remote": false,
+    "employmentType": "Full time",
+    "tags": ["software"],
+    "description": "Senior contributor mentoring engineers and leading delivery.",
+    "expected": {
+      "careerStage": "senior",
+      "workArrangement": "onsite",
+      "isTechnologyRole": true,
+      "roleFamily": "software",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "rooster-level-iii",
+    "sourceKind": "rooster",
+    "title": "Frontend Developer III",
+    "company": "Kite",
+    "location": "Sri Lanka",
+    "remote": true,
+    "employmentType": "Full time",
+    "tags": ["React"],
+    "description": "Remote senior frontend role building accessible web interfaces.",
+    "expected": {
+      "careerStage": "senior",
+      "workArrangement": "remote",
+      "isTechnologyRole": true,
+      "roleFamily": "frontend",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "neojobs-trainee",
+    "sourceKind": "neojobs",
+    "title": "Trainee QA Engineer",
+    "company": "Verity",
+    "location": "Galle, Sri Lanka",
+    "remote": false,
+    "employmentType": "Traineeship",
+    "tags": ["QA"],
+    "description": "Learn manual and automated software testing with supervision.",
+    "expected": {
+      "careerStage": "internship",
+      "workArrangement": "onsite",
+      "isTechnologyRole": true,
+      "roleFamily": "qa",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "jobster-unclear",
+    "sourceKind": "jobster",
+    "title": "Full Stack Developer",
+    "company": "Canvas",
+    "location": "Colombo, Sri Lanka",
+    "remote": false,
+    "employmentType": "Full time",
+    "tags": ["React", "Node.js"],
+    "description": "Build and maintain frontend and backend product features. Career level is not stated.",
+    "expected": {
+      "careerStage": "unclear",
+      "workArrangement": "onsite",
+      "isTechnologyRole": true,
+      "roleFamily": "full_stack",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "remotive-worldwide",
+    "sourceKind": "remotive",
+    "title": "Staff Platform Engineer",
+    "company": "Cloud Co",
+    "location": "Worldwide",
+    "remote": true,
+    "employmentType": "Full time",
+    "tags": ["Kubernetes", "SRE"],
+    "description": "Worldwide remote staff role operating cloud infrastructure.",
+    "expected": {
+      "careerStage": "senior",
+      "workArrangement": "remote",
+      "isTechnologyRole": true,
+      "roleFamily": "infrastructure",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "arbeitnow-security",
+    "sourceKind": "arbeitnow",
+    "title": "Cyber Security Analyst II",
+    "company": "Shield",
+    "location": "Doha, Qatar",
+    "remote": false,
+    "employmentType": "Full time",
+    "tags": ["SOC", "security"],
+    "description": "Mid-level analyst monitoring and responding to security incidents on site.",
+    "expected": {
+      "careerStage": "mid",
+      "workArrangement": "onsite",
+      "isTechnologyRole": true,
+      "roleFamily": "security",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "greenhouse-product",
+    "sourceKind": "greenhouse",
+    "title": "Associate Technical Product Manager",
+    "company": "Foundry",
+    "location": "Colombo",
+    "remote": false,
+    "employmentType": "Full time",
+    "tags": ["product"],
+    "description": "Entry-level technical product role working with software engineering teams in a hybrid arrangement.",
+    "expected": {
+      "careerStage": "entry",
+      "workArrangement": "hybrid",
+      "isTechnologyRole": true,
+      "roleFamily": "product",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "lever-data",
+    "sourceKind": "lever",
+    "title": "Data Engineer Level I",
+    "company": "Metric",
+    "location": "Sri Lanka",
+    "remote": true,
+    "employmentType": "Full time",
+    "tags": ["Python", "data"],
+    "description": "Remote early-career data engineering role building reliable pipelines.",
+    "expected": {
+      "careerStage": "entry",
+      "workArrangement": "remote",
+      "isTechnologyRole": true,
+      "roleFamily": "data",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "non-tech",
+    "sourceKind": "topjobs",
+    "title": "Senior Finance Manager",
+    "company": "Ledger",
+    "location": "Colombo",
+    "remote": false,
+    "employmentType": "Full time",
+    "tags": ["finance"],
+    "description": "Lead financial reporting, budgeting, and audit operations.",
+    "expected": {
+      "careerStage": "senior",
+      "workArrangement": "onsite",
+      "isTechnologyRole": false,
+      "roleFamily": "other",
+      "contentQuality": "usable"
+    }
+  },
+  {
+    "id": "sparse",
+    "sourceKind": "jobeka",
+    "title": "Developer",
+    "company": "Unknown",
+    "location": "Sri Lanka",
+    "remote": false,
+    "employmentType": "",
+    "tags": [],
+    "description": "Apply now.",
+    "expected": {
+      "careerStage": "unclear",
+      "workArrangement": "unclear",
+      "isTechnologyRole": true,
+      "roleFamily": "software",
+      "contentQuality": "sparse"
+    }
+  },
+  {
+    "id": "malformed",
+    "sourceKind": "xpressjobs",
+    "title": "Jobs",
+    "company": "Unknown",
+    "location": "",
+    "remote": false,
+    "employmentType": "",
+    "tags": [],
+    "description": "Home | Search | Login | {{job.title}}",
+    "expected": {
+      "careerStage": "unclear",
+      "workArrangement": "unclear",
+      "isTechnologyRole": false,
+      "roleFamily": "other",
+      "contentQuality": "malformed"
+    }
+  }
+]

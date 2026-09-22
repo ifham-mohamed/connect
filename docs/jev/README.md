@@ -33,6 +33,7 @@ without allowing incompatible career stages into a user's relevant view.
 | [Development plan](development-plan.md)             | Sequenced stages, deliverables, gates, and rollback                   |
 | [Evaluation and rollout](evaluation-and-rollout.md) | Gold set, metrics, shadow mode, and promotion criteria                |
 | [ADR 001](adr-001-jev-only-decision-layer.md)       | Why JEV is the sole model-based decision layer                        |
+| [Stage 0–1 status](stage-0-1-status.md)             | Delivered foundation and remaining live verification                  |
 
 ## Source-of-truth order
 

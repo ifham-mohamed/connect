@@ -1,0 +1,42 @@
+import { z } from "zod";
+
+const modeSchema = z.enum(["off", "shadow", "assisted"]);
+
+function boundedInteger(
+  value: string | undefined,
+  fallback: number,
+  minimum: number,
+  maximum: number,
+) {
+  if (!value?.trim()) return fallback;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < minimum || parsed > maximum)
+    throw new Error(`Expected an integer between ${minimum} and ${maximum}.`);
+  return parsed;
+}
+
+export type JevConfig = ReturnType<typeof jevConfig>;
+
+export function jevConfig(
+  env: Record<string, string | undefined> = process.env,
+) {
+  const mode = modeSchema.parse(env.JEV_MODE?.trim() || "off");
+  const apiKey = env.TYPESAFE_API_KEY?.trim() || "";
+  if (mode !== "off" && !apiKey)
+    throw new Error(
+      "Set TYPESAFE_API_KEY before enabling JEV shadow or assisted mode.",
+    );
+
+  return {
+    mode,
+    apiKey,
+    model: env.TYPESAFE_DEFAULT_MODEL?.trim() || "jev-latest",
+    timeoutMs: boundedInteger(
+      env.JEV_REQUEST_TIMEOUT_MS,
+      10_000,
+      1_000,
+      60_000,
+    ),
+    maxRetries: boundedInteger(env.JEV_MAX_RETRIES, 2, 0, 5),
+  } as const;
+}
