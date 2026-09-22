@@ -214,6 +214,35 @@ export function parseTopJobsAdvertImageUrl(payload: string, pageUrl: string) {
   return "";
 }
 
+export async function fetchTopJobsAdvertImageUrl(value: string) {
+  const url = new URL(value);
+  if (
+    url.protocol !== "https:" ||
+    !/^(?:www\.)?topjobs\.lk$/i.test(url.hostname) ||
+    url.pathname !== "/employer/JobAdvertismentServlet"
+  )
+    throw new Error("Invalid TopJobs detail URL");
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(8000),
+    redirect: "error",
+    headers: {
+      "User-Agent": "Jobradar/1.0 (job monitoring; public listings)",
+      Accept: "text/html",
+    },
+    cache: "no-store",
+  });
+  if (
+    !response.ok ||
+    !response.headers.get("content-type")?.includes("text/html")
+  )
+    throw new Error("TopJobs detail unavailable");
+  const contentLength = Number(response.headers.get("content-length") || 0);
+  if (contentLength > 1_000_000) throw new Error("TopJobs detail too large");
+  const html = await response.text();
+  if (html.length > 1_000_000) throw new Error("TopJobs detail too large");
+  return parseTopJobsAdvertImageUrl(html, url.href);
+}
+
 function trustedItproJobUrl(value: string) {
   try {
     const url = new URL(value);
@@ -286,38 +315,9 @@ async function enrichTopJobs(jobs: IncomingJob[]): Promise<IncomingJob[]> {
         const index = cursor++;
         const job = jobs[index];
         try {
-          const url = new URL(job.url);
-          if (
-            url.protocol !== "https:" ||
-            !/^(?:www\.)?topjobs\.lk$/i.test(url.hostname) ||
-            url.pathname !== "/employer/JobAdvertismentServlet"
-          )
-            throw new Error("Invalid TopJobs detail URL");
-          const response = await fetch(url, {
-            signal: AbortSignal.timeout(8000),
-            redirect: "error",
-            headers: {
-              "User-Agent": "Jobradar/1.0 (job monitoring; public listings)",
-              Accept: "text/html",
-            },
-            cache: "no-store",
-          });
-          if (
-            !response.ok ||
-            !response.headers.get("content-type")?.includes("text/html")
-          )
-            throw new Error("TopJobs detail unavailable");
-          const contentLength = Number(
-            response.headers.get("content-length") || 0,
-          );
-          if (contentLength > 1_000_000)
-            throw new Error("TopJobs detail too large");
-          const html = await response.text();
-          if (html.length > 1_000_000)
-            throw new Error("TopJobs detail too large");
           enriched[index] = {
             ...job,
-            sourceImageUrl: parseTopJobsAdvertImageUrl(html, url.href),
+            sourceImageUrl: await fetchTopJobsAdvertImageUrl(job.url),
           };
         } catch {
           enriched[index] = { ...job, detailFetchFailed: true };

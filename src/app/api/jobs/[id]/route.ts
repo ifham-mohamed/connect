@@ -4,6 +4,7 @@ import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getJobDetail } from "@/lib/repository";
 import { containsKeyword } from "@/lib/matching";
+import { fetchTopJobsAdvertImageUrl } from "@/lib/connectors";
 import {
   requirementDescriptionHash,
   requirementText,
@@ -44,6 +45,20 @@ export async function GET(
     const job = await getJobDetail(user, parsed.data, client);
     if (!job)
       return NextResponse.json({ error: "Job not found." }, { status: 404 });
+    if (!job.sourceImageUrl && /topjobs/i.test(job.sourceName)) {
+      try {
+        const sourceImageUrl = await fetchTopJobsAdvertImageUrl(job.url);
+        if (sourceImageUrl) {
+          job.sourceImageUrl = sourceImageUrl;
+          await client.query(
+            "UPDATE jobs SET source_image_url=$2 WHERE id=$1 AND source_image_url=''",
+            [job.id, sourceImageUrl],
+          );
+        }
+      } catch {
+        // Keep the manual in-browser image workflow available when TopJobs is slow.
+      }
+    }
     const text = requirementText(job.description);
     const [requirements, profile] = await Promise.all([
       client.query<{

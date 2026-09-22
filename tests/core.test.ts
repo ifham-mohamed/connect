@@ -13,6 +13,7 @@ import {
   normalize,
   parseItproJobDetail,
   parseTopJobsAdvertImageUrl,
+  fetchTopJobsAdvertImageUrl,
   sourceUrl,
 } from "../src/lib/connectors";
 import {
@@ -276,6 +277,23 @@ describe("source normalization and trust boundaries", () => {
         page,
       ),
     ).toBe("");
+  });
+  it("recovers a missing TopJobs advert image from its detail page", async () => {
+    const page =
+      "https://www.topjobs.lk/employer/JobAdvertismentServlet?jc=0001547959";
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          '<img src="/logo/0000000661_small.jpg"><img alt="" src="/logo/0000000492/9793cSE  Full Stack.png">',
+          { headers: { "content-type": "text/html; charset=utf-8" } },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchTopJobsAdvertImageUrl(page)).resolves.toBe(
+      "https://www.topjobs.lk/logo/0000000492/9793cSE%20%20Full%20Stack.png",
+    );
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
   it("extracts the ITPro article description without navigation or footer content", () => {
     const detail = parseItproJobDetail(
