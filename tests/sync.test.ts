@@ -67,6 +67,8 @@ beforeAll(async () => {
     ),
   );
   await database.exec(await readFile(new URL("../db/015_distinct_early_career_and_location_coverage.sql", import.meta.url), "utf8"));
+  await database.exec(await readFile(new URL("../db/016_location_work_modes_and_numbered_levels.sql", import.meta.url), "utf8"));
+  await database.exec(await readFile(new URL("../db/017_worldwide_remote_matching.sql", import.meta.url), "utf8"));
   await database.query("UPDATE sources SET enabled=false WHERE kind='lever'");
 });
 afterAll(async () => {

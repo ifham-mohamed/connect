@@ -28,6 +28,8 @@ try {
     "013_experience_matching",
     "014_career_stages_and_remove_devjobs",
     "015_distinct_early_career_and_location_coverage",
+    "016_location_work_modes_and_numbered_levels",
+    "017_worldwide_remote_matching",
   ];
   for (const name of migrations) {
     const applied = await client.query(

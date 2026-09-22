@@ -1,4 +1,4 @@
-import type { ExperienceLevel, Job, Monitor } from "./types";
+import type { ExperienceLevel, Job, Monitor, WorkMode } from "./types";
 export function containsKeyword(text: string, keyword: string) {
   const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`(^|[^a-z0-9_])${escaped}($|[^a-z0-9_])`, "i").test(text);
@@ -73,11 +73,44 @@ export function detectExperience(text: string): ExperienceLevel {
   // A senior marker wins over a lower-level word in compound titles such as
   // "Senior Associate Engineer". The remaining order favors the clearest
   // internship label before entry and mid-level wording.
-  for (const level of ["senior", "internship", "entry", "mid"] as const) {
+  for (const level of ["senior", "internship"] as const) {
+    if (experienceSignals[level].some((signal) => containsKeyword(text, signal)))
+      return level;
+  }
+  const numberedLevel = detectNumberedLevel(text);
+  if (numberedLevel) return numberedLevel;
+  for (const level of ["entry", "mid"] as const) {
     if (experienceSignals[level].some((signal) => containsKeyword(text, signal)))
       return level;
   }
   return "other";
+}
+
+function detectNumberedLevel(text: string): ExperienceLevel | null {
+  const role = "(?:engineer|developer|analyst|specialist|designer|consultant)";
+  const marker = (number: string, roman: string) =>
+    new RegExp(
+      `(?:\\(\\s*(?:${number}|${roman})\\s*\\)|\\b(?:level|grade|l)\\s*[-:]?\\s*(?:${number}|${roman})\\b|\\b${role}\\s+(?:${number}|${roman})\\b)`,
+      "i",
+    ).test(text);
+  if (marker("3", "iii")) return "senior";
+  if (marker("2", "ii")) return "mid";
+  if (marker("1", "i")) return "entry";
+  return null;
+}
+
+export function matchesWorkModes(
+  job: Pick<Job, "title" | "tags" | "location" | "remote">,
+  modes?: WorkMode[],
+) {
+  if (!modes?.length) return true;
+  const text = `${job.title} ${job.tags.join(" ")} ${job.location}`;
+  const detected: WorkMode = job.remote || containsKeyword(text, "remote") || containsKeyword(text, "worldwide")
+    ? "remote"
+    : containsKeyword(text, "hybrid")
+      ? "hybrid"
+      : "onsite";
+  return modes.includes(detected);
 }
 
 export function matchesExperience(
@@ -97,6 +130,7 @@ export function matchesMonitor(
   experience?: ExperienceLevel,
 ) {
   if (!monitor.enabled || (monitor.remoteOnly && !job.remote)) return false;
+  if (!matchesWorkModes(job, monitor.workModes)) return false;
   const haystack = `${job.title} ${job.tags.join(" ")}`.toLowerCase();
   if (!matchesLocation(job.location, monitor.location)) return false;
   if (!matchesExperience(haystack, experience)) return false;

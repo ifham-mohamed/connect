@@ -26,8 +26,8 @@ export async function POST(request: Request) {
       await client.query("DELETE FROM monitors WHERE user_id=$1", [user.id]);
       for (const monitor of preferences.monitors) {
         await client.query(
-          `INSERT INTO monitors(user_id,name,keywords,excluded_keywords,location,remote_only,enabled)
-           VALUES($1,$2,$3,$4,$5,$6,$7)`,
+          `INSERT INTO monitors(user_id,name,keywords,excluded_keywords,location,remote_only,work_modes,enabled)
+           VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
           [
             user.id,
             monitor.name,
@@ -35,6 +35,7 @@ export async function POST(request: Request) {
             monitor.excludedKeywords,
             monitor.location,
             monitor.remoteOnly,
+            monitor.workModes || (monitor.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
             monitor.enabled,
           ],
         );
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
             roles: preferences.roles,
             locations: preferences.locations,
             workModes: preferences.workModes,
+            locationWorkModes: preferences.locationWorkModes,
           }),
         ],
       );

@@ -116,7 +116,7 @@ export async function POST(request: Request) {
           let monitorId: string;
           if (body.id) {
             const updated = await client.query<{ id: string }>(
-              "UPDATE monitors SET name=$3,keywords=$4,excluded_keywords=$5,location=$6,remote_only=$7,enabled=$8 WHERE id=$1 AND user_id=$2 RETURNING id",
+              "UPDATE monitors SET name=$3,keywords=$4,excluded_keywords=$5,location=$6,remote_only=$7,work_modes=$8,enabled=$9 WHERE id=$1 AND user_id=$2 RETURNING id",
               [
                 body.id,
                 user.id,
@@ -125,6 +125,7 @@ export async function POST(request: Request) {
                 v.excludedKeywords,
                 v.location,
                 v.remoteOnly,
+                v.workModes || (v.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
                 v.enabled,
               ],
             );
@@ -132,7 +133,7 @@ export async function POST(request: Request) {
             monitorId = updated.rows[0].id;
           } else {
             const inserted = await client.query<{ id: string }>(
-              "INSERT INTO monitors(user_id,name,keywords,excluded_keywords,location,remote_only,enabled) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",
+              "INSERT INTO monitors(user_id,name,keywords,excluded_keywords,location,remote_only,work_modes,enabled) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id",
               [
                 user.id,
                 v.name,
@@ -140,6 +141,7 @@ export async function POST(request: Request) {
                 v.excludedKeywords,
                 v.location,
                 v.remoteOnly,
+                v.workModes || (v.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
                 v.enabled,
               ],
             );

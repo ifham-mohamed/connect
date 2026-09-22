@@ -4,6 +4,7 @@ import {
   matchesExperience,
   matchesLocation,
   matchesMonitor,
+  matchesWorkModes,
   plainText,
   safeUrl,
 } from "../src/lib/matching";
@@ -66,6 +67,19 @@ describe("keyword matching", () => {
     );
     expect(matchesExperience("Software Engineer", "other")).toBe(true);
     expect(matchesExperience("Junior Software Engineer", "other")).toBe(false);
+    expect(matchesExperience("Full Stack Developer (1)", "entry")).toBe(true);
+    expect(matchesExperience("Full Stack Developer I", "entry")).toBe(true);
+    expect(matchesExperience("Full Stack Developer (2)", "mid")).toBe(true);
+    expect(matchesExperience("Full Stack Developer II", "mid")).toBe(true);
+    expect(matchesExperience("Full Stack Developer (3)", "senior")).toBe(true);
+    expect(matchesExperience("Full Stack Developer III", "senior")).toBe(true);
+  });
+  it("matches each monitor against its accepted work arrangements", () => {
+    expect(matchesWorkModes({ ...job, remote: true }, ["remote"])).toBe(true);
+    expect(matchesWorkModes({ ...job, remote: true }, ["onsite"])).toBe(false);
+    expect(matchesWorkModes({ ...job, remote: false, location: "Colombo", tags: ["Hybrid"] }, ["hybrid"])).toBe(true);
+    expect(matchesWorkModes({ ...job, remote: false, location: "Colombo", tags: [] }, ["onsite"])).toBe(true);
+    expect(matchesWorkModes({ ...job, remote: false, location: "Worldwide", tags: [] }, ["remote"])).toBe(true);
   });
   it("recognizes known Sri Lankan cities without changing source location text", () => {
     expect(matchesLocation("Colombo", "Sri Lanka")).toBe(true);
@@ -154,6 +168,8 @@ describe("LinkedIn job discovery", () => {
     expect(url.searchParams.get("distance")).toBe("50");
     expect(url.searchParams.get("f_AL")).toBe("true");
     expect(url.searchParams.get("f_EA")).toBe("true");
+    const hybrid = new URL(linkedInJobsSearchUrl({ monitor: { ...monitor, remoteOnly: false, workModes: ["hybrid"] } }));
+    expect(hybrid.searchParams.get("f_WT")).toBe("3");
   });
   it("builds supported network-job and job-post discovery searches", () => {
     const networkUrl = new URL(
@@ -302,6 +318,7 @@ describe("source normalization and trust boundaries", () => {
             excludedKeywords: ["senior"],
             location: "Sri Lanka",
             remoteOnly: false,
+            workModes: ["onsite", "hybrid", "remote"],
             enabled: true,
           },
         ],
@@ -317,6 +334,7 @@ describe("source normalization and trust boundaries", () => {
     };
     expect(onboardingSchema.safeParse(ownerPayload).success).toBe(false);
     expect(ownerOnboardingSchema.safeParse(ownerPayload).success).toBe(true);
+    expect(ownerOnboardingSchema.safeParse({ ...ownerPayload, locations: ["Worldwide"], locationWorkModes: [{ location: "Worldwide", workModes: ["onsite"] }] }).success).toBe(false);
     expect(onboardingSchema.safeParse({
       experience: "entry",
       roles: ["Software Engineer"],

@@ -1881,7 +1881,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                                   )}
                                 </div>
                               </td>
-                              <td>{m.remoteOnly ? "Remote only" : m.location || "Any location"}</td>
+                              <td>{m.location || "Any location"}<small>{(m.workModes || (m.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"])).map((mode) => mode === "onsite" ? "On-site" : mode[0].toUpperCase() + mode.slice(1)).join(" · ")}</small></td>
                               <td>
                                 <button className="text-btn" onClick={() => focusMonitor(m.id)}>
                                   {matchCount} jobs <ArrowRight size={13} />
@@ -2846,7 +2846,7 @@ function MonitorForm({
     monitor?.excludedKeywords.join(", ") || "",
   );
   const [location, setLocation] = useState(monitor?.location || "");
-  const [remote, setRemote] = useState(monitor?.remoteOnly || false);
+  const [workModes, setWorkModes] = useState<Array<"onsite" | "hybrid" | "remote">>(monitor?.workModes || (monitor?.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]));
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -2872,7 +2872,8 @@ function MonitorForm({
             keywords: split(keywords),
             excludedKeywords: split(excluded),
             location,
-            remoteOnly: remote,
+            remoteOnly: workModes.length === 1 && workModes[0] === "remote",
+            workModes,
             enabled: monitor?.enabled ?? true,
           });
           await onSave(value);
@@ -2934,14 +2935,10 @@ function MonitorForm({
           restrictions.
         </small>
       </label>
-      <label className="checkbox-label">
-        <input
-          type="checkbox"
-          checked={remote}
-          onChange={(e) => setRemote(e.target.checked)}
-        />
-        Remote roles only
-      </label>
+      <fieldset className="form-choice-group">
+        <legend>Work arrangements</legend>
+        {(["onsite", "hybrid", "remote"] as const).map((mode) => <label className="checkbox-label" key={mode}><input type="checkbox" checked={workModes.includes(mode)} onChange={() => setWorkModes((current) => current.includes(mode) ? current.filter((item) => item !== mode) : [...current, mode])} />{mode === "onsite" ? "On-site" : mode[0].toUpperCase() + mode.slice(1)}</label>)}
+      </fieldset>
       {error && (
         <p className="inline-error" role="alert">
           {error}

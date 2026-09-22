@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { ExperienceLevel, Monitor, UserPreferences } from "@/lib/types";
+import type { ExperienceLevel, Monitor, UserPreferences, WorkMode } from "@/lib/types";
 import { experienceExclusions } from "@/lib/matching";
 import {
   ArrowLeft,
@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 
 type Experience = ExperienceLevel;
-type WorkMode = "onsite" | "hybrid" | "remote";
 type MonitorDraft = {
   clientId: string;
   name: string;
@@ -27,6 +26,7 @@ type MonitorDraft = {
   excludedKeywords: string[];
   location: string;
   remoteOnly: boolean;
+  workModes: WorkMode[];
   enabled: boolean;
 };
 
@@ -111,7 +111,6 @@ function experienceKeywords(role: string, experience: Experience) {
 
 const sriLankaLocations = new Set(["colombo", "western province", "kandy", "galle", "jaffna", "gampaha", "negombo", "matara", "kurunegala"]);
 function monitorLocations(locations: string[]) {
-  if (locations.includes("Worldwide")) return ["Worldwide"];
   const coversSriLanka = locations.includes("Sri Lanka");
   return locations.filter((location, index) => locations.indexOf(location) === index && (!coversSriLanka || !sriLankaLocations.has(location.toLowerCase())));
 }
@@ -120,20 +119,24 @@ function makeMonitors(
   roles: string[],
   experience: Experience,
   locations: string[],
-  workModes: WorkMode[],
+  locationModes: Record<string, WorkMode[]>,
 ): MonitorDraft[] {
   const targets = monitorLocations(locations);
   return roles.flatMap((role) => {
     const preset = rolePresets.find((item) => item.label === role);
-    return targets.map((location) => ({
+    return targets.map((location) => {
+      const workModes = location === "Worldwide" ? ["remote" as const] : locationModes[location] || ["onsite", "hybrid", "remote"];
+      return ({
       clientId: `generated-${role}-${location}`,
       name: `${role} · ${location}`,
       keywords: [...new Set([...(preset?.keywords || [role.toLowerCase()]), ...experienceKeywords(role, experience)])],
       excludedKeywords: exclusionsFor(experience),
       location: location === "Worldwide" ? "" : location,
       remoteOnly: workModes.length === 1 && workModes[0] === "remote",
+      workModes,
       enabled: true,
-    }));
+      });
+    });
   });
 }
 
@@ -155,7 +158,9 @@ export function OnboardingFlow({
   const [experience, setExperience] = useState<Experience | "">(initialPreferences.experience || "");
   const [roles, setRoles] = useState<string[]>(initialPreferences.roles || []);
   const [locations, setLocations] = useState<string[]>(initialPreferences.locations || []);
-  const [workModes, setWorkModes] = useState<WorkMode[]>(initialPreferences.workModes || ["hybrid", "remote"]);
+  const [locationModes, setLocationModes] = useState<Record<string, WorkMode[]>>(() =>
+    Object.fromEntries((initialPreferences.locations || []).map((location) => [location, location === "Worldwide" ? ["remote"] : initialPreferences.locationWorkModes?.find((item) => item.location === location)?.workModes || initialPreferences.workModes || ["onsite", "hybrid", "remote"]])),
+  );
   const [monitors, setMonitors] = useState<MonitorDraft[]>(
     initialMonitors.map((monitor) => ({
       clientId: monitor.id,
@@ -164,6 +169,7 @@ export function OnboardingFlow({
       excludedKeywords: monitor.excludedKeywords,
       location: monitor.location,
       remoteOnly: monitor.remoteOnly,
+      workModes: monitor.workModes || (monitor.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
       enabled: monitor.enabled,
     })),
   );
@@ -176,9 +182,9 @@ export function OnboardingFlow({
   const canContinue = useMemo(() => {
     if (step === 0) return Boolean(experience);
     if (step === 1) return roles.length > 0;
-    if (step === 2) return locations.length > 0 && workModes.length > 0;
+    if (step === 2) return locations.length > 0 && locations.every((location) => (locationModes[location] || []).length > 0);
     return monitors.length > 0;
-  }, [experience, locations.length, monitors.length, roles.length, step, workModes.length]);
+  }, [experience, locationModes, locations, monitors.length, roles.length, step]);
 
   function toggle<T>(items: T[], value: T, maximum = Infinity) {
     return items.includes(value)
@@ -191,7 +197,7 @@ export function OnboardingFlow({
   function continueFlow() {
     if (!canContinue) return;
     if (step === 2 && experience) {
-      setMonitors(makeMonitors(roles, experience, locations, workModes));
+      setMonitors(makeMonitors(roles, experience, locations, locationModes));
     }
     setError("");
     setStep((current) => Math.min(3, current + 1));
@@ -214,7 +220,8 @@ export function OnboardingFlow({
         keywords: keywords.slice(0, 20),
         excludedKeywords: experience ? exclusionsFor(experience) : [],
         location: locations[0] === "Worldwide" ? "" : locations[0] || "",
-        remoteOnly: workModes.length === 1 && workModes[0] === "remote",
+        remoteOnly: (locationModes[locations[0]] || []).length === 1 && locationModes[locations[0]]?.[0] === "remote",
+        workModes: locationModes[locations[0]] || ["onsite", "hybrid", "remote"],
         enabled: true,
       },
       ...current,
@@ -232,8 +239,25 @@ export function OnboardingFlow({
       return;
     }
     setLocations((current) => [...current, value]);
+    setLocationModes((current) => ({ ...current, [value]: value === "Worldwide" ? ["remote"] : ["onsite", "hybrid", "remote"] }));
     setCustomLocation("");
     setError("");
+  }
+
+  function toggleLocation(location: string) {
+    if (locations.includes(location)) {
+      setLocations((current) => current.filter((item) => item !== location));
+      setLocationModes((current) => { const next = { ...current }; delete next[location]; return next; });
+      return;
+    }
+    if (userRole !== "owner" && locations.length >= 6) return;
+    setLocations((current) => [...current, location]);
+    setLocationModes((current) => ({ ...current, [location]: location === "Worldwide" ? ["remote"] : ["onsite", "hybrid", "remote"] }));
+  }
+
+  function toggleLocationMode(location: string, mode: WorkMode) {
+    if (location === "Worldwide") return;
+    setLocationModes((current) => ({ ...current, [location]: toggle(current[location] || [], mode) }));
   }
 
   async function finish() {
@@ -244,7 +268,14 @@ export function OnboardingFlow({
       const response = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ experience, roles, locations, workModes, monitors }),
+        body: JSON.stringify({
+          experience,
+          roles,
+          locations,
+          workModes: [...new Set(locations.flatMap((location) => locationModes[location] || []))],
+          locationWorkModes: locations.map((location) => ({ location, workModes: locationModes[location] || [] })),
+          monitors,
+        }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not save your preferences.");
@@ -317,15 +348,15 @@ export function OnboardingFlow({
               <fieldset>
                 <legend><MapPin size={16} /> Preferred countries <small>{userRole === "owner" ? "Add every country you need" : "Select up to six"}</small></legend>
                 <div className="onboarding-chips">
-                  {[...new Set([...locationOptions, ...locations])].map((location) => <button type="button" className={locations.includes(location) ? "selected" : ""} onClick={() => setLocations((current) => toggle(current, location, userRole === "owner" ? Infinity : 6))} key={location}>{locations.includes(location) && <Check size={13} />}{location}</button>)}
+                  {[...new Set([...locationOptions, ...locations])].map((location) => <button type="button" className={locations.includes(location) ? "selected" : ""} onClick={() => toggleLocation(location)} key={location}>{locations.includes(location) && <Check size={13} />}{location}</button>)}
                 </div>
                 <div className="onboarding-location-entry"><input aria-label="Add another country" placeholder="Add another country" value={customLocation} onChange={(event) => setCustomLocation(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); addLocation(); } }} /><button className="btn" type="button" onClick={addLocation}><Plus size={14} /> Add country</button></div>
                 {locations.includes("Sri Lanka") && <p className="onboarding-coverage-note"><Check size={13} /> Sri Lanka includes Colombo, Western Province, Kandy, Galle, Jaffna, Gampaha, Negombo, Matara, Kurunegala, and other provinces and districts.</p>}
               </fieldset>
               <fieldset>
-                <legend><BriefcaseBusiness size={16} /> Work arrangement <small>Select every arrangement you would accept</small></legend>
-                <div className="onboarding-chips">
-                  {workModeOptions.map((mode) => <button type="button" className={workModes.includes(mode.id) ? "selected" : ""} onClick={() => setWorkModes((current) => toggle(current, mode.id))} key={mode.id}>{workModes.includes(mode.id) && <Check size={13} />}{mode.label}</button>)}
+                <legend><BriefcaseBusiness size={16} /> Work arrangement <small>Choose modes for each country</small></legend>
+                <div className="onboarding-location-modes">
+                  {locations.map((location) => <div className="onboarding-location-mode" key={location}><strong>{location}</strong><div className="onboarding-chips">{workModeOptions.map((mode) => { const selected = (locationModes[location] || []).includes(mode.id); const unavailable = location === "Worldwide" && mode.id !== "remote"; return <button type="button" className={selected ? "selected" : ""} disabled={unavailable} onClick={() => toggleLocationMode(location, mode.id)} key={mode.id}>{selected && <Check size={13} />}{mode.label}</button>; })}</div></div>)}
                 </div>
               </fieldset>
               <div className="onboarding-why"><Sparkles size={16} /><span><strong>Why we ask</strong><small>A country automatically covers its recognized cities and regions, so one Sri Lanka monitor can match Colombo, Western Province, Kandy, Jaffna, and other local listings. Choosing only Remote creates remote-only monitors.</small></span></div>
@@ -343,7 +374,7 @@ export function OnboardingFlow({
                   {monitors.map((monitor) => (
                     <article key={monitor.clientId}>
                       <span className="monitor-icon"><Radio size={17} /></span>
-                      <div><strong>{monitor.name}</strong><small>{monitor.keywords.slice(0, 4).join(" · ")}</small><em>{monitor.remoteOnly ? "Remote only" : monitor.location || "Any location"}</em></div>
+                      <div><strong>{monitor.name}</strong><small>{monitor.keywords.slice(0, 4).join(" · ")}</small><em>{monitor.location || "Any location"} · {monitor.workModes.map((mode) => mode === "onsite" ? "On-site" : mode[0].toUpperCase() + mode.slice(1)).join(" / ")}</em></div>
                       <button aria-label={`Remove ${monitor.name}`} onClick={() => setMonitors((current) => current.filter((item) => item.clientId !== monitor.clientId))}><Trash2 size={16} /></button>
                     </article>
                   ))}

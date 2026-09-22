@@ -92,6 +92,8 @@ beforeAll(async () => {
     ),
   );
   await database.exec(await readFile(new URL("../db/015_distinct_early_career_and_location_coverage.sql", import.meta.url), "utf8"));
+  await database.exec(await readFile(new URL("../db/016_location_work_modes_and_numbered_levels.sql", import.meta.url), "utf8"));
+  await database.exec(await readFile(new URL("../db/017_worldwide_remote_matching.sql", import.meta.url), "utf8"));
 });
 afterAll(async () => {
   await database.close();
@@ -167,6 +169,15 @@ describe("PostgreSQL schema and matching integration", () => {
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0].status).toBe("saved");
     expect(result.rows[0].first_seen_at).toEqual(first.rows[0].first_seen_at);
+  });
+  it("matches numeric and Roman role levels consistently in PostgreSQL", async () => {
+    const result = await database.query<{ entry_numeric: boolean; entry_roman: boolean; mid: boolean; senior: boolean }>(
+      `SELECT jobradar_experience_match('Full Stack Developer (1)','entry') entry_numeric,
+              jobradar_experience_match('Full Stack Developer I','entry') entry_roman,
+              jobradar_experience_match('Full Stack Developer II','mid') mid,
+              jobradar_experience_match('Full Stack Developer (3)','senior') senior`,
+    );
+    expect(result.rows[0]).toEqual({ entry_numeric: true, entry_roman: true, mid: true, senior: true });
   });
   it("matches seeded role monitors and refreshes matches after a pause", async () => {
     await rebuildMatches(client);

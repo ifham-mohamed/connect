@@ -110,12 +110,17 @@ export function linkedInJobsSearchUrl({
   easyApply?: boolean;
   underTenApplicants?: boolean;
 }) {
+  const monitorWorkplace: LinkedInWorkplace = monitor?.workModes?.length === 1
+    ? monitor.workModes[0] === "onsite"
+      ? "on-site"
+      : monitor.workModes[0]
+    : "any";
   const selectedWorkplace =
     workplace !== "any"
       ? workplace
       : remoteOnly || monitor?.remoteOnly
         ? "remote"
-        : "any";
+        : monitorWorkplace;
   const params = new URLSearchParams({
     keywords: linkedInSearchTerms(monitor, query),
     location:

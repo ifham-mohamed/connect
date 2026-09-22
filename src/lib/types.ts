@@ -12,11 +12,13 @@ export type SourceKind =
   | "lever";
 export type JobStatus = "new" | "saved" | "applied" | "archived";
 export type ExperienceLevel = "internship" | "entry" | "mid" | "senior" | "other";
+export type WorkMode = "onsite" | "hybrid" | "remote";
 export interface UserPreferences {
   experience?: ExperienceLevel;
   roles?: string[];
   locations?: string[];
-  workModes?: Array<"onsite" | "hybrid" | "remote">;
+  workModes?: WorkMode[];
+  locationWorkModes?: Array<{ location: string; workModes: WorkMode[] }>;
 }
 export interface Job {
   id: string;
@@ -48,6 +50,7 @@ export interface Monitor {
   excludedKeywords: string[];
   location: string;
   remoteOnly: boolean;
+  workModes?: WorkMode[];
   enabled: boolean;
   createdAt: string;
 }
