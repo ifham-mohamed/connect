@@ -4056,73 +4056,79 @@ function JobDetail({
     personalDescription ?? job.extractedDescription ?? job.description;
   return (
     <div className="job-detail">
-      <div className="detail-title">
-        <span className={`company-avatar ${companyColor(job.company)}`}>
-          {initials(job.company)}
-        </span>
-        <div>
-          <h2>{job.title}</h2>
-          <p>{job.company}</p>
-        </div>
-      </div>
-      <div className="detail-meta">
-        <span>
-          <MapPin size={15} />
-          {job.location}
-        </span>
-        <span>
-          <BriefcaseBusiness size={15} />
-          {job.employmentType || "Type not specified"}
-        </span>
-        {job.remote && (
-          <span>
-            <Globe2 size={15} />
-            Remote
+      <section className="detail-summary" aria-labelledby="opportunity-title">
+        <div className="detail-title">
+          <span className={`company-avatar ${companyColor(job.company)}`}>
+            {initials(job.company)}
           </span>
-        )}
-      </div>
-      <span className={`status-badge status-${job.status} detail-status`}>
-        {job.status === "applied" && <Check size={12} />}
-        {job.status === "saved" && <Bookmark size={12} />}
-        {job.status === "archived" && <Trash2 size={12} />}
-        {job.status === "new" ? "New" : job.status}
-      </span>
+          <div>
+            <h2 id="opportunity-title">{job.title}</h2>
+            <p>{job.company}</p>
+          </div>
+        </div>
+        <div className="detail-meta">
+          <span>
+            <MapPin size={14} />
+            {job.location}
+          </span>
+          <span>
+            <BriefcaseBusiness size={14} />
+            {job.employmentType || "Type not specified"}
+          </span>
+          {job.remote && (
+            <span>
+              <Globe2 size={14} />
+              Remote
+            </span>
+          )}
+        </div>
+        <div className="detail-toolbar">
+          <span
+            className={`status-badge status-${job.status} detail-status`}
+          >
+            {job.status === "applied" && <Check size={12} />}
+            {job.status === "saved" && <Bookmark size={12} />}
+            {job.status === "archived" && <Trash2 size={12} />}
+            {job.status === "new" ? "New" : job.status}
+          </span>
+          <div className="detail-actions">
+            {!demo && (
+              <a
+                className="btn primary detail-source-action"
+                href={job.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View on {job.sourceName}
+                <ExternalLink size={14} />
+              </a>
+            )}
+            <button
+              className="btn"
+              onClick={() =>
+                onStatus(job, job.status === "saved" ? "new" : "saved")
+              }
+            >
+              <Bookmark size={14} />
+              {job.status === "saved" ? "Saved" : "Save job"}
+            </button>
+            <button
+              className="btn"
+              onClick={() =>
+                onStatus(job, job.status === "applied" ? "new" : "applied")
+              }
+            >
+              <Check size={14} />
+              {job.status === "applied" ? "Applied" : "Mark applied"}
+            </button>
+          </div>
+        </div>
+      </section>
       {demo && (
         <div className="demo-notice">
           Illustrative sample — this is not a verified job opening.
         </div>
       )}
-      <div className="detail-actions">
-        {!demo && (
-          <a
-            className="btn primary"
-            href={job.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View on {job.sourceName}
-            <ExternalLink size={15} />
-          </a>
-        )}
-        <button
-          className="btn"
-          onClick={() =>
-            onStatus(job, job.status === "saved" ? "new" : "saved")
-          }
-        >
-          <Bookmark size={15} />
-          {job.status === "saved" ? "Saved" : "Save job"}
-        </button>
-        <button
-          className="btn"
-          onClick={() =>
-            onStatus(job, job.status === "applied" ? "new" : "applied")
-          }
-        >
-          <Check size={15} />
-          {job.status === "applied" ? "Applied" : "Mark applied"}
-        </button>
-      </div>
       {!demo && job.sourceImageUrl && (
         <JobImageContext
           key={`${job.id}-${job.extractedAt || "new"}`}
