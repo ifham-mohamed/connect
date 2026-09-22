@@ -84,8 +84,16 @@ export const jobClassificationResultSchema = z
         output_tokens: z.number().int().nonnegative(),
       })
       .strict(),
+    // Vercel AI Gateway adds routing and billing metadata to the TypeSafe
+    // response. It is transport data, so validate its shape and discard it.
+    provider_metadata: z.record(z.string(), z.unknown()).optional(),
   })
-  .strict();
+  .strict()
+  .transform((response) => ({
+    model: response.model,
+    answers: response.answers,
+    usage: response.usage,
+  }));
 
 export type ValidatedJobClassification = z.infer<
   typeof jobClassificationResultSchema

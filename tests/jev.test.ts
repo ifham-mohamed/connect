@@ -160,6 +160,33 @@ describe("JEV v1 domain contract", () => {
     expect(() => validateJobClassification(invalid)).toThrow();
   });
 
+  it("accepts Vercel routing metadata without storing it or relaxing answers", () => {
+    const gatewayResponse = {
+      ...validResponse(),
+      provider_metadata: {
+        gateway: {
+          routing: { finalProvider: "typesafe-ai" },
+          cost: "0.00001155",
+        },
+      },
+    };
+    const result = validateJobClassification(gatewayResponse);
+    expect(result.answers.careerStage.choice).toBe("entry");
+    expect(result).not.toHaveProperty("provider_metadata");
+    expect(() =>
+      validateJobClassification({ ...gatewayResponse, unexpected: true }),
+    ).toThrow();
+    expect(() =>
+      validateJobClassification({
+        ...gatewayResponse,
+        answers: {
+          ...gatewayResponse.answers,
+          isTechnologyRole: { type: "noul", noul: 2 },
+        },
+      }),
+    ).toThrow();
+  });
+
   it("builds bounded, plain-text, stable decision state", () => {
     const state = buildJobDecisionState({
       sourceKind: "itpro",
