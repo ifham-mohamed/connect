@@ -62,8 +62,11 @@ services:
     environment:
       DATABASE_URL: postgresql://jobradar:${POSTGRES_PASSWORD:-jobradar}@db:5432/jobradar
       JEV_MODE: ${JEV_MODE:-shadow}
+      JEV_PROVIDER: ${JEV_PROVIDER:-vercel}
+      AI_GATEWAY_API_KEY: ${AI_GATEWAY_API_KEY:-}
+      JEV_MODEL: ${JEV_MODEL:-typesafe-ai/jev}
+      JEV_BASE_URL: ${JEV_BASE_URL:-}
       TYPESAFE_API_KEY: ${TYPESAFE_API_KEY:-}
-      TYPESAFE_DEFAULT_MODEL: ${TYPESAFE_DEFAULT_MODEL:-jev-latest}
       JEV_REQUEST_TIMEOUT_MS: ${JEV_REQUEST_TIMEOUT_MS:-10000}
       JEV_MAX_RETRIES: ${JEV_MAX_RETRIES:-2}
       JEV_MAX_ATTEMPTS: ${JEV_MAX_ATTEMPTS:-5}

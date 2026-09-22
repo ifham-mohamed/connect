@@ -20,14 +20,20 @@ database migration and one live smoke request have succeeded.
 Configure the local ignored `.env` file:
 
 ```text
-TYPESAFE_API_KEY=<your TypeSafe key>
+AI_GATEWAY_API_KEY=<your Vercel AI Gateway key>
 JEV_MODE=shadow
-TYPESAFE_DEFAULT_MODEL=jev-latest
+JEV_PROVIDER=vercel
+JEV_MODEL=typesafe-ai/jev
 JEV_REQUEST_TIMEOUT_MS=10000
 JEV_MAX_RETRIES=2
 JEV_MAX_ATTEMPTS=5
 JEV_BATCH_SIZE=5
 ```
+
+The Vercel gateway uses its TypeSafe-compatible endpoint at
+`https://ai-gateway.vercel.sh/typesafe`. A direct TypeSafe account is still
+supported by setting `JEV_PROVIDER=typesafe`, `TYPESAFE_API_KEY`, and an
+optional `JEV_MODEL`; never interchange the two credentials.
 
 Never place a real key in `.env.example` or commit it. Apply the additive
 tables, then queue a controlled recent-job sample:

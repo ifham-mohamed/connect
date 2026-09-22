@@ -1,6 +1,9 @@
 import { z } from "zod";
 
 const modeSchema = z.enum(["off", "shadow", "assisted"]);
+const providerSchema = z.enum(["vercel", "typesafe"]);
+
+const VERCEL_TYPESAFE_BASE_URL = "https://ai-gateway.vercel.sh/typesafe";
 
 function boundedInteger(
   value: string | undefined,
@@ -27,16 +30,32 @@ export function jevConfig(
   env: Record<string, string | undefined> = process.env,
 ) {
   const mode = modeSchema.parse(env.JEV_MODE?.trim() || "off");
-  const apiKey = env.TYPESAFE_API_KEY?.trim() || "";
+  const provider = providerSchema.parse(
+    env.JEV_PROVIDER?.trim() ||
+      (env.AI_GATEWAY_API_KEY?.trim() ? "vercel" : "typesafe"),
+  );
+  const apiKey =
+    provider === "vercel"
+      ? env.AI_GATEWAY_API_KEY?.trim() || ""
+      : env.TYPESAFE_API_KEY?.trim() || "";
   if (mode !== "off" && !apiKey)
     throw new Error(
-      "Set TYPESAFE_API_KEY before enabling JEV shadow or assisted mode.",
+      provider === "vercel"
+        ? "Set AI_GATEWAY_API_KEY before enabling JEV shadow or assisted mode with Vercel AI Gateway."
+        : "Set TYPESAFE_API_KEY before enabling JEV shadow or assisted mode with TypeSafe directly.",
     );
 
   return {
     mode,
+    provider,
     apiKey,
-    model: env.TYPESAFE_DEFAULT_MODEL?.trim() || "jev-latest",
+    baseURL:
+      provider === "vercel"
+        ? env.JEV_BASE_URL?.trim() || VERCEL_TYPESAFE_BASE_URL
+        : env.JEV_BASE_URL?.trim() || undefined,
+    model:
+      env.JEV_MODEL?.trim() ||
+      (provider === "vercel" ? "typesafe-ai/jev" : "jev-latest"),
     timeoutMs: boundedInteger(
       env.JEV_REQUEST_TIMEOUT_MS,
       10_000,

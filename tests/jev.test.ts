@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { TypeSafeClient } from "@typesafe-ai/sdk";
-import { classifyJobWithJev } from "../src/lib/jev/client";
+import { PermissionDeniedError, TypeSafeClient } from "@typesafe-ai/sdk";
+import {
+  classifyJobWithJev,
+  jevConnectionMessage,
+} from "../src/lib/jev/client";
 import { jevConfig } from "../src/lib/jev/config";
 import { validateJobClassification } from "../src/lib/jev/contract";
 import { fixtureState, goldFixtureSchema } from "../src/lib/jev/evaluation";
@@ -94,6 +97,7 @@ describe("JEV configuration", () => {
   it("is disabled and network-free by default", () => {
     expect(jevConfig({})).toMatchObject({
       mode: "off",
+      provider: "typesafe",
       model: "jev-latest",
       timeoutMs: 10_000,
       maxRetries: 2,
@@ -105,6 +109,30 @@ describe("JEV configuration", () => {
     expect(
       jevConfig({ JEV_MODE: "shadow", TYPESAFE_API_KEY: "test-key" }).mode,
     ).toBe("shadow");
+  });
+
+  it("routes Vercel credentials through the TypeSafe-compatible gateway", () => {
+    expect(
+      jevConfig({
+        JEV_MODE: "shadow",
+        AI_GATEWAY_API_KEY: "gateway-key",
+      }),
+    ).toMatchObject({
+      provider: "vercel",
+      apiKey: "gateway-key",
+      baseURL: "https://ai-gateway.vercel.sh/typesafe",
+      model: "typesafe-ai/jev",
+    });
+  });
+
+  it("does not accept a direct TypeSafe key for an explicit gateway provider", () => {
+    expect(() =>
+      jevConfig({
+        JEV_MODE: "shadow",
+        JEV_PROVIDER: "vercel",
+        TYPESAFE_API_KEY: "wrong-transport-key",
+      }),
+    ).toThrow("AI_GATEWAY_API_KEY");
   });
 });
 
@@ -175,6 +203,22 @@ describe("JEV v1 domain contract", () => {
 });
 
 describe("JEV SDK boundary", () => {
+  it("gives a safe gateway setup message without echoing credentials", () => {
+    const config = jevConfig({
+      JEV_MODE: "shadow",
+      AI_GATEWAY_API_KEY: "never-print-this",
+    });
+    const error = new PermissionDeniedError(
+      403,
+      { error: { message: "valid credit card required" } },
+      new Headers(),
+    );
+    const message = jevConnectionMessage(error, config);
+    expect(message).toContain("Vercel authenticated");
+    expect(message).toContain("add-credit-card");
+    expect(message).not.toContain("never-print-this");
+  });
+
   it("sends one typed request and validates the returned contract", async () => {
     let requestBody: unknown;
     const client = new TypeSafeClient({

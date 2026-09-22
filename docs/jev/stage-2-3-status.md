@@ -33,8 +33,9 @@ Date: 2026-09-22
 
 Stage 3 code is ready, but production shadow rollout is not complete until:
 
-1. `TYPESAFE_API_KEY` is restored in the ignored `.env` file.
-2. `npm run jev:smoke` succeeds against the real TypeSafe account.
+1. `AI_GATEWAY_API_KEY` is present in the ignored `.env` file.
+2. `npm run jev:smoke` succeeds through Vercel AI Gateway using
+   `typesafe-ai/jev`.
 3. The account's quota and retention terms are recorded.
 4. A 25-job backfill is reviewed before increasing the limit.
 5. Confidence distributions and source disagreements are reviewed.
@@ -48,9 +49,13 @@ No live confidence threshold is configured and no JEV field can affect matching.
   Aiven database with certificate verification enabled.
 - The empty shadow report returned zero queued tasks and zero evaluations, as
   expected before backfill.
-- The live smoke request reached TypeSafe but returned HTTP 401. Replace the
-  local key from the [TypeSafe console](https://console.typesafe.ai), rerun
-  `npm run jev:smoke`, and enable shadow mode only after it succeeds.
+- A Vercel AI Gateway key must be configured as `AI_GATEWAY_API_KEY`; placing
+  that credential in `TYPESAFE_API_KEY` sends it to the wrong authentication
+  service and returns HTTP 401.
+- The local key now reaches Vercel AI Gateway through its TypeSafe-compatible
+  endpoint. The current team returns `customer_verification_required` until a
+  valid card is added in Vercel. Keep `JEV_MODE=off` until the smoke command
+  succeeds after that account step.
 
 ## Verification sequence
 

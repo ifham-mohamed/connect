@@ -1,6 +1,10 @@
 import { readFileSync } from "node:fs";
 import { jevConfig } from "../src/lib/jev/config";
-import { classifyJobWithJev, createJevClient } from "../src/lib/jev/client";
+import {
+  classifyJobWithJev,
+  createJevClient,
+  jevConnectionMessage,
+} from "../src/lib/jev/client";
 import {
   deterministicFixtureResult,
   fixtureState,
@@ -102,43 +106,49 @@ if (live) {
   };
   const liveRows = [];
 
-  for (let index = 0; index < fixtures.length; index++) {
-    const fixture = fixtures[index];
-    const response = await classifyJobWithJev(client, states[index]);
-    const scores = scoreLiveFixture(fixture, response.result);
-    for (const field of Object.keys(totals) as Array<keyof typeof totals>)
-      totals[field] += Number(scores[field]);
-    liveRows.push({
-      id: fixture.id,
-      model: response.result.model,
-      requestId: response.requestId,
-      latencyMs: response.latencyMs,
-      inputTokens: response.result.usage.input_tokens,
-      outputTokens: response.result.usage.output_tokens,
-      scores,
-      predictions: {
-        careerStage: response.result.answers.careerStage.choice,
-        workArrangement: response.result.answers.workArrangement.choice,
-        isTechnologyRole: response.result.answers.isTechnologyRole.noul,
-        roleFamily: response.result.answers.roleFamily.choice,
-        contentQuality: response.result.answers.contentQuality.choice,
-      },
-    });
+  try {
+    for (let index = 0; index < fixtures.length; index++) {
+      const fixture = fixtures[index];
+      const response = await classifyJobWithJev(client, states[index]);
+      const scores = scoreLiveFixture(fixture, response.result);
+      for (const field of Object.keys(totals) as Array<keyof typeof totals>)
+        totals[field] += Number(scores[field]);
+      liveRows.push({
+        id: fixture.id,
+        model: response.result.model,
+        requestId: response.requestId,
+        latencyMs: response.latencyMs,
+        inputTokens: response.result.usage.input_tokens,
+        outputTokens: response.result.usage.output_tokens,
+        scores,
+        predictions: {
+          careerStage: response.result.answers.careerStage.choice,
+          workArrangement: response.result.answers.workArrangement.choice,
+          isTechnologyRole: response.result.answers.isTechnologyRole.noul,
+          roleFamily: response.result.answers.roleFamily.choice,
+          contentQuality: response.result.answers.contentQuality.choice,
+        },
+      });
+    }
+  } catch (error) {
+    console.error(`\n${jevConnectionMessage(error, config)}`);
+    process.exitCode = 1;
   }
 
-  console.log(
-    JSON.stringify(
-      {
-        liveRows,
-        accuracy: Object.fromEntries(
-          Object.entries(totals).map(([field, correct]) => [
-            field,
-            correct / fixtures.length,
-          ]),
-        ),
-      },
-      null,
-      2,
-    ),
-  );
+  if (liveRows.length === fixtures.length)
+    console.log(
+      JSON.stringify(
+        {
+          liveRows,
+          accuracy: Object.fromEntries(
+            Object.entries(totals).map(([field, correct]) => [
+              field,
+              correct / fixtures.length,
+            ]),
+          ),
+        },
+        null,
+        2,
+      ),
+    );
 }
