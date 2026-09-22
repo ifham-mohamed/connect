@@ -5,6 +5,8 @@ export type DashboardSkeletonView =
   | "monitors"
   | "sources"
   | "activity"
+  | "cv"
+  | "intelligence"
   | "settings";
 
 const pageConfig: Record<
@@ -75,14 +77,37 @@ const pageConfig: Record<
     rows: 3,
     cards: 2,
   },
+  cv: {
+    eyebrow: true,
+    titleLines: 1,
+    subtitle: true,
+    panel: "settings",
+    rows: 3,
+    cards: 2,
+  },
+  intelligence: {
+    eyebrow: true,
+    titleLines: 1,
+    subtitle: true,
+    panel: "settings",
+    rows: 3,
+    cards: 2,
+  },
 };
 
-export function DashboardSkeleton({ view = "overview" }: { view?: DashboardSkeletonView }) {
+export function DashboardSkeleton({
+  view = "overview",
+}: {
+  view?: DashboardSkeletonView;
+}) {
   const config = pageConfig[view];
-  const sideItems = view === "settings" ? 7 : 6;
+  const sideItems = view === "settings" || view === "cv" ? 8 : 7;
 
   return (
-    <main className={`skeleton-screen skeleton-${view}`} aria-label="Loading workspace">
+    <main
+      className={`skeleton-screen skeleton-${view}`}
+      aria-label="Loading workspace"
+    >
       <aside className="skeleton-sidebar" aria-hidden="true">
         <div className="skeleton-logo" />
         <div className="skeleton-nav-group">
@@ -120,7 +145,9 @@ export function DashboardSkeleton({ view = "overview" }: { view?: DashboardSkele
         {config.callout ? <div className="skeleton-callout" /> : null}
 
         {config.panel === "cards" || config.panel === "sources" ? (
-          <div className={`skeleton-card-grid skeleton-card-grid-${config.panel}`}>
+          <div
+            className={`skeleton-card-grid skeleton-card-grid-${config.panel}`}
+          >
             {Array.from({ length: config.cards ?? 6 }).map((_, index) => (
               <span key={index} />
             ))}

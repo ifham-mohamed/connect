@@ -18,6 +18,7 @@ import {
   Clock3,
   Database,
   ExternalLink,
+  FileText,
   Globe2,
   LayoutDashboard,
   Link2,
@@ -48,7 +49,10 @@ import type {
   Monitor,
   SourceKind,
 } from "@/lib/types";
-import { matchesMonitor } from "@/lib/matching";
+import { containsKeyword, matchesMonitor, plainText } from "@/lib/matching";
+import type { CvProfile } from "@/lib/cv/profile";
+import { cvSkillTerms } from "@/lib/cv/profile";
+import CvWorkspace from "@/components/cv-workspace";
 import { monitorSchema, sourceSchema } from "@/lib/validation";
 import {
   linkedInJobPostsSearchUrl,
@@ -62,6 +66,8 @@ import {
   type LinkedInWorkplace,
 } from "@/lib/linkedin";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
+import IntelligenceControls from "@/components/intelligence-controls";
+import JobCvReview from "@/components/job-cv-review";
 
 type View =
   | "overview"
@@ -70,6 +76,8 @@ type View =
   | "monitors"
   | "sources"
   | "activity"
+  | "cv"
+  | "intelligence"
   | "settings";
 type Modal =
   | { type: "monitor"; monitor?: Monitor }
@@ -85,6 +93,8 @@ const viewPaths: Record<View, string> = {
   monitors: "/app/monitors",
   sources: "/app/sources",
   activity: "/app/activity",
+  cv: "/app/profile/cv",
+  intelligence: "/app/intelligence",
   settings: "/app/settings",
 };
 const pathViews = Object.fromEntries(
@@ -97,6 +107,8 @@ const navigation = [
   { id: "monitors", label: "My monitors", icon: Radio },
   { id: "sources", label: "Connected sources", icon: Link2 },
   { id: "activity", label: "Activity log", icon: Activity },
+  { id: "cv", label: "My CV", icon: FileText },
+  { id: "intelligence", label: "AI controls", icon: Sparkles },
 ] as const;
 const titles: Record<View, [string, string]> = {
   overview: [
@@ -122,6 +134,14 @@ const titles: Record<View, [string, string]> = {
   activity: [
     "Collection history.",
     "Recent source checks, imported records, and errors.",
+  ],
+  cv: [
+    "Your career story, clearly organized.",
+    "Review your experience and skills, then save the approved profile to your private account.",
+  ],
+  intelligence: [
+    "AI review and rollout.",
+    "Audit JEV evaluations and manage the rules that can affect matching.",
   ],
   settings: [
     "Workspace settings.",
@@ -195,7 +215,11 @@ function accountInitials(name: string) {
     .toUpperCase();
 }
 
-export default function Dashboard({ initialView = "overview" }: { initialView?: View }) {
+export default function Dashboard({
+  initialView = "overview",
+}: {
+  initialView?: View;
+}) {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState("");
@@ -225,8 +249,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     useState<LinkedInJobType>("any");
   const [linkedInDatePosted, setLinkedInDatePosted] =
     useState<LinkedInDatePosted>("week");
-  const [linkedInSort, setLinkedInSort] =
-    useState<LinkedInSort>("relevant");
+  const [linkedInSort, setLinkedInSort] = useState<LinkedInSort>("relevant");
   const [linkedInDistance, setLinkedInDistance] =
     useState<LinkedInDistance>("25");
   const [linkedInEasyApply, setLinkedInEasyApply] = useState(false);
@@ -237,8 +260,23 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
-  const [accountMenu, setAccountMenu] = useState<"top" | "sidebar" | null>(null);
+  const [accountMenu, setAccountMenu] = useState<"top" | "sidebar" | null>(
+    null,
+  );
   const [profileName, setProfileName] = useState("");
+  const [localCvState, setLocalCvState] = useState<{
+    userId: string;
+    profile: CvProfile;
+  } | null>(null);
+  const [cvRevision, setCvRevision] = useState(0);
+  const [cvLoading, setCvLoading] = useState(true);
+  const [cvLoadError, setCvLoadError] = useState(false);
+  const [cvRetry, setCvRetry] = useState(0);
+  const cvUserId = data?.user?.id || "demo";
+  const localCv =
+    localCvState?.userId === cvUserId ? localCvState.profile : null;
+  const setLocalCv = (profile: CvProfile | null) =>
+    setLocalCvState(profile ? { userId: cvUserId, profile } : null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -321,6 +359,33 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     };
   }, [refresh]);
   useEffect(() => {
+    if (!data?.user?.id) return;
+    let active = true;
+    fetch("/api/candidate/cv", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Your saved CV could not be loaded.");
+        return response.json();
+      })
+      .then((result) => {
+        if (!active) return;
+        setLocalCvState(
+          result.cv?.profile
+            ? { userId: cvUserId, profile: result.cv.profile }
+            : null,
+        );
+        setCvRevision(result.cv?.revision || 0);
+      })
+      .catch(() => {
+        if (active) setCvLoadError(true);
+      })
+      .finally(() => {
+        if (active) setCvLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [data?.user?.id, cvUserId, cvRetry]);
+  useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(""), 5000);
     return () => clearTimeout(timer);
@@ -332,8 +397,14 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       /* The selected theme still applies for this session. */
     }
     document.documentElement.dataset.theme = theme;
-    document.documentElement.classList.toggle("jobradar-dark", theme === "dark");
-    document.documentElement.classList.toggle("jobradar-light", theme === "light");
+    document.documentElement.classList.toggle(
+      "jobradar-dark",
+      theme === "dark",
+    );
+    document.documentElement.classList.toggle(
+      "jobradar-light",
+      theme === "light",
+    );
   }, [theme]);
   useEffect(() => {
     try {
@@ -424,21 +495,28 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     () =>
       data?.jobs.map((j) => ({
         ...j,
-        matchedMonitors: data.monitors
-          .filter((m) =>
-            matchesMonitor(j, m, data.user?.preferences.experience),
-          )
-          .map((m) => m.id),
+        matchedMonitors:
+          data.mode === "live"
+            ? j.matchedMonitors
+            : data.monitors
+                .filter((m) =>
+                  matchesMonitor(j, m, data.user?.preferences.experience),
+                )
+                .map((m) => m.id),
       })) || [],
     [data],
   );
   const ownerAccess = data?.mode === "demo" || data?.user?.role === "owner";
-  const activeTab = !ownerAccess && tab === "all" && view !== "saved" ? "matched" : tab;
+  const activeTab =
+    !ownerAccess && tab === "all" && view !== "saved" ? "matched" : tab;
   const selectedRun = data?.runs.find((run) => run.id === runFilter);
   const selectedRunJobIds = useMemo(
-    () => selectedRun
-      ? new Set(runScope === "new" ? selectedRun.newJobIds : selectedRun.jobIds)
-      : null,
+    () =>
+      selectedRun
+        ? new Set(
+            runScope === "new" ? selectedRun.newJobIds : selectedRun.jobIds,
+          )
+        : null,
     [runScope, selectedRun],
   );
   const contextJobs = selectedRunJobIds
@@ -478,7 +556,18 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             : new Date(b.publishedAt || b.firstSeenAt).getTime() -
               new Date(a.publishedAt || a.firstSeenAt).getTime(),
         ),
-    [jobs, query, view, region, sourceFilter, monitorFilter, activeTab, sort, selectedRun, selectedRunJobIds],
+    [
+      jobs,
+      query,
+      view,
+      region,
+      sourceFilter,
+      monitorFilter,
+      activeTab,
+      sort,
+      selectedRun,
+      selectedRunJobIds,
+    ],
   );
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -492,11 +581,14 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const filteredMonitors = useMemo(
     () =>
       data?.monitors.filter((monitor) => {
-        const text = `${monitor.name} ${monitor.keywords.join(" ")} ${monitor.excludedKeywords.join(" ")} ${monitor.location}`.toLowerCase();
+        const text =
+          `${monitor.name} ${monitor.keywords.join(" ")} ${monitor.excludedKeywords.join(" ")} ${monitor.location}`.toLowerCase();
         return (
           (!queryText || text.includes(queryText)) &&
           (workspaceFilter === "all" ||
-            (workspaceFilter === "enabled" ? monitor.enabled : !monitor.enabled))
+            (workspaceFilter === "enabled"
+              ? monitor.enabled
+              : !monitor.enabled))
         );
       }) || [],
     [data?.monitors, queryText, workspaceFilter],
@@ -504,7 +596,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const filteredSources = useMemo(
     () =>
       data?.sources.filter((source) => {
-        const text = `${source.name} ${kindNames[source.kind]} ${source.board}`.toLowerCase();
+        const text =
+          `${source.name} ${kindNames[source.kind]} ${source.board}`.toLowerCase();
         return (
           (!queryText || text.includes(queryText)) &&
           (workspaceFilter === "all" ||
@@ -520,7 +613,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   const filteredRuns = useMemo(
     () =>
       data?.runs.filter((run) => {
-        const text = `${run.sourceName} ${run.status} ${run.error || ""}`.toLowerCase();
+        const text =
+          `${run.sourceName} ${run.status} ${run.error || ""}`.toLowerCase();
         return (
           (!queryText || text.includes(queryText)) &&
           (workspaceFilter === "all" || run.status === workspaceFilter)
@@ -528,12 +622,30 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       }) || [],
     [data?.runs, queryText, workspaceFilter],
   );
-  const monitorPage = Math.min(page, Math.max(1, Math.ceil(filteredMonitors.length / pageSize)));
-  const sourcePage = Math.min(page, Math.max(1, Math.ceil(filteredSources.length / pageSize)));
-  const runPage = Math.min(page, Math.max(1, Math.ceil(filteredRuns.length / pageSize)));
-  const paginatedMonitors = filteredMonitors.slice((monitorPage - 1) * pageSize, monitorPage * pageSize);
-  const paginatedSources = filteredSources.slice((sourcePage - 1) * pageSize, sourcePage * pageSize);
-  const paginatedRuns = filteredRuns.slice((runPage - 1) * pageSize, runPage * pageSize);
+  const monitorPage = Math.min(
+    page,
+    Math.max(1, Math.ceil(filteredMonitors.length / pageSize)),
+  );
+  const sourcePage = Math.min(
+    page,
+    Math.max(1, Math.ceil(filteredSources.length / pageSize)),
+  );
+  const runPage = Math.min(
+    page,
+    Math.max(1, Math.ceil(filteredRuns.length / pageSize)),
+  );
+  const paginatedMonitors = filteredMonitors.slice(
+    (monitorPage - 1) * pageSize,
+    monitorPage * pageSize,
+  );
+  const paginatedSources = filteredSources.slice(
+    (sourcePage - 1) * pageSize,
+    sourcePage * pageSize,
+  );
+  const paginatedRuns = filteredRuns.slice(
+    (runPage - 1) * pageSize,
+    runPage * pageSize,
+  );
 
   function navigate(next: View, event?: React.MouseEvent<HTMLElement>) {
     event?.preventDefault();
@@ -548,7 +660,10 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     setRunScope("all");
     setWorkspaceFilter("all");
     setMobileNav(false);
-    if (typeof window !== "undefined" && window.location.pathname !== viewPaths[next]) {
+    if (
+      typeof window !== "undefined" &&
+      window.location.pathname !== viewPaths[next]
+    ) {
       window.history.pushState({ view: next }, "", viewPaths[next]);
     }
   }
@@ -567,11 +682,19 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
   }
   function openModal(next: Exclude<Modal, null>) {
     if (next.type === "job" && !next.job.reviewed) {
-      setData((current) => current ? {
-        ...current,
-        jobs: current.jobs.map((job) => job.id === next.job.id ? { ...job, reviewed: true } : job),
-      } : current);
-      void action("job-reviewed", next.job.id).catch((cause) => setToast(cause.message));
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              jobs: current.jobs.map((job) =>
+                job.id === next.job.id ? { ...job, reviewed: true } : job,
+              ),
+            }
+          : current,
+      );
+      void action("job-reviewed", next.job.id).catch((cause) =>
+        setToast(cause.message),
+      );
     }
     if (typeof window !== "undefined") {
       const nextState = {
@@ -589,22 +712,43 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
     if (next.type === "job" && data?.mode === "live" && !next.job.description) {
       const jobId = next.job.id;
       setJobDetailLoading(jobId);
-      void fetch(`/api/jobs/${encodeURIComponent(jobId)}`, { cache: "no-store" })
+      void fetch(`/api/jobs/${encodeURIComponent(jobId)}`, {
+        cache: "no-store",
+      })
         .then(async (response) => {
           const result = await response.json();
-          if (!response.ok) throw new Error(result.error || "The opportunity could not be loaded.");
-          setData((current) => current ? {
-            ...current,
-            jobs: current.jobs.map((job) => job.id === jobId ? result.job : job),
-          } : current);
+          if (!response.ok)
+            throw new Error(
+              result.error || "The opportunity could not be loaded.",
+            );
+          setData((current) =>
+            current
+              ? {
+                  ...current,
+                  jobs: current.jobs.map((job) =>
+                    job.id === jobId ? result.job : job,
+                  ),
+                }
+              : current,
+          );
           setModalState((current) =>
             current?.type === "job" && current.job.id === jobId
               ? { type: "job", job: result.job }
               : current,
           );
         })
-        .catch((cause) => setToast(cause instanceof Error ? cause.message : "The opportunity could not be loaded."))
-        .finally(() => setJobDetailLoading((current) => current === jobId ? null : current));
+        .catch((cause) =>
+          setToast(
+            cause instanceof Error
+              ? cause.message
+              : "The opportunity could not be loaded.",
+          ),
+        )
+        .finally(() =>
+          setJobDetailLoading((current) =>
+            current === jobId ? null : current,
+          ),
+        );
     }
   }
   function closeModal(replaceHistory = false) {
@@ -648,7 +792,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       let next = { ...data };
       if (actionName === "job-status")
         next.jobs = data.jobs.map((j) =>
-          j.id === id ? { ...j, status: value as JobStatus, reviewed: true } : j,
+          j.id === id
+            ? { ...j, status: value as JobStatus, reviewed: true }
+            : j,
         );
       if (actionName === "job-reviewed")
         next.jobs = data.jobs.map((j) =>
@@ -940,11 +1086,28 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           role="menuitem"
           onClick={() => {
             setAccountMenu(null);
+            navigate("cv");
+          }}
+        >
+          <FileText size={16} />
+          <span>
+            <strong>My CV</strong>
+            <small>View and edit your career profile</small>
+          </span>
+          <ChevronRight size={14} />
+        </button>
+        <button
+          role="menuitem"
+          onClick={() => {
+            setAccountMenu(null);
             navigate("settings");
           }}
         >
           <Settings2 size={16} />
-          <span><strong>Workspace settings</strong><small>Account and connection details</small></span>
+          <span>
+            <strong>Workspace settings</strong>
+            <small>Account and connection details</small>
+          </span>
           <ChevronRight size={14} />
         </button>
         <button
@@ -955,17 +1118,27 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           }}
         >
           <CircleHelp size={16} />
-          <span><strong>Help and guidance</strong><small>Review the workspace workflow</small></span>
+          <span>
+            <strong>Help and guidance</strong>
+            <small>Review the workspace workflow</small>
+          </span>
           <ChevronRight size={14} />
         </button>
         <Link href="/" role="menuitem" onClick={() => setAccountMenu(null)}>
           <ArrowUpRight size={16} />
-          <span><strong>Public home</strong><small>Open the Jobradar overview</small></span>
+          <span>
+            <strong>Public home</strong>
+            <small>Open the Jobradar overview</small>
+          </span>
           <ChevronRight size={14} />
         </Link>
       </div>
       {data.mode === "live" && (
-        <button className="account-menu-signout" role="menuitem" onClick={signOut}>
+        <button
+          className="account-menu-signout"
+          role="menuitem"
+          onClick={signOut}
+        >
           <LogOut size={16} /> Sign out
         </button>
       )}
@@ -988,25 +1161,35 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
         </Link>
         <div className="nav-label">WORKSPACE</div>
         <nav aria-label="Main navigation">
-          {navigation.map((item) => (
-            <Link
-              key={item.id}
-              href={viewPaths[item.id]}
-              onClick={(event) => navigate(item.id, event)}
-              className={`nav-item ${view === item.id ? "selected" : ""}`}
-              aria-current={view === item.id ? "page" : undefined}
-              data-tooltip={item.id === "jobs" && !isOwner ? "My opportunities" : item.label}
-            >
-              <item.icon size={18} />
-              <span>{item.id === "jobs" && !isOwner ? "My opportunities" : item.label}</span>
-              {item.id === "saved" && savedCount > 0 && (
-                <span className="nav-count">{savedCount}</span>
-              )}
-              {item.id === "monitors" && (
-                <span className="nav-count">{data.monitors.length}</span>
-              )}
-            </Link>
-          ))}
+          {navigation
+            .filter((item) => item.id !== "intelligence" || isOwner)
+            .map((item) => (
+              <Link
+                key={item.id}
+                href={viewPaths[item.id]}
+                onClick={(event) => navigate(item.id, event)}
+                className={`nav-item ${view === item.id ? "selected" : ""}`}
+                aria-current={view === item.id ? "page" : undefined}
+                data-tooltip={
+                  item.id === "jobs" && !isOwner
+                    ? "My opportunities"
+                    : item.label
+                }
+              >
+                <item.icon size={18} />
+                <span>
+                  {item.id === "jobs" && !isOwner
+                    ? "My opportunities"
+                    : item.label}
+                </span>
+                {item.id === "saved" && savedCount > 0 && (
+                  <span className="nav-count">{savedCount}</span>
+                )}
+                {item.id === "monitors" && (
+                  <span className="nav-count">{data.monitors.length}</span>
+                )}
+              </Link>
+            ))}
         </nav>
         <div className="sidebar-spacer" />
         <div className="sidebar-note" data-tooltip="Create a monitor">
@@ -1048,9 +1231,16 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
             aria-label="Open account menu"
             aria-haspopup="menu"
             aria-expanded={accountMenu === "sidebar"}
-            onClick={() => setAccountMenu((current) => current === "sidebar" ? null : "sidebar")}
+            onClick={() =>
+              setAccountMenu((current) =>
+                current === "sidebar" ? null : "sidebar",
+              )
+            }
           >
-            <span className="profile-avatar" data-tooltip={data.user?.name || "Your workspace"}>
+            <span
+              className="profile-avatar"
+              data-tooltip={data.user?.name || "Your workspace"}
+            >
               {accountInitials(data.user?.name || "Your workspace")}
             </span>
             <span className="profile-copy">
@@ -1137,7 +1327,11 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 aria-label="Open account menu"
                 aria-haspopup="menu"
                 aria-expanded={accountMenu === "top"}
-                onClick={() => setAccountMenu((current) => current === "top" ? null : "top")}
+                onClick={() =>
+                  setAccountMenu((current) =>
+                    current === "top" ? null : "top",
+                  )
+                }
               >
                 <span className="top-avatar">
                   {accountInitials(data.user?.name || "Your workspace")}
@@ -1166,19 +1360,48 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   ? "YOUR CAREER, IN FOCUS"
                   : "A MORE THOUGHTFUL JOB SEARCH"}
               </div>
-              <h1>{view === "jobs" && selectedRun ? `${runScope === "new" ? "New jobs" : "Jobs found"} by ${selectedRun.sourceName}.` : view === "overview" ? `Role matches for ${focusLocationLabel}.` : view === "monitors" ? "Your personal monitors." : view === "jobs" && !isOwner ? "Opportunities matched to you." : titles[view][0]}</h1>
-              <p>{view === "jobs" && selectedRun ? `${dateTime(selectedRun.startedAt)} · ${selectedRun.fetched} collected · ${selectedRun.added} new in this run.` : view === "overview" ? `Focused on ${focusRoleLabel} from your saved preferences.` : view === "monitors" ? "Add, edit, pause, or remove the searches that shape your Relevant feed." : view === "jobs" && !isOwner ? "Review roles selected by your personal monitors, then save, apply, or archive them." : titles[view][1]}</p>
+              <h1>
+                {view === "jobs" && selectedRun
+                  ? `${runScope === "new" ? "New jobs" : "Jobs found"} by ${selectedRun.sourceName}.`
+                  : view === "overview"
+                    ? `Role matches for ${focusLocationLabel}.`
+                    : view === "monitors"
+                      ? "Your personal monitors."
+                      : view === "jobs" && !isOwner
+                        ? "Opportunities matched to you."
+                        : titles[view][0]}
+              </h1>
+              <p>
+                {view === "jobs" && selectedRun
+                  ? `${dateTime(selectedRun.startedAt)} · ${selectedRun.fetched} collected · ${selectedRun.added} new in this run.`
+                  : view === "overview"
+                    ? `Focused on ${focusRoleLabel} from your saved preferences.`
+                    : view === "monitors"
+                      ? "Add, edit, pause, or remove the searches that shape your Relevant feed."
+                      : view === "jobs" && !isOwner
+                        ? "Review roles selected by your personal monitors, then save, apply, or archive them."
+                        : titles[view][1]}
+              </p>
             </div>
             {view === "jobs" && selectedRun ? (
-              <button className="btn" onClick={() => navigate("jobs")}><X size={15} /> Clear run filter</button>
-            ) : view !== "monitors" && view !== "sources" && view !== "activity" && (
-              <button
-                className="btn primary"
-                onClick={() => openModal({ type: "monitor" })}
-              >
-                <Plus size={17} />
-                Create monitor
+              <button className="btn" onClick={() => navigate("jobs")}>
+                <X size={15} /> Clear run filter
               </button>
+            ) : (
+              view !== "monitors" &&
+              view !== "sources" &&
+              view !== "activity" &&
+              view !== "cv" &&
+              view !== "settings" &&
+              view !== "intelligence" && (
+                <button
+                  className="btn primary"
+                  onClick={() => openModal({ type: "monitor" })}
+                >
+                  <Plus size={17} />
+                  Create monitor
+                </button>
+              )
             )}
           </div>
           {data.mode === "demo" && (
@@ -1200,14 +1423,16 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   label="Relevant opportunities"
                   value={matchedJobs.length}
                   icon={<BriefcaseBusiness size={18} />}
-                  detail={isOwner ? `${jobs.length} total records collected` : `${jobs.length} personal opportunities available`}
+                  detail={
+                    isOwner
+                      ? `${jobs.length} total records collected`
+                      : `${jobs.length} personal opportunities available`
+                  }
                   trend={`${newCount} new records today`}
                 />
                 <Stat
                   label="Matching your interests"
-                  value={
-                    matchedJobs.length
-                  }
+                  value={matchedJobs.length}
                   icon={<Target size={18} />}
                   detail="Matched to your keyword monitors"
                   trend="Made for your search"
@@ -1290,7 +1515,10 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   </div>
                 </div>
                 <div className="jobs-panel">
-                  <div className="view-filters" aria-label="Opportunity filters">
+                  <div
+                    className="view-filters"
+                    aria-label="Opportunity filters"
+                  >
                     {(view === "saved"
                       ? [
                           ["all", "Shortlist"],
@@ -1326,14 +1554,17 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                                   .length
                               : selectedRun
                                 ? contextJobs.length
-                                : contextJobs.filter((j) => j.status !== "archived").length}
+                                : contextJobs.filter(
+                                    (j) => j.status !== "archived",
+                                  ).length}
                           </span>
                         )}
                         {key === "matched" && (
                           <span>
                             {
-                              contextJobs.filter((j) => j.matchedMonitors.length > 0)
-                                .length
+                              contextJobs.filter(
+                                (j) => j.matchedMonitors.length > 0,
+                              ).length
                             }
                           </span>
                         )}
@@ -1496,7 +1727,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                             </button>
                             {now - new Date(job.firstSeenAt).getTime() <
                               86400000 && (
-                              <span className="status-badge status-new">NEW</span>
+                              <span className="status-badge status-new">
+                                NEW
+                              </span>
                             )}
                           </div>
                           <div className="job-company">
@@ -1606,7 +1839,10 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <span>
                         Showing {pageStart}-{pageEnd} of {filtered.length}
                       </span>
-                      <div className="pagination-controls" aria-label="Opportunity pagination">
+                      <div
+                        className="pagination-controls"
+                        aria-label="Opportunity pagination"
+                      >
                         <label className="page-size-control">
                           <span>Rows</span>
                           <select
@@ -1626,7 +1862,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                         </label>
                         <button
                           className="btn small pagination-btn"
-                          onClick={() => setPage((value) => Math.max(1, value - 1))}
+                          onClick={() =>
+                            setPage((value) => Math.max(1, value - 1))
+                          }
                           disabled={currentPage === 1}
                         >
                           Previous
@@ -1745,7 +1983,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   </section>
                   <section className="tip-card">
                     <span className="tip-label">
-                      <Sparkles size={14} />CV SIGNAL
+                      <Sparkles size={14} />
+                      CV SIGNAL
                     </span>
                     <h3>Prioritize stack fit.</h3>
                     <p>
@@ -1774,7 +2013,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 <div>
                   <h2>
                     Your monitors{" "}
-                    <span className="count-pill">{filteredMonitors.length}</span>
+                    <span className="count-pill">
+                      {filteredMonitors.length}
+                    </span>
                   </h2>
                   <p>
                     Search, filter, edit, and review matching jobs for every
@@ -1786,8 +2027,16 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 <div className="view-filters" aria-label="Monitor filters">
                   {[
                     ["all", "All monitors", data.monitors.length],
-                    ["enabled", "Active", data.monitors.filter((m) => m.enabled).length],
-                    ["paused", "Paused", data.monitors.filter((m) => !m.enabled).length],
+                    [
+                      "enabled",
+                      "Active",
+                      data.monitors.filter((m) => m.enabled).length,
+                    ],
+                    [
+                      "paused",
+                      "Paused",
+                      data.monitors.filter((m) => !m.enabled).length,
+                    ],
                   ].map(([key, label, count]) => (
                     <button
                       key={key}
@@ -1797,7 +2046,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       }}
                       className={workspaceFilter === key ? "active" : ""}
                     >
-                      {label}<span>{count}</span>
+                      {label}
+                      <span>{count}</span>
                     </button>
                   ))}
                 </div>
@@ -1828,7 +2078,10 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <kbd>⌘ K</kbd>
                     )}
                   </label>
-                  <button className="btn filter-btn" onClick={() => openModal({ type: "monitor" })}>
+                  <button
+                    className="btn filter-btn"
+                    onClick={() => openModal({ type: "monitor" })}
+                  >
                     <Plus size={16} />
                     <span>Create monitor</span>
                   </button>
@@ -1855,18 +2108,27 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       </thead>
                       <tbody>
                         {paginatedMonitors.map((m, i) => {
-                          const matchCount = jobs.filter((j) => j.matchedMonitors.includes(m.id)).length;
+                          const matchCount = jobs.filter((j) =>
+                            j.matchedMonitors.includes(m.id),
+                          ).length;
                           return (
                             <tr key={m.id}>
                               <td>
                                 <span className="table-title-cell">
-                                  <span className={`monitor-icon tone-${i % 3}`}>
+                                  <span
+                                    className={`monitor-icon tone-${i % 3}`}
+                                  >
                                     <Radio size={15} />
                                   </span>
                                   <span>
                                     <strong>{m.name}</strong>
                                     {m.excludedKeywords.length > 0 && (
-                                      <small>Excluding {m.excludedKeywords.slice(0, 3).join(", ")}</small>
+                                      <small>
+                                        Excluding{" "}
+                                        {m.excludedKeywords
+                                          .slice(0, 3)
+                                          .join(", ")}
+                                      </small>
                                     )}
                                   </span>
                                 </span>
@@ -1877,13 +2139,34 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                                     <span key={k}>{k}</span>
                                   ))}
                                   {m.keywords.length > 4 && (
-                                    <span className="chip-more">+{m.keywords.length - 4}</span>
+                                    <span className="chip-more">
+                                      +{m.keywords.length - 4}
+                                    </span>
                                   )}
                                 </div>
                               </td>
-                              <td>{m.location || "Any location"}<small>{(m.workModes || (m.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"])).map((mode) => mode === "onsite" ? "On-site" : mode[0].toUpperCase() + mode.slice(1)).join(" · ")}</small></td>
                               <td>
-                                <button className="text-btn" onClick={() => focusMonitor(m.id)}>
+                                {m.location || "Any location"}
+                                <small>
+                                  {(
+                                    m.workModes ||
+                                    (m.remoteOnly
+                                      ? ["remote"]
+                                      : ["onsite", "hybrid", "remote"])
+                                  )
+                                    .map((mode) =>
+                                      mode === "onsite"
+                                        ? "On-site"
+                                        : mode[0].toUpperCase() + mode.slice(1),
+                                    )
+                                    .join(" · ")}
+                                </small>
+                              </td>
+                              <td>
+                                <button
+                                  className="text-btn"
+                                  onClick={() => focusMonitor(m.id)}
+                                >
                                   {matchCount} jobs <ArrowRight size={13} />
                                 </button>
                               </td>
@@ -1917,7 +2200,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                                   </a>
                                   <button
                                     className="btn small"
-                                    onClick={() => openModal({ type: "monitor", monitor: m })}
+                                    onClick={() =>
+                                      openModal({ type: "monitor", monitor: m })
+                                    }
                                   >
                                     <Settings2 size={14} />
                                     Edit
@@ -1946,9 +2231,17 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 {filteredMonitors.length > 0 && (
                   <div className="list-footer pagination-footer">
                     <span>
-                      Showing {(monitorPage - 1) * pageSize + 1}-{Math.min(monitorPage * pageSize, filteredMonitors.length)} of {filteredMonitors.length}
+                      Showing {(monitorPage - 1) * pageSize + 1}-
+                      {Math.min(
+                        monitorPage * pageSize,
+                        filteredMonitors.length,
+                      )}{" "}
+                      of {filteredMonitors.length}
                     </span>
-                    <div className="pagination-controls" aria-label="Monitor pagination">
+                    <div
+                      className="pagination-controls"
+                      aria-label="Monitor pagination"
+                    >
                       <label className="page-size-control">
                         <span>Rows</span>
                         <select
@@ -1960,13 +2253,51 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                           }}
                         >
                           {[8, 12, 20, 40].map((value) => (
-                            <option key={value} value={value}>{value}</option>
+                            <option key={value} value={value}>
+                              {value}
+                            </option>
                           ))}
                         </select>
                       </label>
-                      <button className="btn small pagination-btn" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={monitorPage === 1}>Previous</button>
-                      <span className="page-indicator">Page {monitorPage} of {Math.max(1, Math.ceil(filteredMonitors.length / pageSize))}</span>
-                      <button className="btn small pagination-btn" onClick={() => setPage((value) => Math.min(Math.max(1, Math.ceil(filteredMonitors.length / pageSize)), value + 1))} disabled={monitorPage === Math.max(1, Math.ceil(filteredMonitors.length / pageSize))}>Next</button>
+                      <button
+                        className="btn small pagination-btn"
+                        onClick={() =>
+                          setPage((value) => Math.max(1, value - 1))
+                        }
+                        disabled={monitorPage === 1}
+                      >
+                        Previous
+                      </button>
+                      <span className="page-indicator">
+                        Page {monitorPage} of{" "}
+                        {Math.max(
+                          1,
+                          Math.ceil(filteredMonitors.length / pageSize),
+                        )}
+                      </span>
+                      <button
+                        className="btn small pagination-btn"
+                        onClick={() =>
+                          setPage((value) =>
+                            Math.min(
+                              Math.max(
+                                1,
+                                Math.ceil(filteredMonitors.length / pageSize),
+                              ),
+                              value + 1,
+                            ),
+                          )
+                        }
+                        disabled={
+                          monitorPage ===
+                          Math.max(
+                            1,
+                            Math.ceil(filteredMonitors.length / pageSize),
+                          )
+                        }
+                      >
+                        Next
+                      </button>
                     </div>
                   </div>
                 )}
@@ -2016,9 +2347,13 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       <Search size={15} />
                       <input
                         aria-label="LinkedIn position or keywords"
-                        placeholder={linkedInMonitor?.name || "Software engineer"}
+                        placeholder={
+                          linkedInMonitor?.name || "Software engineer"
+                        }
                         value={linkedInQuery}
-                        onChange={(event) => setLinkedInQuery(event.target.value)}
+                        onChange={(event) =>
+                          setLinkedInQuery(event.target.value)
+                        }
                       />
                     </div>
                   </label>
@@ -2030,7 +2365,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                         aria-label="LinkedIn job location"
                         placeholder={linkedInMonitor?.location || "Sri Lanka"}
                         value={linkedInLocation}
-                        onChange={(event) => setLinkedInLocation(event.target.value)}
+                        onChange={(event) =>
+                          setLinkedInLocation(event.target.value)
+                        }
                       />
                     </div>
                   </label>
@@ -2040,7 +2377,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       aria-label="LinkedIn work arrangement"
                       value={linkedInWorkplace}
                       onChange={(event) =>
-                        setLinkedInWorkplace(event.target.value as LinkedInWorkplace)
+                        setLinkedInWorkplace(
+                          event.target.value as LinkedInWorkplace,
+                        )
                       }
                     >
                       <option value="any">Any arrangement</option>
@@ -2055,7 +2394,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       aria-label="LinkedIn experience level"
                       value={linkedInExperience}
                       onChange={(event) =>
-                        setLinkedInExperience(event.target.value as LinkedInExperience)
+                        setLinkedInExperience(
+                          event.target.value as LinkedInExperience,
+                        )
                       }
                     >
                       <option value="any">Any level</option>
@@ -2072,7 +2413,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       aria-label="LinkedIn job type"
                       value={linkedInJobType}
                       onChange={(event) =>
-                        setLinkedInJobType(event.target.value as LinkedInJobType)
+                        setLinkedInJobType(
+                          event.target.value as LinkedInJobType,
+                        )
                       }
                     >
                       <option value="any">Any job type</option>
@@ -2089,7 +2432,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       aria-label="LinkedIn date posted"
                       value={linkedInDatePosted}
                       onChange={(event) =>
-                        setLinkedInDatePosted(event.target.value as LinkedInDatePosted)
+                        setLinkedInDatePosted(
+                          event.target.value as LinkedInDatePosted,
+                        )
                       }
                     >
                       <option value="any">Any time</option>
@@ -2117,7 +2462,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       aria-label="LinkedIn location radius"
                       value={linkedInDistance}
                       onChange={(event) =>
-                        setLinkedInDistance(event.target.value as LinkedInDistance)
+                        setLinkedInDistance(
+                          event.target.value as LinkedInDistance,
+                        )
                       }
                     >
                       <option value="0">Exact location</option>
@@ -2161,28 +2508,42 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                     Search LinkedIn
                     <ExternalLink size={13} />
                   </a>
-                  <div className="linkedin-search-paths" aria-label="LinkedIn discovery searches">
+                  <div
+                    className="linkedin-search-paths"
+                    aria-label="LinkedIn discovery searches"
+                  >
                     <a
                       className="linkedin-path-link"
                       href={linkedInNetworkSearchUrl}
                       target="_blank"
                       rel="noreferrer"
                     >
-                      <span><Globe2 size={15} /> Jobs in my network</span>
+                      <span>
+                        <Globe2 size={15} /> Jobs in my network
+                      </span>
                       <ExternalLink size={13} />
                     </a>
                     <p>
-                      LinkedIn ranks this job search using your signed-in network.
+                      LinkedIn ranks this job search using your signed-in
+                      network.
                     </p>
                   </div>
-                  <section className="linkedin-post-discovery" aria-labelledby="linkedin-post-search-title">
+                  <section
+                    className="linkedin-post-discovery"
+                    aria-labelledby="linkedin-post-search-title"
+                  >
                     <div className="linkedin-post-heading">
-                      <span aria-hidden="true"><Activity size={17} /></span>
+                      <span aria-hidden="true">
+                        <Activity size={17} />
+                      </span>
                       <div>
-                        <strong id="linkedin-post-search-title">LinkedIn Post Search</strong>
+                        <strong id="linkedin-post-search-title">
+                          LinkedIn Post Search
+                        </strong>
                         <p>
-                          Find member posts mentioning hiring, vacancies, opportunities,
-                          and job openings. These open Posts results, not job listings.
+                          Find member posts mentioning hiring, vacancies,
+                          opportunities, and job openings. These open Posts
+                          results, not job listings.
                         </p>
                       </div>
                     </div>
@@ -2194,7 +2555,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       >
                         <span>
                           <strong>Sri Lanka posts</strong>
-                          <small>Colombo, Western Province, and Sri Lanka signals</small>
+                          <small>
+                            Colombo, Western Province, and Sri Lanka signals
+                          </small>
                         </span>
                         <ExternalLink size={14} />
                       </a>
@@ -2205,7 +2568,9 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       >
                         <span>
                           <strong>Qatar network posts</strong>
-                          <small>Qatar and Doha posts from first-degree connections</small>
+                          <small>
+                            Qatar and Doha posts from first-degree connections
+                          </small>
                         </span>
                         <ExternalLink size={14} />
                       </a>
@@ -2216,14 +2581,17 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       >
                         <span>
                           <strong>Global posts</strong>
-                          <small>Remote, worldwide, and global hiring signals</small>
+                          <small>
+                            Remote, worldwide, and global hiring signals
+                          </small>
                         </span>
                         <ExternalLink size={14} />
                       </a>
                     </div>
                     <p className="linkedin-post-note">
-                      LinkedIn may further personalize results. Use its Posted by and
-                      Content type filters after opening a search when available.
+                      LinkedIn may further personalize results. Use its Posted
+                      by and Content type filters after opening a search when
+                      available.
                     </p>
                   </section>
                 </div>
@@ -2232,9 +2600,22 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 <div className="view-filters" aria-label="Source filters">
                   {[
                     ["all", "All sources", data.sources.length],
-                    ["connected", "Connected", data.sources.filter((s) => s.enabled && !s.lastError).length],
-                    ["paused", "Paused", data.sources.filter((s) => !s.enabled).length],
-                    ["error", "Needs attention", data.sources.filter((s) => s.lastError).length],
+                    [
+                      "connected",
+                      "Connected",
+                      data.sources.filter((s) => s.enabled && !s.lastError)
+                        .length,
+                    ],
+                    [
+                      "paused",
+                      "Paused",
+                      data.sources.filter((s) => !s.enabled).length,
+                    ],
+                    [
+                      "error",
+                      "Needs attention",
+                      data.sources.filter((s) => s.lastError).length,
+                    ],
                   ].map(([key, label, count]) => (
                     <button
                       key={key}
@@ -2244,7 +2625,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       }}
                       className={workspaceFilter === key ? "active" : ""}
                     >
-                      {label}<span>{count}</span>
+                      {label}
+                      <span>{count}</span>
                     </button>
                   ))}
                 </div>
@@ -2261,7 +2643,14 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       }}
                     />
                     {query ? (
-                      <button className="icon-btn" aria-label="Clear source search" onClick={() => { setQuery(""); setPage(1); }}>
+                      <button
+                        className="icon-btn"
+                        aria-label="Clear source search"
+                        onClick={() => {
+                          setQuery("");
+                          setPage(1);
+                        }}
+                      >
                         <X size={14} />
                       </button>
                     ) : (
@@ -2270,11 +2659,18 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   </label>
                   {isOwner && (
                     <div className="toolbar-actions source-toolbar-actions">
-                      <button className="btn filter-btn" onClick={sync} disabled={busy}>
+                      <button
+                        className="btn filter-btn"
+                        onClick={sync}
+                        disabled={busy}
+                      >
                         <RefreshCw size={15} className={busy ? "spin" : ""} />
                         <span>Check sources</span>
                       </button>
-                      <button className="btn filter-btn" onClick={() => openModal({ type: "source" })}>
+                      <button
+                        className="btn filter-btn"
+                        onClick={() => openModal({ type: "source" })}
+                      >
                         <Plus size={16} />
                         <span>Connect source</span>
                       </button>
@@ -2282,8 +2678,13 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   )}
                 </div>
                 <div className="results-row">
-                  <span><strong>{filteredSources.length}</strong> sources <span className="muted">in this view</span></span>
-                  <span className="muted">{liveSources.length} currently enabled</span>
+                  <span>
+                    <strong>{filteredSources.length}</strong> sources{" "}
+                    <span className="muted">in this view</span>
+                  </span>
+                  <span className="muted">
+                    {liveSources.length} currently enabled
+                  </span>
                 </div>
                 {filteredSources.length ? (
                   <div className="activity-table admin-table-scroll">
@@ -2303,10 +2704,18 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                           <tr key={source.id}>
                             <td>
                               <span className="table-title-cell">
-                                <span className={`source-avatar ${source.kind}`}>{source.kind === "itpro" ? "it" : source.name[0]}</span>
+                                <span
+                                  className={`source-avatar ${source.kind}`}
+                                >
+                                  {source.kind === "itpro"
+                                    ? "it"
+                                    : source.name[0]}
+                                </span>
                                 <span>
                                   <strong>{source.name}</strong>
-                                  {source.board && <small>{source.board}</small>}
+                                  {source.board && (
+                                    <small>{source.board}</small>
+                                  )}
                                 </span>
                               </span>
                             </td>
@@ -2317,14 +2726,37 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                             <td>
                               <button
                                 className={`source-state table-state ${!source.enabled ? "is-paused" : source.lastError ? "is-failed" : "is-connected"}`}
-                                onClick={isOwner ? () => action("source-toggle", source.id, !source.enabled).catch((e) => setToast(e.message)) : undefined}
+                                onClick={
+                                  isOwner
+                                    ? () =>
+                                        action(
+                                          "source-toggle",
+                                          source.id,
+                                          !source.enabled,
+                                        ).catch((e) => setToast(e.message))
+                                    : undefined
+                                }
                                 disabled={!isOwner}
-                                title={isOwner ? "Change source status" : "Only the workspace owner can change sources"}
+                                title={
+                                  isOwner
+                                    ? "Change source status"
+                                    : "Only the workspace owner can change sources"
+                                }
                               >
-                                <i className={`status-dot ${source.lastError ? "failed" : !source.enabled ? "paused" : ""}`} />
-                                {!source.enabled ? "Paused" : source.lastError ? "Needs attention" : "Connected"}
+                                <i
+                                  className={`status-dot ${source.lastError ? "failed" : !source.enabled ? "paused" : ""}`}
+                                />
+                                {!source.enabled
+                                  ? "Paused"
+                                  : source.lastError
+                                    ? "Needs attention"
+                                    : "Connected"}
                               </button>
-                              {source.lastError && <small className="inline-error">{source.lastError}</small>}
+                              {source.lastError && (
+                                <small className="inline-error">
+                                  {source.lastError}
+                                </small>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -2335,19 +2767,86 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   <Empty
                     icon={<Link2 size={25} />}
                     title="No sources match that view."
-                    description={isOwner ? "Clear the search or connect a new Sri Lanka or remote job source." : "Clear the search to review the sources maintained by your workspace owner."}
-                    action={() => { setQuery(""); setWorkspaceFilter("all"); setPage(1); }}
+                    description={
+                      isOwner
+                        ? "Clear the search or connect a new Sri Lanka or remote job source."
+                        : "Clear the search to review the sources maintained by your workspace owner."
+                    }
+                    action={() => {
+                      setQuery("");
+                      setWorkspaceFilter("all");
+                      setPage(1);
+                    }}
                     label="Clear filters"
                   />
                 )}
                 {filteredSources.length > 0 && (
                   <div className="list-footer pagination-footer">
-                    <span>Showing {(sourcePage - 1) * pageSize + 1}-{Math.min(sourcePage * pageSize, filteredSources.length)} of {filteredSources.length}</span>
-                    <div className="pagination-controls" aria-label="Source pagination">
-                      <label className="page-size-control"><span>Rows</span><select aria-label="Source rows per page" value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}>{[8, 12, 20, 40].map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-                      <button className="btn small pagination-btn" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={sourcePage === 1}>Previous</button>
-                      <span className="page-indicator">Page {sourcePage} of {Math.max(1, Math.ceil(filteredSources.length / pageSize))}</span>
-                      <button className="btn small pagination-btn" onClick={() => setPage((value) => Math.min(Math.max(1, Math.ceil(filteredSources.length / pageSize)), value + 1))} disabled={sourcePage === Math.max(1, Math.ceil(filteredSources.length / pageSize))}>Next</button>
+                    <span>
+                      Showing {(sourcePage - 1) * pageSize + 1}-
+                      {Math.min(sourcePage * pageSize, filteredSources.length)}{" "}
+                      of {filteredSources.length}
+                    </span>
+                    <div
+                      className="pagination-controls"
+                      aria-label="Source pagination"
+                    >
+                      <label className="page-size-control">
+                        <span>Rows</span>
+                        <select
+                          aria-label="Source rows per page"
+                          value={pageSize}
+                          onChange={(e) => {
+                            setPageSize(Number(e.target.value));
+                            setPage(1);
+                          }}
+                        >
+                          {[8, 12, 20, 40].map((value) => (
+                            <option key={value} value={value}>
+                              {value}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <button
+                        className="btn small pagination-btn"
+                        onClick={() =>
+                          setPage((value) => Math.max(1, value - 1))
+                        }
+                        disabled={sourcePage === 1}
+                      >
+                        Previous
+                      </button>
+                      <span className="page-indicator">
+                        Page {sourcePage} of{" "}
+                        {Math.max(
+                          1,
+                          Math.ceil(filteredSources.length / pageSize),
+                        )}
+                      </span>
+                      <button
+                        className="btn small pagination-btn"
+                        onClick={() =>
+                          setPage((value) =>
+                            Math.min(
+                              Math.max(
+                                1,
+                                Math.ceil(filteredSources.length / pageSize),
+                              ),
+                              value + 1,
+                            ),
+                          )
+                        }
+                        disabled={
+                          sourcePage ===
+                          Math.max(
+                            1,
+                            Math.ceil(filteredSources.length / pageSize),
+                          )
+                        }
+                      >
+                        Next
+                      </button>
                     </div>
                   </div>
                 )}
@@ -2368,9 +2867,21 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                 <div className="view-filters" aria-label="Activity filters">
                   {[
                     ["all", "All checks", data.runs.length],
-                    ["success", "Success", data.runs.filter((r) => r.status === "success").length],
-                    ["failed", "Failed", data.runs.filter((r) => r.status === "failed").length],
-                    ["running", "Running", data.runs.filter((r) => r.status === "running").length],
+                    [
+                      "success",
+                      "Success",
+                      data.runs.filter((r) => r.status === "success").length,
+                    ],
+                    [
+                      "failed",
+                      "Failed",
+                      data.runs.filter((r) => r.status === "failed").length,
+                    ],
+                    [
+                      "running",
+                      "Running",
+                      data.runs.filter((r) => r.status === "running").length,
+                    ],
                   ].map(([key, label, count]) => (
                     <button
                       key={key}
@@ -2380,7 +2891,8 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       }}
                       className={workspaceFilter === key ? "active" : ""}
                     >
-                      {label}<span>{count}</span>
+                      {label}
+                      <span>{count}</span>
                     </button>
                   ))}
                 </div>
@@ -2397,7 +2909,14 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                       }}
                     />
                     {query ? (
-                      <button className="icon-btn" aria-label="Clear activity search" onClick={() => { setQuery(""); setPage(1); }}>
+                      <button
+                        className="icon-btn"
+                        aria-label="Clear activity search"
+                        onClick={() => {
+                          setQuery("");
+                          setPage(1);
+                        }}
+                      >
                         <X size={14} />
                       </button>
                     ) : (
@@ -2405,14 +2924,21 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                     )}
                   </label>
                   {isOwner && (
-                    <button className="btn filter-btn" onClick={sync} disabled={busy}>
+                    <button
+                      className="btn filter-btn"
+                      onClick={sync}
+                      disabled={busy}
+                    >
                       <RefreshCw size={15} className={busy ? "spin" : ""} />
                       <span>Check sources</span>
                     </button>
                   )}
                 </div>
                 <div className="results-row">
-                  <span><strong>{filteredRuns.length}</strong> source checks <span className="muted">in this view</span></span>
+                  <span>
+                    <strong>{filteredRuns.length}</strong> source checks{" "}
+                    <span className="muted">in this view</span>
+                  </span>
                   <span className="muted">Latest collection history</span>
                 </div>
                 {filteredRuns.length ? (
@@ -2433,23 +2959,43 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                           <tr key={run.id}>
                             <td>
                               <strong>{run.sourceName}</strong>
-                              {run.error && <small className="inline-error">{run.error}</small>}
+                              {run.error && (
+                                <small className="inline-error">
+                                  {run.error}
+                                </small>
+                              )}
                             </td>
                             <td>{dateTime(run.startedAt)}</td>
                             <td>
                               <span className={`run-status ${run.status}`}>
-                                {run.status === "success" ? <Check size={12} /> : run.status === "failed" ? <X size={12} /> : <Activity size={12} />} {run.status}
+                                {run.status === "success" ? (
+                                  <Check size={12} />
+                                ) : run.status === "failed" ? (
+                                  <X size={12} />
+                                ) : (
+                                  <Activity size={12} />
+                                )}{" "}
+                                {run.status}
                               </span>
                             </td>
                             <td>{run.fetched}</td>
                             <td>+{run.added}</td>
                             <td>
                               <div className="run-result-actions">
-                                <button className="btn small" disabled={!run.jobIds.length} onClick={() => viewRun(run.id)}>
+                                <button
+                                  className="btn small"
+                                  disabled={!run.jobIds.length}
+                                  onClick={() => viewRun(run.id)}
+                                >
                                   View run <ArrowRight size={13} />
                                 </button>
                                 {run.newJobIds.length > 0 && (
-                                  <button className="btn small subtle" onClick={() => viewRun(run.id, "new")}>New only</button>
+                                  <button
+                                    className="btn small subtle"
+                                    onClick={() => viewRun(run.id, "new")}
+                                  >
+                                    New only
+                                  </button>
                                 )}
                               </div>
                             </td>
@@ -2462,19 +3008,80 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
                   <Empty
                     icon={<Activity size={25} />}
                     title="No source checks match that view."
-                    description={isOwner ? "Clear the search or run a fresh source check." : "Clear the search to review recent collection activity."}
-                    action={() => { setQuery(""); setWorkspaceFilter("all"); setPage(1); }}
+                    description={
+                      isOwner
+                        ? "Clear the search or run a fresh source check."
+                        : "Clear the search to review recent collection activity."
+                    }
+                    action={() => {
+                      setQuery("");
+                      setWorkspaceFilter("all");
+                      setPage(1);
+                    }}
                     label="Clear filters"
                   />
                 )}
                 {filteredRuns.length > 0 && (
                   <div className="list-footer pagination-footer">
-                    <span>Showing {(runPage - 1) * pageSize + 1}-{Math.min(runPage * pageSize, filteredRuns.length)} of {filteredRuns.length}</span>
-                    <div className="pagination-controls" aria-label="Activity pagination">
-                      <label className="page-size-control"><span>Rows</span><select aria-label="Activity rows per page" value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}>{[8, 12, 20, 40].map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-                      <button className="btn small pagination-btn" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={runPage === 1}>Previous</button>
-                      <span className="page-indicator">Page {runPage} of {Math.max(1, Math.ceil(filteredRuns.length / pageSize))}</span>
-                      <button className="btn small pagination-btn" onClick={() => setPage((value) => Math.min(Math.max(1, Math.ceil(filteredRuns.length / pageSize)), value + 1))} disabled={runPage === Math.max(1, Math.ceil(filteredRuns.length / pageSize))}>Next</button>
+                    <span>
+                      Showing {(runPage - 1) * pageSize + 1}-
+                      {Math.min(runPage * pageSize, filteredRuns.length)} of{" "}
+                      {filteredRuns.length}
+                    </span>
+                    <div
+                      className="pagination-controls"
+                      aria-label="Activity pagination"
+                    >
+                      <label className="page-size-control">
+                        <span>Rows</span>
+                        <select
+                          aria-label="Activity rows per page"
+                          value={pageSize}
+                          onChange={(e) => {
+                            setPageSize(Number(e.target.value));
+                            setPage(1);
+                          }}
+                        >
+                          {[8, 12, 20, 40].map((value) => (
+                            <option key={value} value={value}>
+                              {value}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <button
+                        className="btn small pagination-btn"
+                        onClick={() =>
+                          setPage((value) => Math.max(1, value - 1))
+                        }
+                        disabled={runPage === 1}
+                      >
+                        Previous
+                      </button>
+                      <span className="page-indicator">
+                        Page {runPage} of{" "}
+                        {Math.max(1, Math.ceil(filteredRuns.length / pageSize))}
+                      </span>
+                      <button
+                        className="btn small pagination-btn"
+                        onClick={() =>
+                          setPage((value) =>
+                            Math.min(
+                              Math.max(
+                                1,
+                                Math.ceil(filteredRuns.length / pageSize),
+                              ),
+                              value + 1,
+                            ),
+                          )
+                        }
+                        disabled={
+                          runPage ===
+                          Math.max(1, Math.ceil(filteredRuns.length / pageSize))
+                        }
+                      >
+                        Next
+                      </button>
                     </div>
                   </div>
                 )}
@@ -2483,59 +3090,278 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           )}
           {view === "settings" && (
             <div className="settings-grid">
+              <section className="settings-overview">
+                <div className="settings-overview-icon">
+                  <Settings2 size={24} />
+                </div>
+                <div>
+                  <small>YOUR WORKSPACE</small>
+                  <h2>Made around how you search.</h2>
+                  <p>
+                    Keep your account details, search preferences, and access in
+                    one place.
+                  </p>
+                </div>
+                <span>
+                  {isOwner ? "Owner workspace" : "Personal workspace"}
+                </span>
+              </section>
               <section className="settings-card settings-profile-card">
                 <div className="settings-card-heading">
-                  <span className="settings-profile-avatar">{accountInitials(data.user?.name || "Workspace")}</span>
-                  <span><small>Personal profile</small><h2>{data.user?.name || "Your workspace"}</h2></span>
-                  <em className={`access-pill ${isOwner ? "owner" : "member"}`}>{isOwner ? "Owner" : "Member"}</em>
+                  <span className="settings-profile-avatar">
+                    {accountInitials(data.user?.name || "Workspace")}
+                  </span>
+                  <span>
+                    <small>Personal profile</small>
+                    <h2>{data.user?.name || "Your workspace"}</h2>
+                  </span>
+                  <em className={`access-pill ${isOwner ? "owner" : "member"}`}>
+                    {isOwner ? "Owner" : "Member"}
+                  </em>
                 </div>
-                <p>Your identity and job activity are private to this account.</p>
+                <p>
+                  Your identity and job activity are private to this account.
+                </p>
                 <label className="settings-field">
                   <span>Display name</span>
-                  <input value={profileName} onChange={(event) => setProfileName(event.target.value)} maxLength={80} />
+                  <input
+                    value={profileName}
+                    onChange={(event) => setProfileName(event.target.value)}
+                    maxLength={80}
+                  />
                 </label>
-                <div className="setting-row"><span>Email address</span><strong>{data.user?.email || "Demo account"}</strong></div>
+                <div className="setting-row">
+                  <span>Email address</span>
+                  <strong>{data.user?.email || "Demo account"}</strong>
+                </div>
                 <div className="settings-actions">
-                  <button className="btn primary" disabled={data.mode !== "live" || profileName.trim().length < 2 || profileName.trim() === data.user?.name} onClick={async () => {
-                    try {
-                      await action("profile-update", undefined, { name: profileName.trim() });
-                      setToast("Profile updated.");
-                    } catch (cause) { setToast((cause as Error).message); }
-                  }}>Save profile</button>
-                  {data.mode === "live" && <button className="btn" onClick={signOut}><LogOut size={14} /> Sign out</button>}
+                  <button
+                    className="btn primary"
+                    disabled={
+                      data.mode !== "live" ||
+                      profileName.trim().length < 2 ||
+                      profileName.trim() === data.user?.name
+                    }
+                    onClick={async () => {
+                      try {
+                        await action("profile-update", undefined, {
+                          name: profileName.trim(),
+                        });
+                        setToast("Profile updated.");
+                      } catch (cause) {
+                        setToast((cause as Error).message);
+                      }
+                    }}
+                  >
+                    Save profile
+                  </button>
+                  {data.mode === "live" && (
+                    <button className="btn" onClick={signOut}>
+                      <LogOut size={14} /> Sign out
+                    </button>
+                  )}
                 </div>
               </section>
               <section className="settings-card settings-preferences-card">
                 <div className="settings-card-heading compact">
-                  <span className="settings-icon"><Target size={20} /></span>
-                  <span><small>Matching profile</small><h3>Your job preferences</h3></span>
+                  <span className="settings-icon">
+                    <Target size={20} />
+                  </span>
+                  <span>
+                    <small>Matching profile</small>
+                    <h3>Your job preferences</h3>
+                  </span>
                 </div>
-                <p>These choices shape your monitors and the opportunities shown in Relevant.</p>
-                <div className="preference-group"><span>Career stage</span><div className="preference-chips"><i>{preferences.experience ? experienceNames[preferences.experience] : "Not set"}</i></div></div>
-                <div className="preference-group"><span>Roles</span><div className="preference-chips">{preferenceRoles.map((role) => <i key={role}>{role}</i>)}</div></div>
-                <div className="preference-group"><span>Locations</span><div className="preference-chips">{preferenceLocations.map((location) => <i key={location}>{location}</i>)}</div></div>
-                <div className="preference-group"><span>Work style</span><div className="preference-chips">{preferenceWorkModes.map((mode) => <i key={mode}>{mode === "onsite" ? "On-site" : mode}</i>)}</div></div>
+                <p>
+                  These choices shape your monitors and the opportunities shown
+                  in Relevant.
+                </p>
+                <div className="preference-group">
+                  <span>Career stage</span>
+                  <div className="preference-chips">
+                    <i>
+                      {preferences.experience
+                        ? experienceNames[preferences.experience]
+                        : "Not set"}
+                    </i>
+                  </div>
+                </div>
+                <div className="preference-group">
+                  <span>Roles</span>
+                  <div className="preference-chips">
+                    {preferenceRoles.map((role) => (
+                      <i key={role}>{role}</i>
+                    ))}
+                  </div>
+                </div>
+                <div className="preference-group">
+                  <span>Locations</span>
+                  <div className="preference-chips">
+                    {preferenceLocations.map((location) => (
+                      <i key={location}>{location}</i>
+                    ))}
+                  </div>
+                </div>
+                <div className="preference-group">
+                  <span>Work style</span>
+                  <div className="preference-chips">
+                    {preferenceWorkModes.map((mode) => (
+                      <i key={mode}>{mode === "onsite" ? "On-site" : mode}</i>
+                    ))}
+                  </div>
+                </div>
                 <div className="settings-actions">
-                  <Link className="btn primary" href="/onboarding?edit=1"><Settings2 size={14} /> Update preferences</Link>
-                  <button className="btn" onClick={() => navigate("monitors")}><Radio size={14} /> Manage monitors</button>
+                  <Link className="btn primary" href="/onboarding?edit=1">
+                    <Settings2 size={14} /> Update preferences
+                  </Link>
+                  <button className="btn" onClick={() => navigate("monitors")}>
+                    <Radio size={14} /> Manage monitors
+                  </button>
                 </div>
               </section>
               <section className="settings-card settings-access-card">
                 <div className="settings-card-heading compact">
-                  <span className="settings-icon">{isOwner ? <Database size={20} /> : <ShieldCheck size={20} />}</span>
-                  <span><small>{isOwner ? "Workspace operations" : "Private account"}</small><h3>{isOwner ? "Collection controls" : "Your data stays personal"}</h3></span>
+                  <span className="settings-icon">
+                    {isOwner ? (
+                      <Database size={20} />
+                    ) : (
+                      <ShieldCheck size={20} />
+                    )}
+                  </span>
+                  <span>
+                    <small>
+                      {isOwner ? "Workspace operations" : "Private account"}
+                    </small>
+                    <h3>
+                      {isOwner
+                        ? "Collection controls"
+                        : "Your data stays personal"}
+                    </h3>
+                  </span>
                 </div>
-                <p>{isOwner ? "Owners manage shared sources and can review every collected listing. Members receive only opportunities matching their own monitors." : "Your saves, applications, archives, reviewed jobs, preferences, and monitors are separate from every other member."}</p>
-                <div className="setting-row"><span>Opportunity access</span><strong>{isOwner ? "All collected + relevant" : "Relevant opportunities"}</strong></div>
-                <div className="setting-row"><span>Source permissions</span><strong>{isOwner ? "Manage and collect" : "View coverage"}</strong></div>
-                {isOwner && <div className="settings-actions"><button className="btn primary" onClick={() => navigate("sources")}>Manage sources</button><button className="btn" onClick={() => navigate("activity")}>Collection history</button></div>}
-              </section>
-              <section className="info-panel">
-                <h3>Personal context, clearly separated.</h3>
                 <p>
-                  Saved, applied, archived, and reviewed states belong to you. Source listings remain shared so collection stays efficient, while every match is calculated from your own monitors and preferences.
+                  {isOwner
+                    ? "Owners manage shared sources and can review every collected listing. Members receive only opportunities matching their own monitors."
+                    : "Your saves, applications, archives, reviewed jobs, preferences, and monitors are separate from every other member."}
                 </p>
+                <div className="setting-row">
+                  <span>Opportunity access</span>
+                  <strong>
+                    {isOwner
+                      ? "All collected + relevant"
+                      : "Relevant opportunities"}
+                  </strong>
+                </div>
+                <div className="setting-row">
+                  <span>Source permissions</span>
+                  <strong>
+                    {isOwner ? "Manage and collect" : "View coverage"}
+                  </strong>
+                </div>
+                {isOwner && (
+                  <div className="settings-actions">
+                    <button
+                      className="btn primary"
+                      onClick={() => navigate("sources")}
+                    >
+                      Manage sources
+                    </button>
+                    <button
+                      className="btn"
+                      onClick={() => navigate("activity")}
+                    >
+                      Collection history
+                    </button>
+                  </div>
+                )}
               </section>
+              <section className="settings-card settings-data-card">
+                <div className="settings-card-heading compact">
+                  <span className="settings-icon">
+                    <ShieldCheck size={20} />
+                  </span>
+                  <span>
+                    <small>Privacy and data</small>
+                    <h3>Yours to manage</h3>
+                  </span>
+                </div>
+                <p>
+                  Your saved jobs, applications, monitors, preferences, CV, and
+                  reviews stay with your account. An owner cannot read another
+                  member’s personal reviews.
+                </p>
+                {data.mode === "live" && (
+                  <a className="btn" href="/api/candidate?export=1">
+                    <ArrowDownToLine size={14} /> Export personal data
+                  </a>
+                )}
+              </section>
+            </div>
+          )}
+          {view === "intelligence" && isOwner && data.mode === "live" && (
+            <div className="intelligence-page">
+              <div className="info-panel">
+                <h3>What these controls do</h3>
+                <p>
+                  JEV evaluates collected jobs in shadow mode. Source rules
+                  decide when a reviewed model field may influence matching;
+                  corrections record a reason for changing an individual label.
+                  They do not compare a person’s CV with a job. Open a job and
+                  choose Review with JEV for that private comparison.
+                </p>
+              </div>
+              <IntelligenceControls sources={data.sources} />
+            </div>
+          )}
+          {view === "intelligence" && !isOwner && (
+            <div className="info-panel">
+              <h3>Owner controls</h3>
+              <p>
+                Only the workspace owner can manage shared JEV rollout rules.
+              </p>
+              <button className="btn" onClick={() => navigate("settings")}>
+                Back to settings
+              </button>
+            </div>
+          )}
+          {view === "cv" && (
+            <div className="cv-page">
+              {cvLoading ? (
+                <div className="settings-card cv-page-loading">
+                  <span className="cv-progress-orbit">
+                    <FileText size={18} />
+                  </span>
+                  <div>
+                    <strong>Opening your career profile</strong>
+                    <p>Loading your saved CV…</p>
+                  </div>
+                </div>
+              ) : cvLoadError ? (
+                <div className="settings-card cv-page-loading">
+                  <div>
+                    <strong>Your CV is temporarily unavailable</strong>
+                    <p>Try loading your saved profile again.</p>
+                    <button
+                      className="btn"
+                      onClick={() => {
+                        setCvLoadError(false);
+                        setCvLoading(true);
+                        setCvRetry((value) => value + 1);
+                      }}
+                    >
+                      Try again
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <CvWorkspace
+                  key={cvUserId}
+                  profile={localCv}
+                  onChange={setLocalCv}
+                  revision={cvRevision}
+                  onSaved={setCvRevision}
+                />
+              )}
             </div>
           )}
           <footer className="page-footer">
@@ -2570,6 +3396,7 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
       {refreshing && <div className="refresh-skeleton" aria-hidden="true" />}
       {modal && (
         <ModalDialog
+          wide={modal.type === "job"}
           title={
             modal.type === "monitor"
               ? modal.monitor
@@ -2619,10 +3446,44 @@ export default function Dashboard({ initialView = "overview" }: { initialView?: 
           )}
           {modal.type === "job" && (
             <JobDetail
+              key={modal.job.id}
               job={jobs.find((j) => j.id === modal.job.id) || modal.job}
               loading={jobDetailLoading === modal.job.id}
               demo={data.mode === "demo"}
+              owner={isOwner}
+              localSkillMatches={
+                localCv
+                  ? cvSkillTerms(localCv)
+                      .filter((skill) =>
+                        containsKeyword(
+                          plainText(
+                            (
+                              jobs.find((item) => item.id === modal.job.id) ||
+                              modal.job
+                            ).description || "",
+                          ),
+                          skill,
+                        ),
+                      )
+                      .slice(0, 16)
+                  : []
+              }
+              matchedMonitorNames={data.monitors
+                .filter((monitor) =>
+                  (
+                    jobs.find((item) => item.id === modal.job.id) || modal.job
+                  ).matchedMonitors.includes(monitor.id),
+                )
+                .map((monitor) => monitor.name)}
               onStatus={changeStatus}
+              onNote={async (job, note) => {
+                try {
+                  await action("job-note", job.id, note);
+                  setToast("Application note saved.");
+                } catch (cause) {
+                  setToast((cause as Error).message);
+                }
+              }}
             />
           )}
           {modal.type === "help" && (
@@ -2753,10 +3614,12 @@ function ModalDialog({
   title,
   close,
   children,
+  wide = false,
 }: {
   title: string;
   close: () => void;
   children: React.ReactNode;
+  wide?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const closeRef = useRef(close);
@@ -2805,7 +3668,7 @@ function ModalDialog({
       }}
     >
       <div
-        className="modal"
+        className={`modal${wide ? " modal-wide" : ""}`}
         ref={ref}
         tabIndex={-1}
         role="dialog"
@@ -2846,7 +3709,12 @@ function MonitorForm({
     monitor?.excludedKeywords.join(", ") || "",
   );
   const [location, setLocation] = useState(monitor?.location || "");
-  const [workModes, setWorkModes] = useState<Array<"onsite" | "hybrid" | "remote">>(monitor?.workModes || (monitor?.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]));
+  const [workModes, setWorkModes] = useState<
+    Array<"onsite" | "hybrid" | "remote">
+  >(
+    monitor?.workModes ||
+      (monitor?.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
+  );
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -2937,7 +3805,24 @@ function MonitorForm({
       </label>
       <fieldset className="form-choice-group">
         <legend>Work arrangements</legend>
-        {(["onsite", "hybrid", "remote"] as const).map((mode) => <label className="checkbox-label" key={mode}><input type="checkbox" checked={workModes.includes(mode)} onChange={() => setWorkModes((current) => current.includes(mode) ? current.filter((item) => item !== mode) : [...current, mode])} />{mode === "onsite" ? "On-site" : mode[0].toUpperCase() + mode.slice(1)}</label>)}
+        {(["onsite", "hybrid", "remote"] as const).map((mode) => (
+          <label className="checkbox-label" key={mode}>
+            <input
+              type="checkbox"
+              checked={workModes.includes(mode)}
+              onChange={() =>
+                setWorkModes((current) =>
+                  current.includes(mode)
+                    ? current.filter((item) => item !== mode)
+                    : [...current, mode],
+                )
+              }
+            />
+            {mode === "onsite"
+              ? "On-site"
+              : mode[0].toUpperCase() + mode.slice(1)}
+          </label>
+        ))}
       </fieldset>
       {error && (
         <p className="inline-error" role="alert">
@@ -3062,9 +3947,14 @@ function SourceForm({
           onChange={(e) => setName(e.target.value)}
         />
       </label>
-      {["itpro", "topjobs", "xpressjobs", "jobeka", "greenhouse", "lever"].includes(
-        kind,
-      ) && (
+      {[
+        "itpro",
+        "topjobs",
+        "xpressjobs",
+        "jobeka",
+        "greenhouse",
+        "lever",
+      ].includes(kind) && (
         <label>
           {["greenhouse", "lever"].includes(kind)
             ? "Employer board identifier"
@@ -3143,13 +4033,22 @@ function JobDetail({
   job,
   loading,
   demo,
+  owner,
+  localSkillMatches,
+  matchedMonitorNames,
   onStatus,
+  onNote,
 }: {
   job: Job;
   loading: boolean;
   demo: boolean;
+  owner: boolean;
+  localSkillMatches: string[];
+  matchedMonitorNames: string[];
   onStatus: (job: Job, status: JobStatus) => Promise<void>;
+  onNote: (job: Job, note: string) => Promise<void>;
 }) {
+  const [note, setNote] = useState(job.applicationNote || "");
   return (
     <div className="job-detail">
       <div className="detail-title">
@@ -3219,10 +4118,15 @@ function JobDetail({
           {job.status === "applied" ? "Applied" : "Mark applied"}
         </button>
       </div>
+      {!demo && <JobCvReview jobId={job.id} />}
       <div className="detail-description">
         <h3>About the opportunity</h3>
         {loading ? (
-          <div className="detail-loading" aria-label="Loading opportunity details" aria-live="polite">
+          <div
+            className="detail-loading"
+            aria-label="Loading opportunity details"
+            aria-live="polite"
+          >
             <span />
             <span />
             <span />
@@ -3234,6 +4138,77 @@ function JobDetail({
           </p>
         )}
       </div>
+      {!!job.requirements?.length && (
+        <section className="detail-description">
+          <h3>Requirements found in this listing</h3>
+          <p>
+            Each item is quoted from the source text. Labels are a review aid,
+            not a verified hiring decision.
+          </p>
+          <ul className="requirement-list">
+            {job.requirements.map((item, index) => (
+              <li key={`${index}-${item.evidence}`}>
+                <span className="requirement-kind">{item.importance}</span>{" "}
+                <span className="requirement-kind">{item.category}</span>{" "}
+                {item.groupKind !== "single" && (
+                  <span className="requirement-kind">
+                    {item.groupKind.toUpperCase()} group
+                  </span>
+                )}{" "}
+                {item.evidence}
+              </li>
+            ))}
+          </ul>
+          {!!job.profileSkillMatches?.length && (
+            <p>
+              Skills from your profile mentioned here:{" "}
+              {job.profileSkillMatches.join(", ")}
+            </p>
+          )}
+        </section>
+      )}
+      {!!localSkillMatches.length && (
+        <section className="detail-description cv-local-match">
+          <h3>Quick skill overlap</h3>
+          <p>
+            Skills from your saved CV mentioned in the listing text:{" "}
+            {localSkillMatches.join(", ")}. This is a simple text check; the JEV
+            review above considers the selected career evidence.
+          </p>
+        </section>
+      )}
+      {!!matchedMonitorNames.length && (
+        <section className="detail-description">
+          <h3>Why this appears in Relevant</h3>
+          <p>
+            Matched your monitor{matchedMonitorNames.length > 1 ? "s" : ""}:{" "}
+            {matchedMonitorNames.join(", ")}.
+          </p>
+        </section>
+      )}
+      {!demo && (
+        <section className="detail-description">
+          <h3>Private application note</h3>
+          <label className="settings-field">
+            <span>Track your next step or follow-up</span>
+            <textarea
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              maxLength={2000}
+              rows={3}
+              placeholder="e.g. Applied on the company site; follow up next week"
+            />
+          </label>
+          <button
+            className="btn"
+            disabled={note.trim() === (job.applicationNote || "")}
+            onClick={() => void onNote(job, note).catch(() => {})}
+          >
+            Save note
+          </button>
+          {job.appliedAt && <p>Marked applied: {dateTime(job.appliedAt)}</p>}
+        </section>
+      )}
       <dl className="detail-dates">
         <div>
           <dt>Original source</dt>
@@ -3256,6 +4231,18 @@ function JobDetail({
           <dd>{job.salary || "Not disclosed"}</dd>
         </div>
       </dl>
+      {owner && !demo && (
+        <details className="detail-owner-tools">
+          <summary>Owner diagnostics</summary>
+          <button
+            className="btn small"
+            type="button"
+            onClick={() => void navigator.clipboard.writeText(job.id)}
+          >
+            Copy job ID for AI controls
+          </button>
+        </details>
+      )}
       <p className="muted">
         Confirm availability and country eligibility on the source website
         before applying.
