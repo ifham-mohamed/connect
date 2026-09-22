@@ -2,13 +2,25 @@
 
 ## Configuration
 
-| Variable            | Purpose                                                                                                       |
-| ------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`      | PostgreSQL connection for workspace data, accounts, and sessions. Use a direct or session-pooled endpoint.    |
-| `DATABASE_POOL_MAX` | Optional web pool limit; defaults to 2 to fit conservative hosted PostgreSQL limits.                          |
-| `CRON_SECRET`       | Separate scheduler Bearer secret; at least 24 characters.                                                     |
-| `APP_URL`           | Exact origin, for example `https://jobs.example.com`. Controls same-origin writes and secure session cookies. |
-| `POSTGRES_PASSWORD` | Compose-managed database password; use a strong URL-safe value outside local development.                     |
+| Variable                 | Needed when                       | Purpose                                                                                                       |
+| ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`           | Always                            | PostgreSQL connection for workspace data, accounts, sessions, jobs, and intelligence results.                 |
+| `DATABASE_POOL_MAX`      | Optional                          | Web connection-pool limit; keep low for hosted PostgreSQL.                                                    |
+| `DATABASE_CA_CERT_PATH`  | Hosted database with a CA file    | Path to the provider CA certificate. The current Aiven connection uses this option.                           |
+| `DATABASE_CA_CERT`       | Hosted database with an inline CA | Inline PEM alternative to `DATABASE_CA_CERT_PATH`; normally leave blank when the path is configured.          |
+| `POSTGRES_PASSWORD`      | Compose-managed PostgreSQL only   | Password for the local `db` container; it does not replace credentials inside an external `DATABASE_URL`.     |
+| `APP_URL`                | Always                            | Exact browser origin, for example `https://jobs.example.com`; controls same-origin writes and secure cookies. |
+| `CRON_SECRET`            | `/api/cron` collection is enabled | Separate scheduler Bearer secret; use at least 24 random characters.                                          |
+| `JEV_MODE`               | Optional JEV processing           | `off`, `shadow`, or `assisted`; keep `off` until the live smoke test succeeds.                                |
+| `JEV_PROVIDER`           | JEV processing                    | `vercel` for AI Gateway or `typesafe` for a direct TypeSafe account.                                          |
+| `AI_GATEWAY_API_KEY`     | `JEV_PROVIDER=vercel`             | Server-only Vercel AI Gateway credential.                                                                     |
+| `JEV_MODEL`              | JEV processing                    | Use `typesafe-ai/jev` through Vercel AI Gateway.                                                              |
+| `JEV_BASE_URL`           | Optional endpoint override        | Normally blank; the application supplies Vercel's TypeSafe-compatible endpoint.                               |
+| `TYPESAFE_API_KEY`       | `JEV_PROVIDER=typesafe`           | Direct TypeSafe credential; leave blank when using Vercel.                                                    |
+| `JEV_REQUEST_TIMEOUT_MS` | Optional worker tuning            | Maximum request duration.                                                                                     |
+| `JEV_MAX_RETRIES`        | Optional worker tuning            | SDK retries for transient request failures.                                                                   |
+| `JEV_MAX_ATTEMPTS`       | Optional worker tuning            | Durable queue attempts before dead-lettering.                                                                 |
+| `JEV_BATCH_SIZE`         | Optional worker tuning            | Maximum tasks claimed by one worker cycle.                                                                    |
 
 Keep `.env` out of version control and container build context. Set deployment variables through the host’s secret manager. Only the web service needs the scheduler secret; the worker only needs its database connection.
 

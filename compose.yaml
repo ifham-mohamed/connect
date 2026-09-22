@@ -34,8 +34,6 @@ services:
     environment:
       DATABASE_URL: postgresql://jobradar:${POSTGRES_PASSWORD:-jobradar}@db:5432/jobradar
       APP_URL: ${APP_URL:-http://localhost:3000}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
-      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
       CRON_SECRET: ${CRON_SECRET:?Set CRON_SECRET in .env}
       JEV_MODE: ${JEV_MODE:-off}
     depends_on:
