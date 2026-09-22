@@ -4129,11 +4129,13 @@ function JobDetail({
           Illustrative sample — this is not a verified job opening.
         </div>
       )}
-      {!demo && job.sourceImageUrl && (
+      {!demo &&
+        (job.sourceImageUrl || /topjobs/i.test(job.sourceName)) && (
         <JobImageContext
           key={`${job.id}-${job.extractedAt || "new"}`}
           jobId={job.id}
           imageUrl={job.sourceImageUrl}
+          listingUrl={job.url}
           initialText={job.extractedDescription}
           initialConfidence={job.extractedDescriptionConfidence}
           extractedAt={job.extractedAt}
@@ -4142,7 +4144,7 @@ function JobDetail({
             setReviewRevision((current) => current + 1);
           }}
         />
-      )}
+        )}
       {!demo && (
         <JobCvReview key={`${job.id}-${reviewRevision}`} jobId={job.id} />
       )}

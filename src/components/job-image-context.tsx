@@ -19,6 +19,7 @@ type Phase = "idle" | "reading" | "review" | "saving" | "saved";
 export default function JobImageContext({
   jobId,
   imageUrl,
+  listingUrl,
   initialText = "",
   initialConfidence = null,
   extractedAt = null,
@@ -26,6 +27,7 @@ export default function JobImageContext({
 }: {
   jobId: string;
   imageUrl?: string;
+  listingUrl: string;
   initialText?: string;
   initialConfidence?: number | null;
   extractedAt?: string | null;
@@ -39,8 +41,6 @@ export default function JobImageContext({
   const [phase, setPhase] = useState<Phase>(initialText ? "saved" : "idle");
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
-
-  if (!imageUrl) return null;
 
   async function recognize(file: File | Blob) {
     if (file instanceof File && !validAdvertImage(file)) {
@@ -82,8 +82,14 @@ export default function JobImageContext({
   }
 
   async function analyzeOriginal() {
+    if (!imageUrl) {
+      setMessage(
+        "This listing does not expose a direct advert image. Open the source listing, copy its vacancy image, then paste it here—or save it and choose the file.",
+      );
+      return;
+    }
     try {
-      const response = await fetch(imageUrl!, {
+      const response = await fetch(imageUrl, {
         mode: "cors",
         credentials: "omit",
       });
@@ -184,20 +190,24 @@ export default function JobImageContext({
           <ShieldCheck size={13} /> Private
         </span>
       </div>
-      <div className="image-context-layout">
-        <div className="image-context-preview">
-          {/* The remote image is displayed only; pixel processing starts after a user action. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageUrl}
-            alt="Original TopJobs vacancy advert"
-            loading="lazy"
-            referrerPolicy="no-referrer"
-          />
-          <a href={imageUrl} target="_blank" rel="noopener noreferrer">
-            Open original image <ExternalLink size={13} />
-          </a>
-        </div>
+      <div
+        className={`image-context-layout${imageUrl ? "" : " no-preview"}`}
+      >
+        {imageUrl && (
+          <div className="image-context-preview">
+            {/* The remote image is displayed only; pixel processing starts after a user action. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt="Original TopJobs vacancy advert"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+            <a href={imageUrl} target="_blank" rel="noopener noreferrer">
+              Open original image <ExternalLink size={13} />
+            </a>
+          </div>
+        )}
         <div className="image-context-workspace">
           {phase === "reading" ? (
             <div className="image-context-progress" aria-live="polite">
@@ -279,16 +289,28 @@ export default function JobImageContext({
               <FileImage size={28} />
               <strong>Read the job advert</strong>
               <p>
-                Try the original first. If TopJobs blocks pixel access, copy the
-                image and paste it here, drop it here, or choose the saved file.
+                {imageUrl
+                  ? "Try the original first. If TopJobs blocks pixel access, copy the image and paste it here, drop it here, or choose the saved file."
+                  : "Open the source listing, copy its vacancy image, then paste it here, drop it here, or choose the saved file."}
               </p>
               <div className="image-context-actions">
-                <button
-                  className="btn primary"
-                  onClick={() => void analyzeOriginal()}
-                >
-                  <ScanText size={15} /> Analyze original
-                </button>
+                {imageUrl ? (
+                  <button
+                    className="btn primary"
+                    onClick={() => void analyzeOriginal()}
+                  >
+                    <ScanText size={15} /> Analyze original
+                  </button>
+                ) : (
+                  <a
+                    className="btn primary"
+                    href={listingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink size={15} /> Open source advert
+                  </a>
+                )}
                 <button className="btn" onClick={() => void pasteImage()}>
                   <Clipboard size={15} /> Paste image
                 </button>

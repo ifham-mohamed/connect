@@ -2682,6 +2682,7 @@ html[data-theme="dark"] .auth-theme .theme-moon { display: none; }
 .image-context-heading p { margin: 0; color: hsl(var(--muted-foreground)); font-size: 12px; line-height: 1.55; }
 .image-context-private { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 999px; background: hsl(var(--success) / .12); color: hsl(var(--success)); font-size: 10px; font-weight: 750; white-space: nowrap; }
 .image-context-layout { display: grid; grid-template-columns: minmax(190px,.7fr) minmax(0,1.3fr); gap: 14px; min-width: 0; }
+.image-context-layout.no-preview { grid-template-columns: 1fr; }
 .image-context-preview { display: grid; align-content: start; gap: 8px; min-width: 0; }
 .image-context-preview img { width: 100%; max-height: 360px; object-fit: contain; border: 1px solid hsl(var(--border)); border-radius: 12px; background: white; }
 .image-context-preview a { display: inline-flex; align-items: center; gap: 5px; justify-self: start; color: hsl(var(--primary)); font-size: 11px; font-weight: 700; }
