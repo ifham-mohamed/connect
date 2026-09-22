@@ -12,7 +12,7 @@ export type IncomingJob = Omit<
   | "active"
   | "matchedMonitors"
   | "reviewed"
->;
+> & { detailFetchFailed?: boolean };
 type IncomingJobBase = Pick<
   IncomingJob,
   "sourceId" | "salary" | "employmentType" | "tags" | "publishedAt"
@@ -97,10 +97,12 @@ const htmlSourceKinds = [
 ];
 function metaDescription(payload: string) {
   return (
-    payload.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)/i)
-      ?.[1] ||
-    payload.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']*)/i)
-      ?.[1] ||
+    payload.match(
+      /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)/i,
+    )?.[1] ||
+    payload.match(
+      /<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']*)/i,
+    )?.[1] ||
     ""
   );
 }
@@ -126,6 +128,100 @@ function normalizeSearchableHtml(
       url: sourceUrl(source),
     },
   ];
+}
+export function parseItproJobDetail(payload: string): {
+  description: string;
+  employmentType: string;
+} | null {
+  const article = payload.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)?.[1];
+  if (!article) return null;
+  const descriptionHtml = article.match(
+    /<section\b(?=[^>]*\bid=["']job-description["'])[^>]*>([\s\S]*?)<\/section>/i,
+  )?.[1];
+  if (!descriptionHtml) return null;
+  const description = plainText(descriptionHtml)
+    .replace(/[\t ]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  if (!description) return null;
+  const subrow = article.match(
+    /<div\b(?=[^>]*\bid=["']job-details-subrow["'])[^>]*>([\s\S]*?)<\/div>/i,
+  )?.[1];
+  const employmentType =
+    subrow
+      ?.match(
+        /<span\b[^>]*style=["'][^"']*white-space:\s*nowrap[^"']*["'][^>]*>\s*([^<]+)<\/span>/gi,
+      )
+      ?.map((span) => plainText(span))
+      .find((text) =>
+        /^(full.time|part.time|internship|contract|freelance|temporary)$/i.test(
+          text,
+        ),
+      ) || "";
+  return { description, employmentType };
+}
+
+function trustedItproJobUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" &&
+      url.hostname === "itpro.lk" &&
+      /^\/job\/\d+\//.test(url.pathname)
+      ? url.href
+      : "";
+  } catch {
+    return "";
+  }
+}
+
+export async function fetchItproJobDetail(value: string) {
+  const url = trustedItproJobUrl(value);
+  if (!url) throw new Error("Invalid ITPro job URL");
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(8000),
+    redirect: "error",
+    headers: {
+      "User-Agent": "Jobradar/1.0 (job monitoring; public listings)",
+      Accept: "text/html",
+    },
+    cache: "no-store",
+  });
+  if (
+    !response.ok ||
+    !response.headers.get("content-type")?.includes("text/html")
+  )
+    throw new Error("ITPro detail unavailable");
+  const contentLength = Number(response.headers.get("content-length") || 0);
+  if (contentLength > 1_000_000) throw new Error("ITPro detail too large");
+  const html = await response.text();
+  if (html.length > 1_000_000) throw new Error("ITPro detail too large");
+  const detail = parseItproJobDetail(html);
+  if (!detail) throw new Error("ITPro description unavailable");
+  return detail;
+}
+
+async function enrichItproJobs(jobs: IncomingJob[]): Promise<IncomingJob[]> {
+  let cursor = 0;
+  const enriched = [...jobs];
+  await Promise.all(
+    Array.from({ length: Math.min(4, jobs.length) }, async () => {
+      while (cursor < jobs.length) {
+        const index = cursor++;
+        const job = jobs[index];
+        try {
+          const detail = await fetchItproJobDetail(job.url);
+          enriched[index] = {
+            ...job,
+            description: detail.description.slice(0, 60000),
+            employmentType: detail.employmentType || job.employmentType,
+          };
+        } catch {
+          enriched[index] = { ...job, detailFetchFailed: true };
+        }
+      }
+    }),
+  );
+  return enriched;
 }
 export function sourceUrl(source: Pick<Source, "kind" | "board">) {
   if (!/^[a-zA-Z0-9_-]{0,100}$/.test(source.board))
@@ -259,7 +355,8 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
       break;
     }
     case "xpressjobs": {
-      if (typeof payload !== "string") throw new Error("Invalid XpressJobs page");
+      if (typeof payload !== "string")
+        throw new Error("Invalid XpressJobs page");
       jobs = normalizeSearchableHtml(source, payload, base, "XpressJobs");
       break;
     }
@@ -273,21 +370,20 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
         const block = match[2];
         const title =
           plainText(
-            block.match(/<h6 class="title[^"]*">([\s\S]*?)<\/h6>/i)?.[1] ||
-              "",
+            block.match(/<h6 class="title[^"]*">([\s\S]*?)<\/h6>/i)?.[1] || "",
           ) || "Untitled role";
         const company = plainText(
-          block.match(/<strong class="text-primary">\s*([\s\S]*?)\s*<\/strong>/i)
-            ?.[1] || "",
+          block.match(
+            /<strong class="text-primary">\s*([\s\S]*?)\s*<\/strong>/i,
+          )?.[1] || "",
         );
         const location =
           plainText(
-            block.match(/fa-map-marker[\s\S]*?<\/i>\s*([\s\S]*?)<\/p>/i)
-              ?.[1] || "",
+            block.match(/fa-map-marker[\s\S]*?<\/i>\s*([\s\S]*?)<\/p>/i)?.[1] ||
+              "",
           ) || "Location not specified";
         const type = plainText(
-          block.match(/fa-clock-o[\s\S]*?<\/i>\s*([\s\S]*?)<\/p>/i)?.[1] ||
-            "",
+          block.match(/fa-clock-o[\s\S]*?<\/i>\s*([\s\S]*?)<\/p>/i)?.[1] || "",
         );
         const url = absolutize(match[1], "https://jobeka.lk");
         return {
@@ -321,75 +417,67 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
       break;
     }
     case "remotive":
-      jobs = remotive
-        .parse(payload)
-        .jobs.map((j) => ({
-          ...base,
-          externalId: j.id,
-          title: j.title,
-          company: j.company_name,
-          location: j.candidate_required_location || "Location not specified",
-          remote: true,
-          employmentType: j.job_type.replaceAll("_", "-"),
-          salary: j.salary,
-          tags: j.tags,
-          description: plainText(j.description),
-          url: j.url,
-          publishedAt: date(
-            j.publication_date &&
-              !/[zZ]|[+-]\d{2}:\d{2}$/.test(j.publication_date)
-              ? `${j.publication_date}Z`
-              : j.publication_date,
-          ),
-        }));
+      jobs = remotive.parse(payload).jobs.map((j) => ({
+        ...base,
+        externalId: j.id,
+        title: j.title,
+        company: j.company_name,
+        location: j.candidate_required_location || "Location not specified",
+        remote: true,
+        employmentType: j.job_type.replaceAll("_", "-"),
+        salary: j.salary,
+        tags: j.tags,
+        description: plainText(j.description),
+        url: j.url,
+        publishedAt: date(
+          j.publication_date &&
+            !/[zZ]|[+-]\d{2}:\d{2}$/.test(j.publication_date)
+            ? `${j.publication_date}Z`
+            : j.publication_date,
+        ),
+      }));
       break;
     case "arbeitnow":
-      jobs = arbeitnow
-        .parse(payload)
-        .data.map((j) => ({
-          ...base,
-          externalId: j.slug,
-          title: j.title,
-          company: j.company_name,
-          location: j.location,
-          remote: j.remote,
-          employmentType: j.job_types.join(", "),
-          tags: j.tags,
-          description: plainText(j.description),
-          url: j.url,
-          publishedAt: date(j.created_at * 1000),
-        }));
+      jobs = arbeitnow.parse(payload).data.map((j) => ({
+        ...base,
+        externalId: j.slug,
+        title: j.title,
+        company: j.company_name,
+        location: j.location,
+        remote: j.remote,
+        employmentType: j.job_types.join(", "),
+        tags: j.tags,
+        description: plainText(j.description),
+        url: j.url,
+        publishedAt: date(j.created_at * 1000),
+      }));
       break;
     case "greenhouse":
-      jobs = greenhouse
-        .parse(payload)
-        .jobs.map((j) => ({
-          ...base,
-          externalId: j.id,
-          title: j.title,
-          company: source.name,
-          location: j.location.name,
-          remote: /remote/i.test(j.location.name),
-          tags: j.departments.map((d) => d.name),
-          description: plainText(plainText(j.content)),
-          url: j.absolute_url,
-        }));
+      jobs = greenhouse.parse(payload).jobs.map((j) => ({
+        ...base,
+        externalId: j.id,
+        title: j.title,
+        company: source.name,
+        location: j.location.name,
+        remote: /remote/i.test(j.location.name),
+        tags: j.departments.map((d) => d.name),
+        description: plainText(plainText(j.content)),
+        url: j.absolute_url,
+      }));
       break;
     case "lever":
-      jobs = lever
-        .parse(payload)
-        .map((j) => ({
-          ...base,
-          externalId: j.id,
-          title: j.text,
-          company: source.name,
-          location: j.categories.location,
-          remote: j.workplaceType === "remote",
-          employmentType: j.categories.commitment,
-          tags: [j.categories.team].filter(Boolean),
-          description: `${j.descriptionPlain}\n\n${j.lists.map((l) => `${l.text}\n${plainText(l.content)}`).join("\n\n")}`,
-          url: j.hostedUrl,
-        }));
+      jobs = lever.parse(payload).map((j) => ({
+        ...base,
+        externalId: j.id,
+        title: j.text,
+        company: source.name,
+        location: j.categories.location,
+        remote: j.workplaceType === "remote",
+        employmentType: j.categories.commitment,
+        tags: [j.categories.team].filter(Boolean),
+        description: `${j.descriptionPlain}\n\n${j.lists.map((l) => `${l.text}\n${plainText(l.content)}`).join("\n\n")}`,
+        url: j.hostedUrl,
+      }));
       break;
   }
   return jobs
@@ -411,10 +499,9 @@ export async function collect(source: Source): Promise<IncomingJob[]> {
     redirect: "error",
     headers: {
       "User-Agent": "Jobradar/1.0 (job monitoring; public feeds)",
-      Accept:
-        htmlSourceKinds.includes(source.kind)
-          ? "text/html,application/rss+xml"
-          : "application/json",
+      Accept: htmlSourceKinds.includes(source.kind)
+        ? "text/html,application/rss+xml"
+        : "application/json",
     },
     cache: "no-store",
   });
@@ -434,10 +521,11 @@ export async function collect(source: Source): Promise<IncomingJob[]> {
     chunks.push(value);
   }
   const body = Buffer.concat(chunks).toString("utf8");
-  return normalize(
+  const jobs = normalize(
     source,
-    htmlSourceKinds.includes(source.kind)
-      ? body
-      : JSON.parse(body),
+    htmlSourceKinds.includes(source.kind) ? body : JSON.parse(body),
   );
+  return source.kind === "itpro" && source.board === "software-engineering"
+    ? enrichItproJobs(jobs)
+    : jobs;
 }

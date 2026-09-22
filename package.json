@@ -12,6 +12,7 @@
     "db:migrate": "tsx --env-file-if-exists=.env scripts/migrate.ts",
     "worker": "tsx --env-file-if-exists=.env scripts/worker.ts",
     "sync": "tsx --env-file-if-exists=.env scripts/worker.ts --once",
+    "itpro:refresh": "tsx --env-file-if-exists=.env scripts/refresh-itpro.ts",
     "jev:verify": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts",
     "jev:smoke": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts --live --limit=1",
     "jev:evaluate": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts --live",

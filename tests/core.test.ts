@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   containsKeyword,
   matchesExperience,
@@ -8,14 +8,24 @@ import {
   plainText,
   safeUrl,
 } from "../src/lib/matching";
-import { normalize, sourceUrl } from "../src/lib/connectors";
+import {
+  collect,
+  normalize,
+  parseItproJobDetail,
+  sourceUrl,
+} from "../src/lib/connectors";
 import {
   linkedInJobPostsSearchUrl,
   linkedInJobsSearchUrl,
   linkedInNetworkJobsSearchUrl,
   linkedInSearchTerms,
 } from "../src/lib/linkedin";
-import { monitorSchema, onboardingSchema, ownerOnboardingSchema, sourceSchema } from "../src/lib/validation";
+import {
+  monitorSchema,
+  onboardingSchema,
+  ownerOnboardingSchema,
+  sourceSchema,
+} from "../src/lib/validation";
 import type { Monitor, Source } from "../src/lib/types";
 const monitor: Monitor = {
   id: "m",
@@ -42,10 +52,16 @@ const source: Source = {
 describe("keyword matching", () => {
   it("keeps internship and entry roles in distinct career stages", () => {
     expect(matchesExperience("Senior Software Engineer", "entry")).toBe(false);
-    expect(matchesExperience("Software Engineer Internship", "internship")).toBe(true);
-    expect(matchesExperience("Software Engineer Internship", "entry")).toBe(false);
+    expect(
+      matchesExperience("Software Engineer Internship", "internship"),
+    ).toBe(true);
+    expect(matchesExperience("Software Engineer Internship", "entry")).toBe(
+      false,
+    );
     expect(matchesExperience("Graduate Software Engineer", "entry")).toBe(true);
-    expect(matchesExperience("Junior Software Engineer", "internship")).toBe(false);
+    expect(matchesExperience("Junior Software Engineer", "internship")).toBe(
+      false,
+    );
     expect(
       matchesMonitor(
         { ...job, title: "Senior React engineer" },
@@ -58,9 +74,7 @@ describe("keyword matching", () => {
     expect(matchesExperience("Intermediate Software Engineer", "mid")).toBe(
       true,
     );
-    expect(matchesExperience("Graduate Software Engineer", "mid")).toBe(
-      false,
-    );
+    expect(matchesExperience("Graduate Software Engineer", "mid")).toBe(false);
     expect(matchesExperience("Lead Software Engineer", "senior")).toBe(true);
     expect(matchesExperience("Level II Software Engineer", "senior")).toBe(
       false,
@@ -77,9 +91,24 @@ describe("keyword matching", () => {
   it("matches each monitor against its accepted work arrangements", () => {
     expect(matchesWorkModes({ ...job, remote: true }, ["remote"])).toBe(true);
     expect(matchesWorkModes({ ...job, remote: true }, ["onsite"])).toBe(false);
-    expect(matchesWorkModes({ ...job, remote: false, location: "Colombo", tags: ["Hybrid"] }, ["hybrid"])).toBe(true);
-    expect(matchesWorkModes({ ...job, remote: false, location: "Colombo", tags: [] }, ["onsite"])).toBe(true);
-    expect(matchesWorkModes({ ...job, remote: false, location: "Worldwide", tags: [] }, ["remote"])).toBe(true);
+    expect(
+      matchesWorkModes(
+        { ...job, remote: false, location: "Colombo", tags: ["Hybrid"] },
+        ["hybrid"],
+      ),
+    ).toBe(true);
+    expect(
+      matchesWorkModes(
+        { ...job, remote: false, location: "Colombo", tags: [] },
+        ["onsite"],
+      ),
+    ).toBe(true);
+    expect(
+      matchesWorkModes(
+        { ...job, remote: false, location: "Worldwide", tags: [] },
+        ["remote"],
+      ),
+    ).toBe(true);
   });
   it("recognizes known Sri Lankan cities without changing source location text", () => {
     expect(matchesLocation("Colombo", "Sri Lanka")).toBe(true);
@@ -124,7 +153,9 @@ describe("LinkedIn job discovery", () => {
 
     expect(url.origin).toBe("https://www.linkedin.com");
     expect(url.pathname).toBe("/jobs/search/");
-    expect(url.searchParams.get("keywords")).toBe("Engineering OR React OR C++");
+    expect(url.searchParams.get("keywords")).toBe(
+      "Engineering OR React OR C++",
+    );
     expect(url.searchParams.get("location")).toBe("Sri Lanka");
     expect(url.searchParams.get("f_TPR")).toBe("r604800");
     expect(url.searchParams.get("f_WT")).toBe("2");
@@ -168,7 +199,11 @@ describe("LinkedIn job discovery", () => {
     expect(url.searchParams.get("distance")).toBe("50");
     expect(url.searchParams.get("f_AL")).toBe("true");
     expect(url.searchParams.get("f_EA")).toBe("true");
-    const hybrid = new URL(linkedInJobsSearchUrl({ monitor: { ...monitor, remoteOnly: false, workModes: ["hybrid"] } }));
+    const hybrid = new URL(
+      linkedInJobsSearchUrl({
+        monitor: { ...monitor, remoteOnly: false, workModes: ["hybrid"] },
+      }),
+    );
     expect(hybrid.searchParams.get("f_WT")).toBe("3");
   });
   it("builds supported network-job and job-post discovery searches", () => {
@@ -189,7 +224,9 @@ describe("LinkedIn job discovery", () => {
     );
     expect(postsUrl.pathname).toBe("/search/results/content/");
     expect(postsUrl.searchParams.get("keywords")).toContain("Engineering");
-    expect(postsUrl.searchParams.get("keywords")).toContain("hiring OR vacancy");
+    expect(postsUrl.searchParams.get("keywords")).toContain(
+      "hiring OR vacancy",
+    );
     expect(postsUrl.searchParams.get("keywords")).toContain("Qatar OR Doha");
     expect(postsUrl.searchParams.get("network")).toBe('["F"]');
     expect(postsUrl.searchParams.get("sortBy")).toBe("date_posted");
@@ -204,7 +241,9 @@ describe("LinkedIn job discovery", () => {
 
     expect(sriLanka.pathname).toBe("/search/results/content/");
     expect(sriLanka.searchParams.get("keywords")).toContain("Western Province");
-    expect(global.searchParams.get("keywords")).toContain("remote OR worldwide");
+    expect(global.searchParams.get("keywords")).toContain(
+      "remote OR worldwide",
+    );
     expect(global.searchParams.has("network")).toBe(false);
   });
   it("keeps a geographic monitor label out of the position query", () => {
@@ -224,6 +263,54 @@ describe("LinkedIn job discovery", () => {
   });
 });
 describe("source normalization and trust boundaries", () => {
+  it("extracts the ITPro article description without navigation or footer content", () => {
+    const detail = parseItproJobDetail(
+      `<article><header><h1 class="job-header">Junior Software Engineer</h1><div id="job-details-subrow"><span class="la">Colombo • <span style="white-space: nowrap;">Full-time</span></span></div></header><section id="job-description"><p>We’re hiring a Junior Software Engineer.</p><p><strong>Key Skills:</strong> .NET &amp; MS SQL<br><strong>Experience:</strong> Minimum 1 year</p><p>Send your CV to hr@example.com.</p></section><footer>Viewed 679 times</footer></article>`,
+    );
+    expect(detail).toEqual({
+      description:
+        "We’re hiring a Junior Software Engineer.\n\nKey Skills: .NET & MS SQL\nExperience: Minimum 1 year\n\nSend your CV to hr@example.com.",
+      employmentType: "Full-time",
+    });
+    expect(detail?.description).not.toContain("Viewed 679 times");
+  });
+  it("fetches full descriptions for ITPro board listings", async () => {
+    const board = `<article class="job-card" id="15145"><a href="https://itpro.lk/job/15145/junior-software-engineer/"><h2 class="jc-title">Junior Software Engineer</h2><span class="jc-company">eHealthcare Solutions</span><span class="la">Colombo</span><time datetime="2026-09-18T08:28:00+05:30"></time></a></article>`;
+    const detail = `<article><header><div id="job-details-subrow"><span class="la">Colombo • <span style="white-space: nowrap;">Full-time</span></span></div></header><section id="job-description"><p>Key Skills: .NET &amp; MS SQL</p><p>Experience: Minimum 1 year</p></section></article>`;
+    const fetchMock = vi.fn(
+      async (url: string | URL | Request) =>
+        new Response(String(url).includes("/job/15145/") ? detail : board, {
+          headers: { "content-type": "text/html; charset=utf-8" },
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const [job] = await collect({ ...source, board: "software-engineering" });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(job.description).toContain("Key Skills: .NET & MS SQL");
+      expect(job.description).toContain("Experience: Minimum 1 year");
+      expect(job.employmentType).toBe("Full-time");
+      expect(job.detailFetchFailed).toBeUndefined();
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (url: string | URL | Request) => {
+          if (String(url).includes("/job/15145/"))
+            throw new Error("Temporary failure");
+          return new Response(board, {
+            headers: { "content-type": "text/html" },
+          });
+        }),
+      );
+      const [fallback] = await collect({
+        ...source,
+        board: "software-engineering",
+      });
+      expect(fallback.detailFetchFailed).toBe(true);
+      expect(fallback.description).toContain("Junior Software Engineer");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
   it("keeps feed publication timezone and source URL with Sri Lankan location", () => {
     const feed = `<rss><channel><item><title>Software Engineer</title><guid>42</guid><link>https://itpro.lk/job/42/</link><pubDate>Sun, 20 Sep 2026 14:21:54 +0530</pubDate><content:encoded><![CDATA[<strong>Company:</strong> Acme<br><strong>Location:</strong> Colombo<br><strong>Job Type:</strong> Full-time<br><p>Build software.</p>]]></content:encoded></item></channel></rss>`;
     const [job] = normalize(source, feed);
@@ -324,23 +411,55 @@ describe("source normalization and trust boundaries", () => {
         ],
       }).success,
     ).toBe(true);
-    const manyLocations = Array.from({ length: 30 }, (_, index) => `Country ${index}`);
+    const manyLocations = Array.from(
+      { length: 30 },
+      (_, index) => `Country ${index}`,
+    );
     const ownerPayload = {
       experience: "entry" as const,
       roles: ["Software Engineer"],
       locations: manyLocations,
       workModes: ["hybrid" as const],
-      monitors: [{ name: "Global software", keywords: ["software engineer"], excludedKeywords: ["senior"], location: "", remoteOnly: false, enabled: true }],
+      monitors: [
+        {
+          name: "Global software",
+          keywords: ["software engineer"],
+          excludedKeywords: ["senior"],
+          location: "",
+          remoteOnly: false,
+          enabled: true,
+        },
+      ],
     };
     expect(onboardingSchema.safeParse(ownerPayload).success).toBe(false);
     expect(ownerOnboardingSchema.safeParse(ownerPayload).success).toBe(true);
-    expect(ownerOnboardingSchema.safeParse({ ...ownerPayload, locations: ["Worldwide"], locationWorkModes: [{ location: "Worldwide", workModes: ["onsite"] }] }).success).toBe(false);
-    expect(onboardingSchema.safeParse({
-      experience: "entry",
-      roles: ["Software Engineer"],
-      locations: ["Sri Lanka"],
-      workModes: ["hybrid"],
-      monitors: [{ name: "Entry software", keywords: ["software engineer"], excludedKeywords: Array.from({ length: 30 }, (_, index) => `excluded ${index}`), location: "Sri Lanka", remoteOnly: false, enabled: true }],
-    }).success).toBe(true);
+    expect(
+      ownerOnboardingSchema.safeParse({
+        ...ownerPayload,
+        locations: ["Worldwide"],
+        locationWorkModes: [{ location: "Worldwide", workModes: ["onsite"] }],
+      }).success,
+    ).toBe(false);
+    expect(
+      onboardingSchema.safeParse({
+        experience: "entry",
+        roles: ["Software Engineer"],
+        locations: ["Sri Lanka"],
+        workModes: ["hybrid"],
+        monitors: [
+          {
+            name: "Entry software",
+            keywords: ["software engineer"],
+            excludedKeywords: Array.from(
+              { length: 30 },
+              (_, index) => `excluded ${index}`,
+            ),
+            location: "Sri Lanka",
+            remoteOnly: false,
+            enabled: true,
+          },
+        ],
+      }).success,
+    ).toBe(true);
   });
 });

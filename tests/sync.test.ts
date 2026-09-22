@@ -2,10 +2,11 @@ import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { readFile } from "node:fs/promises";
 import type { Source } from "../src/lib/types";
+import type { IncomingJob } from "../src/lib/connectors";
 const database = new PGlite();
 const enabledSeedSources = 9;
 let locked = false;
-const collectMock = vi.fn(async (source: Source) => [
+const collectMock = vi.fn(async (source: Source): Promise<IncomingJob[]> => [
   {
     sourceId: source.id,
     externalId: "same-id",
@@ -52,23 +53,56 @@ beforeAll(async () => {
     "INSERT INTO users(name,email,password_hash,role) VALUES('Test Owner','owner@example.com','hash','owner')",
   );
   await database.exec(
-    await readFile(new URL("../db/008_personal_onboarding.sql", import.meta.url), "utf8"),
-  );
-  await database.exec(
-    await readFile(new URL("../db/010_run_job_results.sql", import.meta.url), "utf8"),
-  );
-  await database.exec(
-    await readFile(new URL("../db/013_experience_matching.sql", import.meta.url), "utf8"),
-  );
-  await database.exec(
     await readFile(
-      new URL("../db/014_career_stages_and_remove_devjobs.sql", import.meta.url),
+      new URL("../db/008_personal_onboarding.sql", import.meta.url),
       "utf8",
     ),
   );
-  await database.exec(await readFile(new URL("../db/015_distinct_early_career_and_location_coverage.sql", import.meta.url), "utf8"));
-  await database.exec(await readFile(new URL("../db/016_location_work_modes_and_numbered_levels.sql", import.meta.url), "utf8"));
-  await database.exec(await readFile(new URL("../db/017_worldwide_remote_matching.sql", import.meta.url), "utf8"));
+  await database.exec(
+    await readFile(
+      new URL("../db/010_run_job_results.sql", import.meta.url),
+      "utf8",
+    ),
+  );
+  await database.exec(
+    await readFile(
+      new URL("../db/013_experience_matching.sql", import.meta.url),
+      "utf8",
+    ),
+  );
+  await database.exec(
+    await readFile(
+      new URL(
+        "../db/014_career_stages_and_remove_devjobs.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  await database.exec(
+    await readFile(
+      new URL(
+        "../db/015_distinct_early_career_and_location_coverage.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  await database.exec(
+    await readFile(
+      new URL(
+        "../db/016_location_work_modes_and_numbered_levels.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  await database.exec(
+    await readFile(
+      new URL("../db/017_worldwide_remote_matching.sql", import.meta.url),
+      "utf8",
+    ),
+  );
   await database.query("UPDATE sources SET enabled=false WHERE kind='lever'");
 });
 afterAll(async () => {
@@ -90,7 +124,10 @@ describe("collector transactions and scheduling", () => {
     const runJobs = await database.query<{ count: number; newCount: number }>(
       `SELECT count(*)::int AS count,count(*) FILTER (WHERE is_new)::int AS "newCount" FROM sync_run_jobs`,
     );
-    expect(runJobs.rows[0]).toEqual({ count: enabledSeedSources, newCount: enabledSeedSources });
+    expect(runJobs.rows[0]).toEqual({
+      count: enabledSeedSources,
+      newCount: enabledSeedSources,
+    });
     const second = await syncSources();
     expect(second.results).toHaveLength(0);
     expect(collectMock).toHaveBeenCalledTimes(enabledSeedSources);
@@ -156,5 +193,46 @@ describe("collector transactions and scheduling", () => {
       "SELECT status FROM sync_runs WHERE error LIKE 'Collector interrupted%'",
     );
     expect(orphan.rows[0].status).toBe("failed");
+  });
+  it("keeps a saved ITPro description when its detail page temporarily fails", async () => {
+    await database.query(
+      `UPDATE jobs SET description='Key Skills: .NET and MS SQL. Experience: Minimum 1 year.'
+       WHERE source_id IN (SELECT id FROM sources WHERE kind='itpro')`,
+    );
+    collectMock.mockImplementation(
+      async (source) =>
+        [
+          {
+            sourceId: source.id,
+            externalId: "same-id",
+            title: "Updated Software Engineer",
+            company: "Acme",
+            location: "Colombo",
+            remote: false,
+            employmentType: "",
+            salary: "",
+            tags: ["Software Engineering"],
+            description: "Updated Software Engineer\nAcme\nColombo",
+            detailFetchFailed: true,
+            url: "https://itpro.lk/job/1/",
+            publishedAt: null,
+          },
+        ],
+    );
+    const refreshed = await syncSources({
+      kind: "itpro",
+      board: "",
+      force: true,
+    });
+    expect(refreshed.results).toHaveLength(1);
+    const result = await database.query<{
+      description: string;
+      employmentType: string;
+    }>(
+      `SELECT description,employment_type AS "employmentType" FROM jobs
+       WHERE source_id IN (SELECT id FROM sources WHERE kind='itpro')`,
+    );
+    expect(result.rows[0].description).toContain("Key Skills: .NET and MS SQL");
+    expect(result.rows[0].employmentType).toBe("Full-time");
   });
 });

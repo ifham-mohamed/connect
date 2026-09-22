@@ -132,7 +132,9 @@ export async function syncSources(options?: {
             `INSERT INTO jobs(source_id,external_id,title,company,location,remote,employment_type,salary,tags,description,url,published_at)
             VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
             ON CONFLICT(source_id,external_id) DO UPDATE SET title=excluded.title,company=excluded.company,location=excluded.location,remote=excluded.remote,
-            employment_type=excluded.employment_type,salary=excluded.salary,tags=excluded.tags,description=excluded.description,url=excluded.url,
+            employment_type=CASE WHEN $13::boolean THEN jobs.employment_type ELSE excluded.employment_type END,
+            salary=excluded.salary,tags=excluded.tags,
+            description=CASE WHEN $13::boolean THEN jobs.description ELSE excluded.description END,url=excluded.url,
             published_at=COALESCE(excluded.published_at,jobs.published_at),last_seen_at=now(),active=true
             RETURNING id`,
             [
@@ -148,6 +150,7 @@ export async function syncSources(options?: {
               j.description,
               j.url,
               j.publishedAt,
+              Boolean(j.detailFetchFailed),
             ],
           );
           storedJobIds.push(stored.rows[0].id);
