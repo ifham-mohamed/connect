@@ -34,6 +34,10 @@ export interface Job {
   salary: string;
   tags: string[];
   description: string;
+  sourceImageUrl?: string;
+  extractedDescription?: string;
+  extractedDescriptionConfidence?: number | null;
+  extractedAt?: string | null;
   url: string;
   publishedAt: string | null;
   firstSeenAt: string;

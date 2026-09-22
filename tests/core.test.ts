@@ -12,6 +12,7 @@ import {
   collect,
   normalize,
   parseItproJobDetail,
+  parseTopJobsAdvertImageUrl,
   sourceUrl,
 } from "../src/lib/connectors";
 import {
@@ -263,6 +264,19 @@ describe("LinkedIn job discovery", () => {
   });
 });
 describe("source normalization and trust boundaries", () => {
+  it("selects the TopJobs advert image without accepting logos or foreign hosts", () => {
+    const page = "https://www.topjobs.lk/employer/JobAdvertismentServlet?jc=1";
+    const html = `<img src="/logo/0000000531_small.jpg"><img alt="" src="/logo/0000000403/3001cFull stack developer.png" style="height:1536px"><img src="https://evil.example/advert.png">`;
+    expect(parseTopJobsAdvertImageUrl(html, page)).toBe(
+      "https://www.topjobs.lk/logo/0000000403/3001cFull%20stack%20developer.png",
+    );
+    expect(
+      parseTopJobsAdvertImageUrl(
+        '<img src="https://evil.example/job.png">',
+        page,
+      ),
+    ).toBe("");
+  });
   it("extracts the ITPro article description without navigation or footer content", () => {
     const detail = parseItproJobDetail(
       `<article><header><h1 class="job-header">Junior Software Engineer</h1><div id="job-details-subrow"><span class="la">Colombo • <span style="white-space: nowrap;">Full-time</span></span></div></header><section id="job-description"><p>We’re hiring a Junior Software Engineer.</p><p><strong>Key Skills:</strong> .NET &amp; MS SQL<br><strong>Experience:</strong> Minimum 1 year</p><p>Send your CV to hr@example.com.</p></section><footer>Viewed 679 times</footer></article>`,

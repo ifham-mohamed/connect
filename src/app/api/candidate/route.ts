@@ -51,6 +51,9 @@ export async function GET(request: Request) {
       const states = await client.query(
         `SELECT j.title,j.company,j.url,s.status,s.reviewed_at AS "reviewedAt",
                 s.applied_at AS "appliedAt",s.application_note AS "applicationNote",s.updated_at AS "updatedAt"
+                ,s.extracted_description AS "extractedDescription",
+                s.extracted_description_confidence AS "extractedDescriptionConfidence",
+                s.extracted_at AS "extractedAt"
          FROM job_user_states s JOIN jobs j ON j.id=s.job_id WHERE s.user_id=$1 ORDER BY s.updated_at DESC`,
         [user.id],
       );

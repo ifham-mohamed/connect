@@ -129,12 +129,13 @@ export async function syncSources(options?: {
         let added = 0;
         for (const j of jobs) {
           const stored = await client.query<{ id: string }>(
-            `INSERT INTO jobs(source_id,external_id,title,company,location,remote,employment_type,salary,tags,description,url,published_at)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+            `INSERT INTO jobs(source_id,external_id,title,company,location,remote,employment_type,salary,tags,description,url,published_at,source_image_url)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
             ON CONFLICT(source_id,external_id) DO UPDATE SET title=excluded.title,company=excluded.company,location=excluded.location,remote=excluded.remote,
-            employment_type=CASE WHEN $13::boolean THEN jobs.employment_type ELSE excluded.employment_type END,
+            employment_type=CASE WHEN $14::boolean THEN jobs.employment_type ELSE excluded.employment_type END,
             salary=excluded.salary,tags=excluded.tags,
-            description=CASE WHEN $13::boolean THEN jobs.description ELSE excluded.description END,url=excluded.url,
+            description=CASE WHEN $14::boolean THEN jobs.description ELSE excluded.description END,url=excluded.url,
+            source_image_url=CASE WHEN $14::boolean THEN jobs.source_image_url ELSE excluded.source_image_url END,
             published_at=COALESCE(excluded.published_at,jobs.published_at),last_seen_at=now(),active=true
             RETURNING id`,
             [
@@ -150,6 +151,7 @@ export async function syncSources(options?: {
               j.description,
               j.url,
               j.publishedAt,
+              j.sourceImageUrl || "",
               Boolean(j.detailFetchFailed),
             ],
           );

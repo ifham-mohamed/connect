@@ -161,6 +161,29 @@ export function parseItproJobDetail(payload: string): {
   return { description, employmentType };
 }
 
+export function parseTopJobsAdvertImageUrl(payload: string, pageUrl: string) {
+  const candidates = Array.from(
+    payload.matchAll(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi),
+  );
+  for (const match of candidates) {
+    const value = match[1].replace(/&amp;/g, "&");
+    if (!/\.(?:png|jpe?g|webp)(?:\?|$)/i.test(value) || /_small\./i.test(value))
+      continue;
+    try {
+      const url = new URL(value, pageUrl);
+      if (
+        url.protocol === "https:" &&
+        /^(?:www\.)?topjobs\.lk$/i.test(url.hostname) &&
+        url.pathname.startsWith("/logo/")
+      )
+        return url.href;
+    } catch {
+      // Ignore malformed image candidates from an external listing.
+    }
+  }
+  return "";
+}
+
 function trustedItproJobUrl(value: string) {
   try {
     const url = new URL(value);
@@ -214,6 +237,57 @@ async function enrichItproJobs(jobs: IncomingJob[]): Promise<IncomingJob[]> {
             ...job,
             description: detail.description.slice(0, 60000),
             employmentType: detail.employmentType || job.employmentType,
+          };
+        } catch {
+          enriched[index] = { ...job, detailFetchFailed: true };
+        }
+      }
+    }),
+  );
+  return enriched;
+}
+
+async function enrichTopJobs(jobs: IncomingJob[]): Promise<IncomingJob[]> {
+  let cursor = 0;
+  const enriched = [...jobs];
+  await Promise.all(
+    Array.from({ length: Math.min(4, jobs.length) }, async () => {
+      while (cursor < jobs.length) {
+        const index = cursor++;
+        const job = jobs[index];
+        try {
+          const url = new URL(job.url);
+          if (
+            url.protocol !== "https:" ||
+            !/^(?:www\.)?topjobs\.lk$/i.test(url.hostname) ||
+            url.pathname !== "/employer/JobAdvertismentServlet"
+          )
+            throw new Error("Invalid TopJobs detail URL");
+          const response = await fetch(url, {
+            signal: AbortSignal.timeout(8000),
+            redirect: "error",
+            headers: {
+              "User-Agent": "Jobradar/1.0 (job monitoring; public listings)",
+              Accept: "text/html",
+            },
+            cache: "no-store",
+          });
+          if (
+            !response.ok ||
+            !response.headers.get("content-type")?.includes("text/html")
+          )
+            throw new Error("TopJobs detail unavailable");
+          const contentLength = Number(
+            response.headers.get("content-length") || 0,
+          );
+          if (contentLength > 1_000_000)
+            throw new Error("TopJobs detail too large");
+          const html = await response.text();
+          if (html.length > 1_000_000)
+            throw new Error("TopJobs detail too large");
+          enriched[index] = {
+            ...job,
+            sourceImageUrl: parseTopJobsAdvertImageUrl(html, url.href),
           };
         } catch {
           enriched[index] = { ...job, detailFetchFailed: true };
@@ -525,7 +599,8 @@ export async function collect(source: Source): Promise<IncomingJob[]> {
     source,
     htmlSourceKinds.includes(source.kind) ? body : JSON.parse(body),
   );
-  return source.kind === "itpro" && source.board === "software-engineering"
-    ? enrichItproJobs(jobs)
-    : jobs;
+  if (source.kind === "itpro" && source.board === "software-engineering")
+    return enrichItproJobs(jobs);
+  if (source.kind === "topjobs") return enrichTopJobs(jobs);
+  return jobs;
 }

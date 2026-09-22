@@ -60,6 +60,12 @@ beforeAll(async () => {
   );
   await database.exec(
     await readFile(
+      new URL("../db/009_personal_job_states.sql", import.meta.url),
+      "utf8",
+    ),
+  );
+  await database.exec(
+    await readFile(
       new URL("../db/010_run_job_results.sql", import.meta.url),
       "utf8",
     ),
@@ -100,6 +106,12 @@ beforeAll(async () => {
   await database.exec(
     await readFile(
       new URL("../db/017_worldwide_remote_matching.sql", import.meta.url),
+      "utf8",
+    ),
+  );
+  await database.exec(
+    await readFile(
+      new URL("../db/026_private_image_context.sql", import.meta.url),
       "utf8",
     ),
   );
@@ -199,26 +211,23 @@ describe("collector transactions and scheduling", () => {
       `UPDATE jobs SET description='Key Skills: .NET and MS SQL. Experience: Minimum 1 year.'
        WHERE source_id IN (SELECT id FROM sources WHERE kind='itpro')`,
     );
-    collectMock.mockImplementation(
-      async (source) =>
-        [
-          {
-            sourceId: source.id,
-            externalId: "same-id",
-            title: "Updated Software Engineer",
-            company: "Acme",
-            location: "Colombo",
-            remote: false,
-            employmentType: "",
-            salary: "",
-            tags: ["Software Engineering"],
-            description: "Updated Software Engineer\nAcme\nColombo",
-            detailFetchFailed: true,
-            url: "https://itpro.lk/job/1/",
-            publishedAt: null,
-          },
-        ],
-    );
+    collectMock.mockImplementation(async (source) => [
+      {
+        sourceId: source.id,
+        externalId: "same-id",
+        title: "Updated Software Engineer",
+        company: "Acme",
+        location: "Colombo",
+        remote: false,
+        employmentType: "",
+        salary: "",
+        tags: ["Software Engineering"],
+        description: "Updated Software Engineer\nAcme\nColombo",
+        detailFetchFailed: true,
+        url: "https://itpro.lk/job/1/",
+        publishedAt: null,
+      },
+    ]);
     const refreshed = await syncSources({
       kind: "itpro",
       board: "",

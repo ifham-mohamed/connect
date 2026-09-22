@@ -127,6 +127,7 @@ beforeAll(async () => {
     "023_assisted_rule_lookup",
     "024_candidate_cv",
     "025_job_cv_reviews",
+    "026_private_image_context",
   ])
     await database.exec(
       await readFile(
@@ -466,8 +467,9 @@ describe("PostgreSQL schema and matching integration", () => {
       "SELECT id FROM jobs LIMIT 1",
     );
     await database.query(
-      `INSERT INTO job_user_states(user_id,job_id,status,reviewed_at)
-       VALUES($1,$3,'saved',now()),($2,$3,'archived',NULL)`,
+      `INSERT INTO job_user_states(user_id,job_id,status,reviewed_at,extracted_description,extracted_description_confidence,extracted_at)
+       VALUES($1,$3,'saved',now(),'Private OCR for first account',92,now()),
+             ($2,$3,'archived',NULL,'Private OCR for second account',84,now())`,
       [users.rows[0].id, users.rows[1].id, job.rows[0].id],
     );
     const states = await database.query<{
@@ -483,6 +485,32 @@ describe("PostgreSQL schema and matching integration", () => {
       { userId: users.rows[1].id, status: "archived", reviewed: false },
       { userId: users.rows[0].id, status: "saved", reviewed: true },
     ]);
+    const firstDetail = await getJobDetail(
+      {
+        id: users.rows[0].id,
+        name: "First Person",
+        email: "first@example.com",
+        role: "member",
+        onboardingCompleted: true,
+        preferences: {},
+      },
+      job.rows[0].id,
+      client,
+    );
+    const secondDetail = await getJobDetail(
+      {
+        id: users.rows[1].id,
+        name: "Second Person",
+        email: "second@example.com",
+        role: "member",
+        onboardingCompleted: true,
+        preferences: {},
+      },
+      job.rows[0].id,
+      client,
+    );
+    expect(firstDetail.description).toBe("Private OCR for first account");
+    expect(secondDetail.description).toBe("Private OCR for second account");
   });
   it("keeps candidate profiles and application notes scoped to each account", async () => {
     const users = await database.query<{ id: string }>(

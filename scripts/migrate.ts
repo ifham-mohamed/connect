@@ -38,6 +38,7 @@ try {
     "023_assisted_rule_lookup",
     "024_candidate_cv",
     "025_job_cv_reviews",
+    "026_private_image_context",
   ];
   for (const name of migrations) {
     const applied = await client.query(
