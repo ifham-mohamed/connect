@@ -68,6 +68,7 @@ import {
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
 import IntelligenceControls from "@/components/intelligence-controls";
 import JobCvReview from "@/components/job-cv-review";
+import JobImageContext from "@/components/job-image-context";
 
 type View =
   | "overview"
@@ -4049,6 +4050,10 @@ function JobDetail({
   onNote: (job: Job, note: string) => Promise<void>;
 }) {
   const [note, setNote] = useState(job.applicationNote || "");
+  const [personalDescription, setPersonalDescription] = useState<string>();
+  const [reviewRevision, setReviewRevision] = useState(0);
+  const visibleDescription =
+    personalDescription ?? job.extractedDescription ?? job.description;
   return (
     <div className="job-detail">
       <div className="detail-title">
@@ -4118,7 +4123,23 @@ function JobDetail({
           {job.status === "applied" ? "Applied" : "Mark applied"}
         </button>
       </div>
-      {!demo && <JobCvReview jobId={job.id} />}
+      {!demo && job.sourceImageUrl && (
+        <JobImageContext
+          key={`${job.id}-${job.extractedAt || "new"}`}
+          jobId={job.id}
+          imageUrl={job.sourceImageUrl}
+          initialText={job.extractedDescription}
+          initialConfidence={job.extractedDescriptionConfidence}
+          extractedAt={job.extractedAt}
+          onSaved={(text) => {
+            setPersonalDescription(text);
+            setReviewRevision((current) => current + 1);
+          }}
+        />
+      )}
+      {!demo && (
+        <JobCvReview key={`${job.id}-${reviewRevision}`} jobId={job.id} />
+      )}
       <div className="detail-description">
         <h3>About the opportunity</h3>
         {loading ? (
@@ -4133,7 +4154,7 @@ function JobDetail({
           </div>
         ) : (
           <p>
-            {job.description ||
+            {visibleDescription ||
               "Read the full description on the original listing."}
           </p>
         )}

@@ -13,6 +13,7 @@
     "worker": "tsx --env-file-if-exists=.env scripts/worker.ts",
     "sync": "tsx --env-file-if-exists=.env scripts/worker.ts --once",
     "itpro:refresh": "tsx --env-file-if-exists=.env scripts/refresh-itpro.ts",
+    "topjobs:refresh": "tsx --env-file-if-exists=.env scripts/refresh-topjobs.ts",
     "jev:verify": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts",
     "jev:smoke": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts --live --limit=1",
     "jev:evaluate": "tsx --env-file-if-exists=.env scripts/evaluate-jev.ts --live",
@@ -40,6 +41,7 @@
     "react-dom": "^19.3.0",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.3.3",
+    "tesseract.js": "^6.0.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {
