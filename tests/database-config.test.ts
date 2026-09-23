@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { databaseConfig } from "../src/lib/database-config";
-import { connectDatabase } from "../src/lib/db";
+import { connectDatabase, withDatabaseRetry } from "../src/lib/db";
 import type { PoolClient } from "pg";
 describe("database connection configuration", () => {
   it("rejects placeholders before connecting", () => {
@@ -64,5 +64,24 @@ describe("database connection configuration", () => {
 
     await expect(connectDatabase({ connect }, 0)).rejects.toBe(error);
     expect(connect).toHaveBeenCalledTimes(1);
+  });
+  it("replays an idempotent read on a fresh client after a dropped query", async () => {
+    const first = { release: vi.fn() } as unknown as PoolClient;
+    const second = { release: vi.fn() } as unknown as PoolClient;
+    const connect = vi
+      .fn<() => Promise<PoolClient>>()
+      .mockResolvedValueOnce(first)
+      .mockResolvedValueOnce(second);
+    const read = vi
+      .fn<(client: PoolClient) => Promise<string>>()
+      .mockRejectedValueOnce(new Error("Connection terminated unexpectedly"))
+      .mockResolvedValueOnce("ready");
+
+    await expect(withDatabaseRetry(read, { connect }, 0)).resolves.toBe(
+      "ready",
+    );
+    expect(read).toHaveBeenCalledTimes(2);
+    expect(first.release).toHaveBeenCalledWith(expect.any(Error));
+    expect(second.release).toHaveBeenCalledWith();
   });
 });

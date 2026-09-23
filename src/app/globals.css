@@ -2843,3 +2843,35 @@ html[data-theme="dark"] .auth-theme .theme-moon { display: none; }
 @media (max-width:420px) {
   .modal-wide .detail-meta { display: grid; grid-template-columns: 1fr; }
 }
+
+/* Progressive CV comparison state */
+.job-review-analysis { display: grid; grid-template-columns: 84px minmax(0,1fr); align-items: center; gap: 18px; padding: 17px; overflow: hidden; border: 1px solid hsl(var(--primary) / .2); border-radius: 14px; background: linear-gradient(120deg,hsl(var(--primary) / .12),hsl(var(--card)) 68%); }
+.job-review-analysis-visual { position: relative; display: grid; place-items: center; width: 76px; height: 76px; }
+.analysis-core { position: relative; z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid hsl(var(--primary) / .35); border-radius: 14px; background: hsl(var(--background)); color: hsl(var(--primary)); box-shadow: 0 8px 28px hsl(var(--primary) / .18); animation: analysis-pulse 1.7s ease-in-out infinite; }
+.analysis-orbit { position: absolute; border: 1px solid hsl(var(--primary) / .32); border-radius: 50%; }
+.analysis-orbit::after { content: ""; position: absolute; top: -3px; left: 50%; width: 6px; height: 6px; border-radius: 50%; background: hsl(var(--primary)); box-shadow: 0 0 12px hsl(var(--primary) / .75); }
+.orbit-one { inset: 5px; animation: analysis-spin 3.2s linear infinite; }
+.orbit-two { inset: 14px; border-style: dashed; opacity: .7; animation: analysis-spin 2.4s linear infinite reverse; }
+.job-review-analysis-copy { display: grid; min-width: 0; gap: 5px; }
+.job-review-analysis-copy small { color: hsl(var(--primary)); font-size: 9px; font-weight: 850; letter-spacing: .12em; }
+.job-review-analysis-copy strong { color: hsl(var(--foreground)); font-size: 14px; }
+.job-review-analysis-copy p { margin: 0; color: hsl(var(--muted-foreground)); font-size: 11px; line-height: 1.5; }
+.analysis-progress { height: 5px; margin-top: 6px; overflow: hidden; border-radius: 99px; background: hsl(var(--muted)); }
+.analysis-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,hsl(var(--primary)),hsl(var(--success))); transition: width 650ms cubic-bezier(.22,1,.36,1); }
+.analysis-step-dots { display: flex; gap: 5px; margin-top: 3px; }
+.analysis-step-dots i { width: 5px; height: 5px; border-radius: 50%; background: hsl(var(--muted)); transition: background 300ms ease,transform 300ms ease; }
+.analysis-step-dots i.active { background: hsl(var(--primary)); transform: scale(1.25); }
+.job-review-error { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.job-review-error .btn { flex: 0 0 auto; color: hsl(var(--foreground)); }
+@keyframes analysis-spin { to { transform: rotate(360deg); } }
+@keyframes analysis-pulse { 50% { transform: scale(1.05); box-shadow: 0 10px 34px hsl(var(--primary) / .28); } }
+@media (max-width:480px) {
+  .job-review-analysis { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .analysis-step-dots { justify-content: center; }
+  .job-review-error { align-items: stretch; flex-direction: column; }
+  .job-review-error .btn { justify-content: center; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .analysis-core,.analysis-orbit { animation: none; }
+  .analysis-progress span,.analysis-step-dots i { transition: none; }
+}

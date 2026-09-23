@@ -100,6 +100,7 @@ No absence-based closure is inferred from limited feeds. The initial release doe
 - Passwords use salted scrypt hashes. Browsers receive an opaque HTTP-only, same-site session token whose SHA-256 hash and seven-day expiry are stored in PostgreSQL.
 - Account attempts are limited by normalized-account and keyed-network buckets. Every authenticated mutation also passes a PostgreSQL-backed per-user route limit; manual source collection is limited more strictly. Responses include `Retry-After` when blocked.
 - Members receive an owner-configurable daily CV-to-job analysis allowance; the default is five per Sri Lanka calendar day. Reservations are atomic, cached results are free, failures release allowance, and owners remain unlimited.
+- Personal JEV reviews do not hold a PostgreSQL connection while waiting for the model. The API reconnects for the validated write phase; idempotent review reads retry once on a fresh connection after transient termination.
 - `APP_URL` must equal the production HTTPS origin. Production writes fail closed when it is absent or malformed. Configure HTTPS at the host/reverse proxy.
 - Forwarded network headers are ignored unless `TRUST_PROXY_HEADERS=true`; enable it only when the trusted proxy overwrites those headers. Raw IP addresses and full user-agent strings are never stored.
 - Cron access requires a separate Bearer secret. Source URLs and job descriptions cannot trigger backend requests.

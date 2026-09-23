@@ -108,7 +108,7 @@ Monitoring services and external alerts are deployment configuration, not provis
 
 ## Failure recovery
 
-- **Database unavailable:** the dashboard shows a connection error; existing database records are not replaced by sample data.
+- **Database unavailable:** idempotent focused reads and saved CV-review reads retry once on a fresh pooled connection when PostgreSQL reports a terminated, closed, reset, or timed-out connection. A second failure returns a visible retry action; existing database records are not replaced by sample data. JEV analysis releases the database connection during the external model request and reconnects only for guarded persistence, avoiding an idle checkout during a long analysis.
 - **One source fails:** previous jobs remain; the run and source record show the error; other due sources continue.
 - **Worker stopped mid-import:** PostgreSQL rolls back the open transaction. Its source lease expires after 12 minutes; the next claim marks the abandoned run failed.
 - **Duplicate scheduler invocation:** each caller claims a different due source with `FOR UPDATE SKIP LOCKED`; the same source cannot be leased twice.

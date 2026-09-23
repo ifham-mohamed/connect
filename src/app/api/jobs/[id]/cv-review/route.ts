@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import type { PoolClient } from "pg";
 import { authorizeWrite, currentUser } from "@/lib/auth";
-import { db } from "@/lib/db";
+import {
+  connectDatabase,
+  transientConnectionError,
+  withDatabaseRetry,
+} from "@/lib/db";
 import { cvProfileSchema } from "@/lib/cv/schema";
 import { getJobDetail } from "@/lib/repository";
 import { createJevClient } from "@/lib/jev/client";
@@ -40,66 +45,58 @@ export async function GET(request: Request, context: Context) {
   const jobId = jobIdSchema.safeParse((await context.params).id);
   if (!jobId.success)
     return NextResponse.json({ error: "Job not found." }, { status: 404 });
-  const client = await db()
-    .connect()
-    .catch(() => null);
-  if (!client)
-    return NextResponse.json(
-      { error: "The workspace is temporarily unavailable." },
-      { status: 503 },
-    );
   try {
-    const user = await currentUser(client, request);
-    if (!user)
-      return NextResponse.json({ error: "Sign in first." }, { status: 401 });
-    const job = await getJobDetail(user, jobId.data, client);
-    if (!job)
-      return NextResponse.json({ error: "Job not found." }, { status: 404 });
-    const usage = await getAiUsage(client, user);
-    const cv = await client.query<{ revision: number }>(
-      "SELECT revision FROM candidate_cvs WHERE user_id=$1",
-      [user.id],
-    );
-    if (!cv.rowCount)
+    return await withDatabaseRetry(async (client) => {
+      const user = await currentUser(client, request);
+      if (!user)
+        return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+      const job = await getJobDetail(user, jobId.data, client);
+      if (!job)
+        return NextResponse.json({ error: "Job not found." }, { status: 404 });
+      const usage = await getAiUsage(client, user);
+      const cv = await client.query<{ revision: number }>(
+        "SELECT revision FROM candidate_cvs WHERE user_id=$1",
+        [user.id],
+      );
+      if (!cv.rowCount)
+        return NextResponse.json(
+          { cvAvailable: false, review: null, stale: false, usage },
+          { headers: usageHeaders(usage) },
+        );
+      const latest = await client.query<{
+        id: string;
+        result: unknown;
+        model: string;
+        createdAt: string;
+        cvRevision: number;
+        jobHash: string;
+      }>(
+        `SELECT id,result,model_identifier AS model,created_at AS "createdAt",cv_revision AS "cvRevision",job_hash AS "jobHash"
+         FROM job_cv_reviews WHERE user_id=$1 AND job_id=$2 ORDER BY created_at DESC LIMIT 1`,
+        [user.id, jobId.data],
+      );
+      const row = latest.rows[0];
+      const stale = Boolean(
+        row &&
+        (row.cvRevision !== cv.rows[0].revision ||
+          row.jobHash !== jobCvHash(job)),
+      );
       return NextResponse.json(
-        { cvAvailable: false, review: null, stale: false, usage },
+        {
+          cvAvailable: true,
+          review: stale ? null : row || null,
+          stale,
+          usage,
+        },
         { headers: usageHeaders(usage) },
       );
-    const latest = await client.query<{
-      id: string;
-      result: unknown;
-      model: string;
-      createdAt: string;
-      cvRevision: number;
-      jobHash: string;
-    }>(
-      `SELECT id,result,model_identifier AS model,created_at AS "createdAt",cv_revision AS "cvRevision",job_hash AS "jobHash"
-       FROM job_cv_reviews WHERE user_id=$1 AND job_id=$2 ORDER BY created_at DESC LIMIT 1`,
-      [user.id, jobId.data],
-    );
-    const row = latest.rows[0];
-    const stale = Boolean(
-      row &&
-      (row.cvRevision !== cv.rows[0].revision ||
-        row.jobHash !== jobCvHash(job)),
-    );
-    return NextResponse.json(
-      {
-        cvAvailable: true,
-        review: stale ? null : row || null,
-        stale,
-        usage,
-      },
-      { headers: usageHeaders(usage) },
-    );
+    });
   } catch (error) {
     console.error("CV job review read failed", error);
     return NextResponse.json(
       { error: "The job review could not be loaded." },
       { status: 503 },
     );
-  } finally {
-    client.release();
   }
 }
 
@@ -126,9 +123,7 @@ export async function POST(request: Request, context: Context) {
       { status: 503 },
     );
   }
-  const client = await db()
-    .connect()
-    .catch(() => null);
+  let client = await connectDatabase().catch(() => null);
   if (!client)
     return NextResponse.json(
       { error: "The workspace is temporarily unavailable." },
@@ -136,6 +131,7 @@ export async function POST(request: Request, context: Context) {
     );
   let reservationId: string | null = null;
   let workspaceReserved = false;
+  let clientReleased = false;
   try {
     const job = await getJobDetail(user, jobId.data, client);
     if (!job)
@@ -219,7 +215,13 @@ export async function POST(request: Request, context: Context) {
       );
     }
     workspaceReserved = true;
+    // Do not occupy the free-tier database connection while the external model
+    // is working. Reconnect for the guarded persistence phase afterwards.
+    client.release();
+    clientReleased = true;
     const analyzed = await reviewJobAgainstCv(createJevClient(config), job, cv);
+    client = await connectDatabase();
+    clientReleased = false;
     await completeWorkspaceAiRequest(client, {
       inputTokens: analyzed.usage.input_tokens,
       outputTokens: analyzed.usage.output_tokens,
@@ -264,22 +266,38 @@ export async function POST(request: Request, context: Context) {
       { headers: usageHeaders(usage) },
     );
   } catch (error) {
-    await completeAiJobAnalysis(client, reservationId, false).catch(() => {});
-    if (workspaceReserved)
-      await completeWorkspaceAiRequest(client, { failed: true }).catch(
+    let cleanupClient: PoolClient | null = client;
+    let cleanupClientOwned = false;
+    if (clientReleased || transientConnectionError(error)) {
+      if (!clientReleased) {
+        client.release(error instanceof Error ? error : true);
+        clientReleased = true;
+      }
+      cleanupClient = await connectDatabase().catch(() => null);
+      cleanupClientOwned = Boolean(cleanupClient);
+    }
+    if (cleanupClient) {
+      await completeAiJobAnalysis(cleanupClient, reservationId, false).catch(
         () => {},
       );
+      if (workspaceReserved)
+        await completeWorkspaceAiRequest(cleanupClient, {
+          failed: true,
+        }).catch(() => {});
+    }
     const status =
       typeof error === "object" && error && "status" in error
         ? Number(error.status)
         : 0;
     if (status === 402 || status === 429)
-      await pauseWorkspaceAi(
-        client,
-        status === 402
-          ? "AI provider credit is unavailable. Requests are paused to prevent paid overage."
-          : "AI provider quota was reached. Requests are paused until the owner resumes them.",
-      ).catch(() => {});
+      if (cleanupClient)
+        await pauseWorkspaceAi(
+          cleanupClient,
+          status === 402
+            ? "AI provider credit is unavailable. Requests are paused to prevent paid overage."
+            : "AI provider quota was reached. Requests are paused until the owner resumes them.",
+        ).catch(() => {});
+    if (cleanupClientOwned) cleanupClient?.release();
     console.error(
       "CV job review failed",
       error instanceof Error ? error.name : "unknown",
@@ -289,6 +307,6 @@ export async function POST(request: Request, context: Context) {
       { status: 503 },
     );
   } finally {
-    client.release();
+    if (!clientReleased) client.release();
   }
 }

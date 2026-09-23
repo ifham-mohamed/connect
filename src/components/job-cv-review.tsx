@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
+  BrainCircuit,
   Check,
   CheckCircle2,
   CircleAlert,
   FileText,
   LoaderCircle,
+  RotateCcw,
   ShieldCheck,
   Sparkles,
   Target,
@@ -41,6 +43,12 @@ const verdicts = {
   not_shown: "Not shown in CV",
   unclear: "Needs a closer look",
 } as const;
+const analysisSteps = [
+  "Reading the role requirements",
+  "Comparing your CV evidence",
+  "Checking strengths and gaps",
+  "Preparing your private review",
+] as const;
 
 function scoreLabel(score: number) {
   if (score >= 80) return "Strong evidence match";
@@ -80,31 +88,56 @@ export default function JobCvReview({ jobId }: { jobId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [usage, setUsage] = useState<AiUsage | null>(null);
+  const [loadRetry, setLoadRetry] = useState(0);
+  const [analysisStep, setAnalysisStep] = useState(0);
   useEffect(() => {
     let active = true;
-    fetch(`/api/jobs/${jobId}/cv-review`, { cache: "no-store" })
-      .then(async (response) => {
-        const result = await response.json();
-        if (!response.ok)
-          throw new Error(result.error || "Review could not be loaded.");
-        return result;
-      })
-      .then((result) => {
-        if (!active) return;
-        setCvAvailable(result.cvAvailable);
-        setReview(result.review);
-        setStale(result.stale);
-        setUsage(result.usage || null);
-      })
-      .catch((cause) => {
-        if (active) setError((cause as Error).message);
-      });
+    const controller = new AbortController();
+    void (async () => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const response = await fetch(`/api/jobs/${jobId}/cv-review`, {
+            cache: "no-store",
+            signal: controller.signal,
+          });
+          const result = await response.json();
+          if (!response.ok)
+            throw new Error(result.error || "Review could not be loaded.");
+          if (!active) return;
+          setCvAvailable(result.cvAvailable);
+          setReview(result.review);
+          setStale(result.stale);
+          setUsage(result.usage || null);
+          return;
+        } catch (cause) {
+          if (!active || controller.signal.aborted) return;
+          if (attempt === 0) {
+            await new Promise((resolve) => setTimeout(resolve, 450));
+            continue;
+          }
+          setError((cause as Error).message);
+        }
+      }
+    })();
     return () => {
       active = false;
+      controller.abort();
     };
-  }, [jobId]);
+  }, [jobId, loadRetry]);
+  useEffect(() => {
+    if (!busy) return;
+    const timer = window.setInterval(
+      () =>
+        setAnalysisStep((current) =>
+          Math.min(current + 1, analysisSteps.length - 1),
+        ),
+      1400,
+    );
+    return () => window.clearInterval(timer);
+  }, [busy]);
 
   async function analyze() {
+    setAnalysisStep(0);
     setBusy(true);
     setError("");
     try {
@@ -153,37 +186,74 @@ export default function JobCvReview({ jobId }: { jobId: string }) {
         </div>
       )}
       {cvAvailable && !review && (
-        <div className="job-review-prompt">
-          <p>
-            {stale
-              ? "Your CV or this listing changed since the last review. Run a fresh comparison."
-              : "Review this listing against the career evidence in your saved CV."}
-          </p>
-          <button
-            className="btn primary"
-            disabled={busy || usage?.remaining === 0}
-            onClick={() => void analyze()}
-          >
-            {busy ? (
-              <LoaderCircle size={15} className="spin" />
-            ) : (
-              <Sparkles size={15} />
-            )}
-            {busy ? "Reviewing evidence…" : "Review with JEV"}
-          </button>
-          {usage && (
-            <span className="job-review-allowance">
-              <ShieldCheck size={13} />
-              {usage.unlimited
-                ? "Owner access · unlimited analyses"
-                : `${usage.remaining} of ${usage.limit} analyses remaining today`}
-            </span>
+        <>
+          {busy ? (
+            <div
+              className="job-review-analysis"
+              role="status"
+              aria-live="polite"
+            >
+              <div className="job-review-analysis-visual" aria-hidden="true">
+                <span className="analysis-orbit orbit-one" />
+                <span className="analysis-orbit orbit-two" />
+                <span className="analysis-core">
+                  <BrainCircuit size={24} />
+                </span>
+              </div>
+              <div className="job-review-analysis-copy">
+                <small>PRIVATE CV COMPARISON</small>
+                <strong>{analysisSteps[analysisStep]}</strong>
+                <p>
+                  JEV is reviewing only the selected evidence needed for this
+                  comparison.
+                </p>
+                <div className="analysis-progress" aria-hidden="true">
+                  <span
+                    style={{
+                      width: `${((analysisStep + 1) / analysisSteps.length) * 100}%`,
+                    }}
+                  />
+                </div>
+                <div className="analysis-step-dots" aria-hidden="true">
+                  {analysisSteps.map((step, index) => (
+                    <i
+                      key={step}
+                      className={index <= analysisStep ? "active" : ""}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="job-review-prompt">
+              <p>
+                {stale
+                  ? "Your CV or this listing changed since the last review. Run a fresh comparison."
+                  : "Review this listing against the career evidence in your saved CV."}
+              </p>
+              <button
+                className="btn primary"
+                disabled={usage?.remaining === 0}
+                onClick={() => void analyze()}
+              >
+                <Sparkles size={15} /> Review with JEV
+              </button>
+              {usage && (
+                <span className="job-review-allowance">
+                  <ShieldCheck size={13} />
+                  {usage.unlimited
+                    ? "Owner access · unlimited analyses"
+                    : `${usage.remaining} of ${usage.limit} analyses remaining today`}
+                </span>
+              )}
+              <small>
+                JEV receives selected skills and experience excerpts, not your
+                name, contact details, or PDF. This is guidance, not a hiring
+                decision.
+              </small>
+            </div>
           )}
-          <small>
-            JEV receives selected skills and experience excerpts, not your name,
-            contact details, or PDF. This is guidance, not a hiring decision.
-          </small>
-        </div>
+        </>
       )}
       {review && (
         <div className="job-review-result">
@@ -312,9 +382,21 @@ export default function JobCvReview({ jobId }: { jobId: string }) {
         </div>
       )}
       {error && (
-        <p className="job-review-error" role="alert">
-          {error}
-        </p>
+        <div className="job-review-error" role="alert">
+          <span>{error}</span>
+          {cvAvailable === null && (
+            <button
+              className="btn small"
+              onClick={() => {
+                setError("");
+                setCvAvailable(null);
+                setLoadRetry((value) => value + 1);
+              }}
+            >
+              <RotateCcw size={13} /> Try again
+            </button>
+          )}
+        </div>
       )}
     </section>
   );
