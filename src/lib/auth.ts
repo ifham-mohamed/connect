@@ -9,6 +9,7 @@ import { cookies, headers } from "next/headers";
 import type { Pool, PoolClient } from "pg";
 import { db } from "./db";
 import { recordSecurityEvent, requestSecurityContext } from "./security";
+import { consumeRateLimit, RateLimitError } from "./rate-limit";
 import type { UserPreferences } from "./types";
 
 const scrypt = promisify(scryptCallback);
@@ -157,9 +158,26 @@ export async function currentUser(
 
 export function originAllowed(request: Request) {
   const origin = request.headers.get("origin");
-  return Boolean(
-    origin && origin === new URL(process.env.APP_URL || request.url).origin,
-  );
+  let applicationOrigin = "";
+  try {
+    if (process.env.APP_URL) applicationOrigin = new URL(process.env.APP_URL).origin;
+    else if (process.env.NODE_ENV !== "production")
+      applicationOrigin = new URL(request.url).origin;
+  } catch {
+    return false;
+  }
+  return Boolean(origin && applicationOrigin && origin === applicationOrigin);
+}
+
+function writeLimit(pathname: string) {
+  if (pathname === "/api/onboarding") return { limit: 12, seconds: 600 };
+  if (pathname === "/api/ai-usage") return { limit: 10, seconds: 300 };
+  if (pathname === "/api/intelligence") return { limit: 30, seconds: 300 };
+  if (pathname === "/api/security") return { limit: 20, seconds: 300 };
+  if (pathname.includes("/cv-review")) return { limit: 20, seconds: 60 };
+  if (pathname.includes("/image-context")) return { limit: 20, seconds: 300 };
+  if (pathname === "/api/candidate/cv") return { limit: 20, seconds: 300 };
+  return { limit: 120, seconds: 60 };
 }
 export async function authorizeWrite(
   request: Request,
@@ -191,6 +209,25 @@ export async function authorizeWrite(
       metadata: { requiredRole },
     });
     throw new Error("OWNER_REQUIRED");
+  }
+  const pathname = new URL(request.url).pathname;
+  const policy = writeLimit(pathname);
+  const rate = await consumeRateLimit(
+    db(),
+    `${request.method}:${pathname}`,
+    user.id,
+    policy.limit,
+    policy.seconds,
+  );
+  if (!rate.allowed) {
+    await recordSecurityEvent({
+      request,
+      eventType: "authorization.rate_limited",
+      severity: "warning",
+      userId: user.id,
+      metadata: { limit: policy.limit, windowSeconds: policy.seconds },
+    });
+    throw new RateLimitError(rate.retryAfter, rate.limit);
   }
   return user;
 }

@@ -4,21 +4,17 @@ import { authorizeWrite } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { rebuildMatchesForUser } from "@/lib/sync";
 import { onboardingSchema, ownerOnboardingSchema } from "@/lib/validation";
+import { readJsonBody, RequestBodyError } from "@/lib/request-body";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
     const user = await authorizeWrite(request);
     const requestLimit = user.role === "owner" ? 512_000 : 60_000;
-    const rawBody = await request.text();
-    if (Buffer.byteLength(rawBody, "utf8") > requestLimit)
-      return NextResponse.json(
-        { error: "Request is too large." },
-        { status: 413 },
-      );
     const preferences = (user.role === "owner"
       ? ownerOnboardingSchema
       : onboardingSchema
-    ).parse(JSON.parse(rawBody));
+    ).parse(await readJsonBody(request, requestLimit));
     const client = await db().connect();
     try {
       await client.query("BEGIN");
@@ -63,6 +59,13 @@ export async function POST(request: Request) {
       client.release();
     }
   } catch (error) {
+    const limited = rateLimitResponse(error);
+    if (limited) return limited;
+    if (error instanceof RequestBodyError)
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
     if (error instanceof ZodError)
       return NextResponse.json(
         { error: error.issues[0]?.message || "Check your preferences." },

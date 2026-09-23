@@ -17,6 +17,8 @@ A working first release of a job-monitoring workspace for **Sri Lanka and remote
 - Source health, run history, timeouts, response-size limits, per-source scheduling, and an advisory lock preventing overlapping collectors.
 - Per-run result history linking each successful source check to the jobs it found and the listings first discovered in that run.
 - Private account access with scrypt-hashed passwords, expiring database sessions, HTTP-only cookies, and owner/member authorization.
+- Privacy-safe security activity, individual session revocation, strict same-origin writes, streamed request-size enforcement, and PostgreSQL-backed write throttling.
+- Personal JEV job reviews with a configurable member allowance of five new analyses per Sri Lanka calendar day by default. Cached reviews are free and owners are unlimited.
 - Guided first-run onboarding that creates editable, user-owned monitors from career stage, role, location, and work-arrangement preferences.
 - Docker Compose setup, a standalone worker, and a protected endpoint for external schedulers.
 
@@ -60,6 +62,8 @@ The public overview lives at `/`, account access lives at `/auth`, and the signe
 ```sh
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
+
+Generate a separate value for `SECURITY_AUDIT_SECRET`; do not reuse the cron or database credential. Set `APP_URL` to the exact browser origin. Leave `TRUST_PROXY_HEADERS=false` unless an HTTPS proxy you control overwrites forwarded-IP headers.
 
 4. Set `POSTGRES_PASSWORD` to a separate random alphanumeric database password. The local default is only for development. Use URL-safe characters, or percent-encode the password in a manual `DATABASE_URL`.
 5. Start everything:
@@ -156,7 +160,8 @@ The optional `npx tsx scripts/check-sources.ts` makes real requests to the three
 - [System architecture and scaling](docs/architecture.md)
 - [Source references and integration decisions](docs/sources.md)
 - [Operations and deployment checklist](docs/operations.md)
+- [Security controls, findings, and residual risks](docs/SECURITY_AUDIT.md)
 
 ## Current boundaries
 
-The browser loads the newest 1,000 records and exports its filtered selection. Older records remain in PostgreSQL. Source counts cover all stored records; dashboard counts cover the loaded window. Monitor matches are rebuilt transactionally after imports and rule changes; this is appropriate for a small workspace, not millions of postings. The application has no email/push alerts, multi-user accounts, historical job-version snapshots, automatic closure verification, or full-feed pagination yet. No claims of those features are made by the UI. Scale those pieces using the documented milestones when real usage warrants it.
+The browser loads the newest 1,000 records and exports its filtered selection. Older records remain in PostgreSQL. Source counts cover all stored records; dashboard counts cover the loaded window. Monitor matches are rebuilt transactionally after imports and rule changes; this is appropriate for a small workspace, not millions of postings. The application has no MFA/passkey or password-reset flow, email/push alerts, organization workspaces, historical job-version snapshots, automatic closure verification, or full-feed pagination yet. Review the security audit before public deployment. Scale these pieces using the documented milestones when real usage warrants it.

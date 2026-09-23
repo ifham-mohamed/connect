@@ -60,6 +60,14 @@ When these documents disagree with another source, use this order:
   hybrid, and remote selections.
 - PostgreSQL is the durable state and coordination layer. The existing worker
   already serializes source collection with advisory locks.
+- JEV credentials and calls are server-only. Personal reviews use bounded,
+  selected, redacted CV evidence, never the PDF, contact fields, or complete
+  raw extraction.
+- Members default to five new personal job analyses per Sri Lanka calendar
+  day. Reservations are atomic, cached reviews are free, failed calls release
+  allowance, and owners remain unlimited.
+- Owner policy changes are same-origin, persistently rate-limited, audited,
+  and visible only in the signed-in owner workspace.
 
 ## Verified JEV capability and integration spike
 
@@ -79,9 +87,11 @@ References:
 - [TypeSafe introduction](https://docs.typesafe.ai/introduction)
 - [Official JavaScript SDK](https://github.com/TypeSafe-AI/typesafe-sdk-js)
 
-## Explicit non-goals for the first release
+## Explicit non-goals for the classification release
 
-- CV ingestion or free-form candidate-profile extraction.
+- Model-based CV parsing or storage of original CV files. The later candidate
+  stage uses deterministic browser extraction and saves only user-approved
+  structured data.
 - Generated job summaries, cover letters, outreach, or interview answers.
 - Automated applications or other external actions.
 - Replacing source-specific parsers with model calls.

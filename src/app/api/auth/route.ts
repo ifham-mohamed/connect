@@ -209,6 +209,13 @@ export async function POST(request: Request) {
         securityContext.userAgentHash,
       ],
     );
+    await client.query(
+      `DELETE FROM user_sessions WHERE id IN (
+         SELECT id FROM user_sessions WHERE user_id=$1
+         ORDER BY created_at DESC,id DESC OFFSET 10
+       )`,
+      [user.id],
+    );
     await client.query("DELETE FROM auth_attempts WHERE bucket=$1", [bucket]);
     if (securityContext.ipHash)
       await client.query("DELETE FROM auth_attempts WHERE bucket=$1", [
@@ -217,6 +224,9 @@ export async function POST(request: Request) {
     await client.query("DELETE FROM user_sessions WHERE expires_at<=now()");
     await client.query(
       "DELETE FROM security_events WHERE created_at<now()-interval '90 days'",
+    );
+    await client.query(
+      "DELETE FROM request_rate_limits WHERE reset_at<now()-interval '1 day'",
     );
     await recordSecurityEvent({
       request,

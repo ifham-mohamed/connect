@@ -1,6 +1,6 @@
 # ADR 001: Use JEV as the only model-based decision layer
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-09-22
 - Owners: Jobradar maintainers
 
@@ -83,3 +83,12 @@ Revisit this ADR only if the product requirement changes explicitly, JEV no
 longer provides the required typed-decision capability, or measured evaluation
 shows that the proposed decisions cannot meet the promotion gates. A change
 requires a new ADR rather than silently adding another provider.
+
+## 2026-09-23 implementation note
+
+The later private candidate stage was approved without adding another model.
+CV and vacancy-image extraction is deterministic and browser-side; Jobradar
+sends JEV only bounded, selected, redacted evidence for an explicit personal
+review. Per-user persistence, daily member allowances, same-origin writes,
+persistent route throttling, and audit events preserve the original decision's
+single-provider and controlled-policy boundaries.

@@ -6,6 +6,11 @@ import { monitorSchema, sourceSchema } from "@/lib/validation";
 import { rebuildMatchesForMonitor, syncSources } from "@/lib/sync";
 import { readJsonBody, RequestBodyError } from "@/lib/request-body";
 import { recordSecurityEvent } from "@/lib/security";
+import {
+  consumeRateLimit,
+  RateLimitError,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 export const maxDuration = 300;
 export async function POST(request: Request) {
   try {
@@ -33,6 +38,16 @@ export async function POST(request: Request) {
       request,
       ownerAction ? "owner" : "member",
     );
+    if (body.action === "sync") {
+      const rate = await consumeRateLimit(
+        db(),
+        "actions:source-sync",
+        user.id,
+        3,
+        900,
+      );
+      if (!rate.allowed) throw new RateLimitError(rate.retryAfter, rate.limit);
+    }
     if (["job-status", "job-reviewed", "job-note"].includes(body.action)) {
       const jobId = z.string().uuid().parse(body.id);
       const access = await db().query(
@@ -178,6 +193,8 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ ok: true });
   } catch (error) {
+    const limited = rateLimitResponse(error);
+    if (limited) return limited;
     if (error instanceof RequestBodyError)
       return NextResponse.json(
         { error: error.message },

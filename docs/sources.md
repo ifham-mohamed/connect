@@ -1,5 +1,11 @@
 # Source references and integration decisions
 
+## Source trust and security
+
+Every source is untrusted input. Server collectors use fixed allowlisted hosts, reject redirects, apply timeouts and response-size limits, validate source-specific structures, convert HTML to plain text, and retain only HTTP(S) destination URLs. Employer board identifiers cannot supply a host or protocol. Collection failures preserve prior records and never relax validation.
+
+TopJobs vacancy images and user-selected source images are processed in the signed-in user’s browser. Fetching an image contacts the original publisher from that browser. The image bytes are not uploaded to Jobradar or JEV; only text the user reviews and explicitly saves is stored through the authenticated, bounded, rate-limited image-context endpoint.
+
 Reviewed on 20 September 2026. The platform prioritizes documented feeds and direct employer APIs over fragile page scraping. Availability and policies can change.
 
 | Primary reference                                                                       | Implementation decision                                                                                                                                                                            |

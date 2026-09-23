@@ -42,6 +42,7 @@ try {
     "027_itpro_category_sources",
     "028_security_audit",
     "029_ai_usage_limits",
+    "030_request_rate_limits",
   ];
   for (const name of migrations) {
     const applied = await client.query(

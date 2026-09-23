@@ -118,6 +118,10 @@ in UI code.
 
 Errors exposed to members are generic. Owner diagnostics use stable error codes
 and correlation ids and exclude provider secrets and full job descriptions.
+User-triggered CV reviews additionally require a successful daily-allowance
+reservation before the provider call. HTTP 429 includes a retry window. A
+failed call releases the reservation; a cached saved review does not reserve or
+spend allowance.
 
 ## Idempotency and caching
 

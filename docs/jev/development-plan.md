@@ -133,12 +133,20 @@ Deliverables:
 This stage begins only after Stage 4 is stable. Candidate profiles and CVs are
 still out of scope.
 
-## Stage 6 — candidate and application capabilities (separate initiative)
+## Stage 6 — private candidate and application capabilities
 
-Before this stage, approve product scope, consent, access controls, deletion,
-retention, evidence editing, and data-export requirements. The original context
-contains useful ideas, but it is not authorization to store candidate documents
-or automate applications.
+Implemented scope is deliberately bounded: browser-side deterministic CV text
+extraction, explicit review and approval, per-user structured CV persistence,
+export/deletion, private notes and application state, and evidence-bounded JEV
+job reviews. Original PDF bytes are never uploaded or stored. Contact fields,
+the full raw extraction, and the PDF are never sent to JEV. There is no
+automatic application or external messaging.
+
+Member reviews use an owner-configurable daily allowance, default five per Sri
+Lanka calendar day. Atomic reservations prevent concurrent overuse, failures
+release allowance, cached reviews are free, and owners are unlimited. All
+candidate writes require authentication, configured same origin, streamed body
+limits, per-user route throttling, and `user_id` scoping.
 
 ## Pull request sequence
 
@@ -183,4 +191,6 @@ The integration is complete only when:
 - measured evaluation supports every enabled decision field;
 - operational documentation covers credentials, outage response, replay,
   rollback, and deletion;
-- no generated prose or unsupported requirement appears as source fact.
+- no generated prose or unsupported requirement appears as source fact;
+- private candidate data remains account-scoped, redacted at the model
+  boundary, exportable/deletable, and covered by tested usage guardrails.

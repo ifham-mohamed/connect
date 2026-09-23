@@ -1,5 +1,7 @@
 # Application Tracker — Jev Integration Architecture & Implementation Context
 
+> Implementation update, 2026-09-23: this source document contains design ideas as well as implemented behavior. The current application uses deterministic browser-side CV/PDF and vacancy-image extraction, saves only user-approved structured content, and sends bounded redacted evidence to JEV for personal reviews. Authenticated writes are same-origin, byte-limited while streaming, per-user rate-limited in PostgreSQL, and audited. Members default to five new job analyses per Sri Lanka calendar day; the owner manages that allowance and remains unlimited. Current implementation status is authoritative in `docs/jev/stages-4-6-implementation.md` and security behavior in `docs/SECURITY_AUDIT.md`.
+
 **Purpose:** Production-ready context for adapting Jev into an existing job-application tracker without rebuilding the current system.
 
 **Primary design principle:** Keep existing scraping/import, parser/LLM, database, UI, and workflow code. Add Jev as a server-side **decision layer** for classification, verification, scoring, confidence, and routing.

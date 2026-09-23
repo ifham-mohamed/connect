@@ -87,3 +87,11 @@ matcher to make the baseline appear better.
 
 Stage 2 and Stage 3 implementation and verification are tracked in
 [`stage-2-3-status.md`](stage-2-3-status.md).
+
+## Current security envelope
+
+The original contract remains valid, with later shared controls now applied:
+JEV credentials stay server-only, request state is bounded, errors exclude
+provider bodies and secrets, private API responses are non-cacheable, and
+every user-triggered model call requires an authenticated same-origin request.
+See `../SECURITY_AUDIT.md` for the application-wide review.

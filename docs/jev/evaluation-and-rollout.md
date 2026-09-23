@@ -55,6 +55,11 @@ The release gold set must contain no case where assisted policy:
 
 A violation blocks that field from promotion regardless of aggregate score.
 
+Security and privacy also block promotion when a test shows cross-account
+review visibility, contact-detail leakage to JEV, a provider call without a
+successful allowance reservation, an unbounded request body, or a mutation
+that bypasses same-origin and role checks.
+
 ## Threshold calibration
 
 Do not choose confidence thresholds from intuition. For each question:
@@ -142,3 +147,4 @@ Every promotion report should state:
 - known weak segments;
 - approved rollout scope;
 - rollback owner and procedure.
+- redaction, authorization, quota, and cross-account isolation results.

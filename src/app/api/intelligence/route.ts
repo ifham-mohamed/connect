@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getIntelligenceHealth } from "@/lib/intelligence/report";
 import { rebuildMatches, rebuildMatchesForJobs } from "@/lib/sync";
 import { readJsonBody, RequestBodyError } from "@/lib/request-body";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +69,8 @@ export async function GET() {
       pendingJobs: pendingJobs.rows,
     });
   } catch (error) {
+    const limited = rateLimitResponse(error);
+    if (limited) return limited;
     console.error("JEV health read failed", error);
     return NextResponse.json(
       { error: "JEV health is temporarily unavailable." },
@@ -175,6 +178,8 @@ export async function POST(request: Request) {
       client.release();
     }
   } catch (error) {
+    const limited = rateLimitResponse(error);
+    if (limited) return limited;
     if (error instanceof RequestBodyError)
       return NextResponse.json(
         { error: error.message },

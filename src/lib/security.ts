@@ -11,7 +11,7 @@ function auditKey() {
 
 function digest(value: string) {
   const key = auditKey();
-  if (!key || !value) return null;
+  if (key.length < 32 || !value) return null;
   return createHmac("sha256", key).update(value).digest("hex");
 }
 
@@ -24,11 +24,16 @@ function firstHeader(headers: Headers, names: string[]) {
 }
 
 export function requestSecurityContext(request: Request) {
-  const ip = firstHeader(request.headers, [
-    "cf-connecting-ip",
-    "x-real-ip",
-    "x-forwarded-for",
-  ]);
+  const trustProxy = ["1", "true"].includes(
+    (process.env.TRUST_PROXY_HEADERS || "").toLowerCase(),
+  );
+  const ip = trustProxy
+    ? firstHeader(request.headers, [
+        "cf-connecting-ip",
+        "x-real-ip",
+        "x-forwarded-for",
+      ])
+    : "";
   const device = [
     request.headers.get("user-agent") || "",
     request.headers.get("sec-ch-ua-platform") || "",

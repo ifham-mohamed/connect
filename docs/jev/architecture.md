@@ -158,7 +158,14 @@ owner/member rules remain in repository projections:
 - members may view only profiles attached to jobs visible through their own
   monitors and personal job state;
 - raw JEV diagnostics and errors are owner-only;
-- the API key is available only to the worker process.
+- the API key is available only to server-side worker and personal-review
+  boundaries;
+- every mutation requires the configured same origin and passes a
+  PostgreSQL-backed per-user route limit;
+- personal review calls reserve the member's daily allowance atomically before
+  contacting JEV; failed calls release it, cached reviews are free, and owners
+  bypass the daily quota;
+- private API responses are non-cacheable and return only UI-required fields.
 
 ## Resilience and performance
 

@@ -11,6 +11,8 @@
 | `POSTGRES_PASSWORD`      | Compose-managed PostgreSQL only   | Password for the local `db` container; it does not replace credentials inside an external `DATABASE_URL`.     |
 | `APP_URL`                | Always                            | Exact browser origin, for example `https://jobs.example.com`; controls same-origin writes and secure cookies. |
 | `CRON_SECRET`            | `/api/cron` collection is enabled | Separate scheduler Bearer secret; use at least 24 random characters.                                          |
+| `SECURITY_AUDIT_SECRET`  | Production                        | Independent 32-byte-or-longer HMAC key for non-reversible device and network identifiers.                     |
+| `TRUST_PROXY_HEADERS`    | Trusted reverse proxy             | Keep `false` unless the proxy overwrites forwarded-IP headers; enable to support network attribution.         |
 | `JEV_MODE`               | Optional JEV processing           | `off`, `shadow`, or `assisted`; keep `off` until the live smoke test succeeds.                                |
 | `JEV_PROVIDER`           | JEV processing                    | `vercel` for AI Gateway or `typesafe` for a direct TypeSafe account.                                          |
 | `AI_GATEWAY_API_KEY`     | `JEV_PROVIDER=vercel`             | Server-only Vercel AI Gateway credential.                                                                     |
@@ -22,7 +24,9 @@
 | `JEV_MAX_ATTEMPTS`       | Optional worker tuning            | Durable queue attempts before dead-lettering.                                                                 |
 | `JEV_BATCH_SIZE`         | Optional worker tuning            | Maximum tasks claimed by one worker cycle.                                                                    |
 
-Keep `.env` out of version control and container build context. Set deployment variables through the host’s secret manager. Only the web service needs the scheduler secret; the worker only needs its database connection.
+Keep `.env` out of version control and container build context. Set deployment variables through the host’s secret manager. Use separate random values for the scheduler and audit secrets. Only the web service needs the scheduler and audit secrets; the worker only needs its database connection and JEV credential when enabled.
+
+Authenticated writes use persistent per-user route limits shared across web instances. Sign-in uses separate account and trusted-network buckets. Members default to five new CV-to-job analyses per Sri Lanka calendar day; the owner can change the allowance in `/app/settings`, while owner analyses remain unlimited. A blocked request returns HTTP 429 and `Retry-After`.
 
 ## JEV shadow intelligence
 
@@ -84,7 +88,8 @@ and stop the intelligence worker to halt calls immediately.
 3. Run `npm run build` and start the web process, or use the provided image’s `web` target.
 4. Start the `worker` target as a separate long-running service, or configure the protected cron endpoint. A live web app alone does not collect in the background.
 5. Verify `/api/health` returns `status: ok`; create the first owner account, verify sign-in, a successful run, and source-attributed jobs.
-6. Put HTTPS in front of the app and set the matching `APP_URL`. Use persistent database storage, scheduled backups, and a tested restore procedure.
+6. Put HTTPS in front of the app and set the matching `APP_URL`. Production writes fail closed without it. Configure `TRUST_PROXY_HEADERS=true` only after confirming the proxy replaces incoming forwarded-IP headers. Use persistent database storage, scheduled backups, and a tested restore procedure.
+7. Open `/app/settings`, verify the current session, AI allowance, and security activity. Exercise session revocation from a second browser before public access.
 
 ## Observability
 
@@ -107,6 +112,8 @@ Monitoring services and external alerts are deployment configuration, not provis
 - **Duplicate scheduler invocation:** the second invocation sees the global lock and skips. This relies on a direct/session-mode connection.
 - **Source throttles:** keep the recorded cooldown. Do not repeatedly remove the attempt timestamp to force requests.
 - **Account access issue:** an owner can remove that user’s rows from `user_sessions` to revoke active sessions before resetting credentials through an approved recovery procedure.
+- **Unexpected 429:** respect `Retry-After`. Inspect `request_rate_limits`, authentication attempts, and the owner-configured AI allowance before changing a limit. Do not delete counters to bypass provider cost controls.
+- **Suspicious session event:** revoke the affected session in `/app/settings`, rotate credentials and secrets if compromise is plausible, and preserve `security_events` for investigation.
 
 ## Backups and restore
 
@@ -114,6 +121,6 @@ Use provider-managed backups or scheduled PostgreSQL backups stored separately f
 
 ## Verification performed and limits
 
-Automated tests cover monitor rules, exclusions, literal skill names, unsafe URLs/XML, source date normalization, schema constraints, duplicate import identity, persistent job status, SQL monitor matching, scheduler behavior and failures. SQL tests use PGlite, a PostgreSQL engine; advisory-lock scheduling tests simulate the connection lock around real SQL transactions. These tests do not replace running Compose against a production-like PostgreSQL server.
+Automated tests cover monitor rules, exclusions, literal skill names, unsafe URLs/XML, bounded streaming JSON, origin enforcement, persistent write limits, daily AI allowance, source date normalization, schema constraints, duplicate import identity, persistent job status, SQL monitor matching, scheduler behavior and failures. SQL tests use PGlite, a PostgreSQL engine; advisory-lock scheduling tests simulate the connection lock around real SQL transactions. These tests do not replace an independent penetration test or running Compose against a production-like PostgreSQL server.
 
 The frontend was checked through the local browser for navigation, job search, saving, monitor creation, and mobile/desktop layout. Docker was installed but its daemon was not running in the development environment, so the complete Docker stack could not be started there. Deployment credentials and a hosted database were not provided. The local app therefore opens in the explicitly labeled interactive demo.

@@ -88,3 +88,11 @@ applied jobs are unchanged. Shadow data must not alter those counts.
 - Change a queued job before processing: the old task must become `stale` and a
   new content version must be queued.
 - Run the same backfill twice: the second run must queue zero duplicate tasks.
+
+## Current security envelope
+
+Worker calls remain outside source transactions and contain no candidate data.
+Owner diagnostics are role-protected and their writes are same-origin and
+persistently rate-limited. Raw provider errors, credentials, job descriptions,
+session data, and personal identifiers are excluded from health responses and
+operational logs.

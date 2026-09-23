@@ -27,6 +27,7 @@ One TypeScript codebase is organized into independently understandable boundarie
 - `src/lib/sync.ts`: scheduling, collection orchestration, transactional storage and match rebuilding.
 - `src/lib/repository.ts`: read projections with explicit database-to-UI naming.
 - `src/lib/matching.ts`: keyword/location matching and safe text/URL helpers.
+- `src/lib/auth.ts`, `security.ts`, `rate-limit.ts`, and `request-body.ts`: session, authorization, audit, persistent throttling, and streamed input boundaries.
 - `db`: versioned database migrations.
 - `scripts`: deploy-time migrations and standalone worker entry points.
 
@@ -71,6 +72,8 @@ erDiagram
 
 `sync_runs` records start/end/status, accepted tech-record count, number added, and error. `sync_run_jobs` records the exact listings returned by each successful run and whether each listing was new in that run, which powers drill-down links from collection history. It does not store a full version history of changed descriptions. `monitor_matches` is a derived index that can be rebuilt. `job_user_states` separates each account's saved, applied, archived, and reviewed state from the shared source listing. `schema_migrations` ensures the initial seed is not reapplied after an owner deletes a monitor.
 
+`user_sessions` stores only token hashes and privacy-safe device/network hashes. `security_events` records access-control and session events. `request_rate_limits` provides fixed-window write limits shared by every web instance. `ai_usage_policy` and `ai_job_analysis_usage` enforce the owner-managed daily member analysis allowance with atomic reservations; successful and active reservations count, failed reservations do not.
+
 Career-stage matching classifies title and tag signals into Internship, Entry, Mid, Senior, or Other / unspecified before applying a user's onboarding preference. Internship covers intern, trainee, apprentice, and placement language; Entry covers junior, associate, graduate, and level-one language. The browser and PostgreSQL use the same precedence, with senior markers winning in compound titles such as “Senior Associate Engineer.” Role keywords, country-aware location coverage, work mode, and custom exclusions still apply after the career-stage gate.
 
 Numbered role suffixes are interpreted consistently in the browser and PostgreSQL: `(1)` / `I` is Entry, `(2)` / `II` is Mid, and `(3)` / `III` is Senior when attached to a role or explicit level marker. Each monitor stores its accepted work arrangements. Onboarding configures those modes per country, while Worldwide is always Remote.
@@ -95,10 +98,13 @@ No absence-based closure is inferred from limited feeds. The initial release doe
 
 - Dashboard reads and mutations require an active database session. The first registered account becomes owner; subsequent accounts are members.
 - Passwords use salted scrypt hashes. Browsers receive an opaque HTTP-only, same-site session token whose SHA-256 hash and seven-day expiry are stored in PostgreSQL.
-- Account attempts are limited per normalized-email bucket in PostgreSQL to 10 attempts per five-minute window. Source management and manual collection additionally require the owner role.
-- `APP_URL` must equal the production HTTPS origin; it also determines the secure-cookie flag. Configure HTTPS at the host/reverse proxy.
+- Account attempts are limited by normalized-account and keyed-network buckets. Every authenticated mutation also passes a PostgreSQL-backed per-user route limit; manual source collection is limited more strictly. Responses include `Retry-After` when blocked.
+- Members receive an owner-configurable daily CV-to-job analysis allowance; the default is five per Sri Lanka calendar day. Reservations are atomic, cached results are free, failures release allowance, and owners remain unlimited.
+- `APP_URL` must equal the production HTTPS origin. Production writes fail closed when it is absent or malformed. Configure HTTPS at the host/reverse proxy.
+- Forwarded network headers are ignored unless `TRUST_PROXY_HEADERS=true`; enable it only when the trusted proxy overwrites those headers. Raw IP addresses and full user-agent strings are never stored.
 - Cron access requires a separate Bearer secret. Source URLs and job descriptions cannot trigger backend requests.
-- SQL is parameterized. Job HTML is displayed as React-escaped plain text, never through `dangerouslySetInnerHTML`. XML DTD/entity declarations are rejected. CSV cells are escaped and spreadsheet formula prefixes are neutralized.
+- Request bodies are content-type checked and byte-limited while streaming. SQL is parameterized. Job HTML is displayed as React-escaped plain text, never through `dangerouslySetInnerHTML`. XML DTD/entity declarations are rejected. CSV cells are escaped and spreadsheet formula prefixes are neutralized.
+- Private API responses are marked `no-store`. A nonce-based CSP restricts script execution; framing, MIME sniffing, browser permissions, opener behavior, and production transport are hardened with response headers.
 - Local storage is used only for the explicitly labeled demo. Production data requires PostgreSQL; database failure does not fall back to fabricated live results.
 
 ## Scaling decisions and measurable next steps

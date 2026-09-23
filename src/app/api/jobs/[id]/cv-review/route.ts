@@ -13,6 +13,7 @@ import {
   reserveAiJobAnalysis,
   type AiUsage,
 } from "@/lib/ai-usage";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 const jobIdSchema = z.string().uuid();
@@ -105,6 +106,8 @@ export async function POST(request: Request, context: Context) {
   try {
     user = await authorizeWrite(request);
   } catch (error) {
+    const limited = rateLimitResponse(error);
+    if (limited) return limited;
     const message = error instanceof Error ? error.message : "";
     if (message === "FORBIDDEN")
       return NextResponse.json(

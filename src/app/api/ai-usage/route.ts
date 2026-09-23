@@ -5,6 +5,7 @@ import { getAiUsage, memberUsageSummary } from "@/lib/ai-usage";
 import { db } from "@/lib/db";
 import { readJsonBody, RequestBodyError } from "@/lib/request-body";
 import { recordSecurityEvent } from "@/lib/security";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,8 @@ export async function GET(request: Request) {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
+    const limited = rateLimitResponse(error);
+    if (limited) return limited;
     console.error(
       "AI usage read failed",
       error instanceof Error ? error.message : "unknown",
@@ -69,6 +72,8 @@ export async function PATCH(request: Request) {
     });
     return NextResponse.json({ ok: true });
   } catch (error) {
+    const limited = rateLimitResponse(error);
+    if (limited) return limited;
     if (error instanceof RequestBodyError)
       return NextResponse.json(
         { error: error.message },

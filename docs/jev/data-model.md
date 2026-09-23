@@ -129,6 +129,14 @@ Owner diagnostics may query queue/evaluation health. Member-facing repository
 methods expose only approved profile fields for jobs already authorized by the
 existing visibility rules.
 
+`ai_usage_policy` is a singleton owner-managed policy containing the daily
+member job-analysis limit. `ai_job_analysis_usage` records a reservation,
+success, or failure for one user/job/day. Successful and active reservations
+count; failed reservations do not, and abandoned reservations expire after ten
+minutes. Owners do not create quota reservations. `request_rate_limits`
+separately protects authenticated mutation routes and is not a billing or
+analytics source.
+
 ## Retention and privacy
 
 - Never persist the JEV API key.
@@ -138,8 +146,8 @@ existing visibility rules.
 - Redact request bodies from logs and exception telemetry.
 - Define evaluation and dead-letter retention before assisted rollout.
 - A deleted job cascades to its queue, evaluations, profile, and overrides.
-- Candidate/CV data is excluded until separate consent and retention rules are
-  approved.
+- Candidate/CV rows are private to `user_id`, require explicit approval, can be
+  exported or deleted by that user, and never contain the original PDF bytes.
 
 ## Migration and rollback
 

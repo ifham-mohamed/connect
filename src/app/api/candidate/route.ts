@@ -3,6 +3,7 @@ import { z, ZodError } from "zod";
 import { authorizeWrite, currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { readJsonBody, RequestBodyError } from "@/lib/request-body";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -124,6 +125,8 @@ export async function DELETE(request: Request) {
 }
 
 function candidateError(error: unknown) {
+  const limited = rateLimitResponse(error);
+  if (limited) return limited;
   if (error instanceof RequestBodyError)
     return NextResponse.json(
       { error: error.message },

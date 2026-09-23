@@ -9,6 +9,7 @@ import {
 import { db } from "@/lib/db";
 import { recordSecurityEvent } from "@/lib/security";
 import { readJsonBody, RequestBodyError } from "@/lib/request-body";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,8 @@ export async function GET(request: Request) {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
+    const limited = rateLimitResponse(error);
+    if (limited) return limited;
     console.error(
       "Security activity read failed",
       error instanceof Error ? error.message : "unknown",
@@ -95,6 +98,8 @@ export async function DELETE(request: Request) {
     });
     return NextResponse.json({ ok: true, current: removed.rows[0].current });
   } catch (error) {
+    const limited = rateLimitResponse(error);
+    if (limited) return limited;
     if (error instanceof RequestBodyError)
       return NextResponse.json(
         { error: error.message },

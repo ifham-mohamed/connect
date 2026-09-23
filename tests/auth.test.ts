@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   createSessionToken,
   equalSecret,
@@ -9,6 +9,15 @@ import {
 } from "../src/lib/auth";
 
 describe("account authentication", () => {
+  const mutableEnv = process.env as Record<string, string | undefined>;
+  const originalAppUrl = process.env.APP_URL;
+  const originalNodeEnv = process.env.NODE_ENV;
+  afterEach(() => {
+    if (originalAppUrl === undefined) delete process.env.APP_URL;
+    else process.env.APP_URL = originalAppUrl;
+    if (originalNodeEnv === undefined) delete mutableEnv.NODE_ENV;
+    else mutableEnv.NODE_ENV = originalNodeEnv;
+  });
   it("hashes passwords with unique salts and verifies only the original", async () => {
     const first = await hashPassword("correct-horse-123");
     const second = await hashPassword("correct-horse-123");
@@ -41,5 +50,16 @@ describe("account authentication", () => {
     });
     expect(originAllowed(sameOrigin)).toBe(true);
     expect(originAllowed(otherOrigin)).toBe(false);
+  });
+
+  it("fails closed in production when APP_URL is missing or invalid", () => {
+    delete process.env.APP_URL;
+    mutableEnv.NODE_ENV = "production";
+    const request = new Request("https://jobradar.test/api/auth", {
+      headers: { origin: "https://jobradar.test" },
+    });
+    expect(originAllowed(request)).toBe(false);
+    process.env.APP_URL = "not a URL";
+    expect(originAllowed(request)).toBe(false);
   });
 });
