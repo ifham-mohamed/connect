@@ -5,6 +5,8 @@
 | Variable                 | Needed when                       | Purpose                                                                                                       |
 | ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `DATABASE_URL`           | Always                            | PostgreSQL connection for workspace data, accounts, sessions, jobs, and intelligence results.                 |
+| `DATABASE_WEB_URL`       | Optional split endpoint           | Web transaction-pool URL; falls back to `DATABASE_URL`.                                                       |
+| `DATABASE_WORKER_URL`    | Optional split endpoint           | Direct/scheduled-worker URL; falls back to `DATABASE_URL`.                                                    |
 | `DATABASE_POOL_MAX`      | Optional                          | Web connection-pool limit; keep low for hosted PostgreSQL.                                                    |
 | `DATABASE_CA_CERT_PATH`  | Hosted database with a CA file    | Path to the provider CA certificate. The current Aiven connection uses this option.                           |
 | `DATABASE_CA_CERT`       | Hosted database with an inline CA | Inline PEM alternative to `DATABASE_CA_CERT_PATH`; normally leave blank when the path is configured.          |
@@ -26,7 +28,7 @@
 
 Keep `.env` out of version control and container build context. Set deployment variables through the host’s secret manager. Use separate random values for the scheduler and audit secrets. Only the web service needs the scheduler and audit secrets; the worker only needs its database connection and JEV credential when enabled.
 
-Authenticated writes use persistent per-user route limits shared across web instances. Sign-in uses separate account and trusted-network buckets. Members default to five new CV-to-job analyses per Sri Lanka calendar day; the owner can change the allowance in `/app/settings`, while owner analyses remain unlimited. A blocked request returns HTTP 429 and `Retry-After`.
+Authenticated writes use persistent per-user route limits shared across web instances. Members default to five new CV-to-job analyses per Sri Lanka calendar day. Owners have no per-user daily cap, but every account remains inside the workspace monthly request/token boundary. Keep gateway paid overage and purchased credits disabled. A provider `402` or `429` pauses requests and deterministic matching continues.
 
 ## JEV shadow intelligence
 
@@ -62,10 +64,10 @@ npm run jev:worker:once
 npm run jev:report
 ```
 
-For continuous shadow processing, run `npm run jev:worker` as a separate
-service alongside the source worker. New or materially changed jobs are queued
-inside their collection transaction. JEV calls occur later, so a provider
-outage cannot roll back source collection.
+Run `npm run jev:worker:once` from a bounded scheduler after collection when
+the owner has enabled background AI. New or materially changed jobs are queued
+inside their collection transaction. There is no five-second idle worker in
+the free deployment, and a provider outage cannot roll back collection.
 
 With Compose, start the opt-in service after configuring the key:
 
@@ -86,14 +88,14 @@ and stop the intelligence worker to halt calls immediately.
 1. Create PostgreSQL and configure environment variables.
 2. Apply `npm run db:migrate` before starting web traffic or collection. Migrations run in a transaction and are serialized by an advisory lock.
 3. Run `npm run build` and start the web process, or use the provided image’s `web` target.
-4. Start the `worker` target as a separate long-running service, or configure the protected cron endpoint. A live web app alone does not collect in the background.
+4. For a free hosted deployment, deploy `cloudflare/`, configure `JOBRADAR_URL` and `CRON_SECRET`, and verify both hourly collection and daily retention triggers. For self-hosting, Compose calls the one-shot worker hourly.
 5. Verify `/api/health` returns `status: ok`; create the first owner account, verify sign-in, a successful run, and source-attributed jobs.
 6. Put HTTPS in front of the app and set the matching `APP_URL`. Production writes fail closed without it. Configure `TRUST_PROXY_HEADERS=true` only after confirming the proxy replaces incoming forwarded-IP headers. Use persistent database storage, scheduled backups, and a tested restore procedure.
 7. Open `/app/settings`, verify the current session, AI allowance, and security activity. Exercise session revocation from a second browser before public access.
 
 ## Observability
 
-The worker emits structured summaries containing timestamp, source, result, and added count. The dashboard’s Activity log and Connected sources pages show stored successes and failures. `/api/health` verifies the database schema is reachable; it does not assert source freshness or collector availability.
+The worker emits timestamped source summaries. Owner Settings includes a Performance and Cost panel for database size, queue state, seven-day source totals, and workspace AI use. Activity and Connected sources show stored successes and failures. `/api/health` verifies the schema; `/api/revisions` is the lightweight client invalidation resource.
 
 For production, configure your host’s uptime monitor and alert when:
 
@@ -108,8 +110,8 @@ Monitoring services and external alerts are deployment configuration, not provis
 
 - **Database unavailable:** the dashboard shows a connection error; existing database records are not replaced by sample data.
 - **One source fails:** previous jobs remain; the run and source record show the error; other due sources continue.
-- **Worker stopped mid-import:** PostgreSQL rolls back the open transaction. The connection’s lock is released. A subsequent collector marks orphaned runs failed and retries according to the recorded interval.
-- **Duplicate scheduler invocation:** the second invocation sees the global lock and skips. This relies on a direct/session-mode connection.
+- **Worker stopped mid-import:** PostgreSQL rolls back the open transaction. Its source lease expires after 12 minutes; the next claim marks the abandoned run failed.
+- **Duplicate scheduler invocation:** each caller claims a different due source with `FOR UPDATE SKIP LOCKED`; the same source cannot be leased twice.
 - **Source throttles:** keep the recorded cooldown. Do not repeatedly remove the attempt timestamp to force requests.
 - **Account access issue:** an owner can remove that user’s rows from `user_sessions` to revoke active sessions before resetting credentials through an approved recovery procedure.
 - **Unexpected 429:** respect `Retry-After`. Inspect `request_rate_limits`, authentication attempts, and the owner-configured AI allowance before changing a limit. Do not delete counters to bypass provider cost controls.
@@ -119,8 +121,18 @@ Monitoring services and external alerts are deployment configuration, not provis
 
 Use provider-managed backups or scheduled PostgreSQL backups stored separately from the app host. Test restores to a separate database before an upgrade. The Docker named volume is persistence, not a backup. No destructive maintenance is automated.
 
+## Focused-read and scheduler checks
+
+- `GET /api/jobs?limit=20` returns summaries only and caps `limit` at 50.
+- `GET /api/jobs/:id` loads description and personal detail on demand.
+- `/api/sources`, `/api/runs`, `/api/runs/:id/jobs`, and `/api/performance` require owner access.
+- `GET /api/revisions` supports `If-None-Match` and returns `304` when unchanged.
+- `POST /api/cron` processes one lease and reports `moreDue`; GET returns 405.
+- `POST /api/maintenance` aggregates and removes eligible history older than 90 days.
+- Run `npm run perf:load` after migrations to simulate 100 focused reads and print latency, payload, pool, and query-plan evidence.
+
 ## Verification performed and limits
 
-Automated tests cover monitor rules, exclusions, literal skill names, unsafe URLs/XML, bounded streaming JSON, origin enforcement, persistent write limits, daily AI allowance, source date normalization, schema constraints, duplicate import identity, persistent job status, SQL monitor matching, scheduler behavior and failures. SQL tests use PGlite, a PostgreSQL engine; advisory-lock scheduling tests simulate the connection lock around real SQL transactions. These tests do not replace an independent penetration test or running Compose against a production-like PostgreSQL server.
+Automated tests cover monitor rules, unsafe input boundaries, daily/member and monthly/workspace AI limits, source validators, content identity, cursor stability, account visibility, SQL matching, source leases, scheduler recovery, and failures. SQL tests use PGlite. These tests do not replace an independent penetration test or a production-like restore exercise.
 
 The frontend was checked through the local browser for navigation, job search, saving, monitor creation, and mobile/desktop layout. Docker was installed but its daemon was not running in the development environment, so the complete Docker stack could not be started there. Deployment credentials and a hosted database were not provided. The local app therefore opens in the explicitly labeled interactive demo.

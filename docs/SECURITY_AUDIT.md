@@ -1,5 +1,11 @@
 # Jobradar security review
 
+## Scaling update (2026-09-23)
+
+Focused reads retain the existing account visibility predicates and owner-only source and run boundaries. Job descriptions remain behind the authorized ID endpoint. Cursor inputs, source and monitor IDs, search terms, locations, work modes, and limits are schema validated; limits cannot exceed 50. Revision ETags contain only numeric resource versions.
+
+Scheduled writes require a constant-time Bearer-secret comparison and POST. PostgreSQL leases use fixed SQL and generated UUIDs. Conditional response headers are stored as opaque text and are only sent back to their original fixed source URL. The workspace AI budget blocks requests before provider access, and provider credit or rate failures pause local AI calls. Daily retention removes old operational rows while preserving personal data and critical security events.
+
 Reviewed: 2026-09-23
 
 Scope: browser rendering, authentication, sessions, authorization, private candidate data, AI review usage, source ingestion, database access, scheduled collection, input validation, logging, and deployment configuration. This is an application review, not an independent penetration test.
@@ -61,14 +67,14 @@ Scope: browser rendering, authentication, sessions, authorization, private candi
 
 ## Findings closed in this review
 
-| Finding | Risk | Resolution |
-| --- | --- | --- |
-| Vacancy-image context accepted `request.json()` directly | An authenticated browser could send an unbounded body and bypass common write auditing/throttling | Routed through `authorizeWrite`, streamed JSON limits, schema validation, generic errors, and persistent throttling |
-| CV and onboarding writes buffered text before applying their effective size limit | A chunked oversized request could consume excess memory before rejection | Both now use the shared streaming body reader with endpoint-specific byte caps |
-| Authenticated writes had endpoint-specific or no request throttling | Repeated writes could amplify database, collector, or provider work across instances | Added PostgreSQL-backed route limits and a stricter manual-sync budget with standard 429 responses |
-| Production origin fallback trusted the request URL when `APP_URL` was absent | A misconfigured deployment could evaluate same-origin against attacker-controlled host data | Production now fails closed; the request-origin fallback is development-only |
-| Forwarded IP headers were always accepted | A direct client could spoof network attribution unless the proxy overwrote the header | Headers are ignored by default and require explicit `TRUST_PROXY_HEADERS=true` deployment configuration |
-| Private API cache behavior depended on individual handlers | A future private route could omit its own cache header | All `/api/*` responses now receive `Cache-Control: no-store` from application configuration |
+| Finding                                                                           | Risk                                                                                              | Resolution                                                                                                          |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Vacancy-image context accepted `request.json()` directly                          | An authenticated browser could send an unbounded body and bypass common write auditing/throttling | Routed through `authorizeWrite`, streamed JSON limits, schema validation, generic errors, and persistent throttling |
+| CV and onboarding writes buffered text before applying their effective size limit | A chunked oversized request could consume excess memory before rejection                          | Both now use the shared streaming body reader with endpoint-specific byte caps                                      |
+| Authenticated writes had endpoint-specific or no request throttling               | Repeated writes could amplify database, collector, or provider work across instances              | Added PostgreSQL-backed route limits and a stricter manual-sync budget with standard 429 responses                  |
+| Production origin fallback trusted the request URL when `APP_URL` was absent      | A misconfigured deployment could evaluate same-origin against attacker-controlled host data       | Production now fails closed; the request-origin fallback is development-only                                        |
+| Forwarded IP headers were always accepted                                         | A direct client could spoof network attribution unless the proxy overwrote the header             | Headers are ignored by default and require explicit `TRUST_PROXY_HEADERS=true` deployment configuration             |
+| Private API cache behavior depended on individual handlers                        | A future private route could omit its own cache header                                            | All `/api/*` responses now receive `Cache-Control: no-store` from application configuration                         |
 
 ## Residual risks and recommended production work
 

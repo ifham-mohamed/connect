@@ -10,13 +10,14 @@ Reduce repeated visits to Sri Lankan and remote job websites. Capture listings f
 flowchart LR
   U[Browser dashboard] --> N[Next.js pages and route handlers]
   N --> P[(PostgreSQL)]
-  W[Scheduled Node collector] --> A[Allowlisted source adapters]
-  C[Protected cron endpoint] --> A
+  C[Cloudflare hourly scheduler] --> N
+  W[Optional self-hosted hourly runner] --> A[Allowlisted source adapters]
   A --> S[ITPro RSS / Remotive / employer APIs]
   A --> V[Validate and normalize]
   V --> I[Transactional upsert and matching]
   I --> P
-  W -. PostgreSQL advisory lock .-> C
+  N --> L[PostgreSQL source lease]
+  L --> A
 ```
 
 One TypeScript codebase is organized into independently understandable boundaries:
@@ -31,7 +32,7 @@ One TypeScript codebase is organized into independently understandable boundarie
 - `db`: versioned database migrations.
 - `scripts`: deploy-time migrations and standalone worker entry points.
 
-Use the worker **or** a platform scheduler calling `/api/cron`. The same lock and interval checks protect both paths. Scheduled work does not depend on the dashboard being open.
+Use the hourly Cloudflare trigger or the self-hosted hourly runner. Both atomically claim one due source with `FOR UPDATE SKIP LOCKED`; expired leases are recoverable and scheduled work never depends on an open dashboard.
 
 ## Data model
 
@@ -82,15 +83,14 @@ New accounts complete a four-step preference flow. Career stage, selected roles,
 
 ## Collection sequence and failure handling
 
-1. Obtain a dedicated connection and the global collection lock. A concurrent invocation exits without collecting.
-2. Mark orphaned `running` records as interrupted after acquiring the lock.
-3. Select enabled sources whose last attempt is older than their allowed interval.
-4. Persist attempt time and a new run before fetching. Failed attempts also observe the cooldown.
-5. Fetch only a supported fixed host; employer slugs cannot inject a URL or path. Redirects are rejected. Apply a 25-second timeout and a 12 MB response limit.
-6. Validate, convert descriptions to text, reject unsafe destination schemes, and apply the explicit tech title/tag heuristic.
-7. In one transaction, upsert each accepted record, rebuild monitor matches, mark the run successful and update source health.
-8. On failure, roll back that source’s changes, retain previous jobs, record a failure, and continue to the next source. Retry on its next scheduled interval.
-9. Release the lock and connection. The worker wakes every minute to discover due sources, not to fetch each source every minute.
+1. Atomically claim one enabled due source and give it a 12-minute lease.
+2. Mark only expired runs for that source as interrupted.
+3. Send saved `ETag` and `Last-Modified` validators. A `304` records a lightweight successful run without parsing, job writes, matching, or JEV queueing.
+4. Fetch only a supported fixed host; reject redirects and cap time and response size.
+5. Validate and normalize the response, then hash stable source-owned job content.
+6. Write only new or changed jobs, batch the run links, and rebuild matches or queue intelligence only for changed job IDs.
+7. Commit source health, daily counters, and run status in the same transaction, then release the lease.
+8. On failure, roll back job changes, preserve prior records, store a bounded error, and release the lease for the next interval.
 
 No absence-based closure is inferred from limited feeds. The initial release does not automatically deactivate jobs. A future reconciliation process should only close jobs after a complete source snapshot or an authoritative closure signal.
 
@@ -109,21 +109,21 @@ No absence-based closure is inferred from limited feeds. The initial release doe
 
 ## Scaling decisions and measurable next steps
 
-The web and worker are separate processes and can be deployed independently. The current collector intentionally serializes work behind one global lock. This prioritizes reliable retries and source friendliness for the initial few sources.
+The web and scheduled runner deploy independently. Focused reads cap job summaries at 50, descriptions load by ID, and a sub-kilobyte revision resource replaces full-data polling. Hidden tabs make no periodic checks; visible tabs check every 15 minutes and on focus.
 
-| When measurements show…                                          | Make this change                                                                                                                                                                                                               |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Loading 1,000 job summaries affects response size or latency     | Add cursor pagination and server-side filters. Full descriptions already load through an authorized job-detail endpoint. Use the existing date/source indexes and PostgreSQL full-text index.                                  |
-| Incremental matching approaches the collection interval          | Process matching in bounded batches and keep a durable cursor and rule version. Collection now recomputes changed jobs, monitor edits recompute one monitor, and onboarding recomputes one user.                               |
-| Many employer boards cause a collection to exceed request limits | Always use the independent worker. Add a PostgreSQL queue such as pg-boss, leases per source, bounded concurrency, retries with jitter, and domain-specific request budgets. Verify the queue’s deployment requirements first. |
-| Multiple worker instances are needed                             | Replace the global lock with a source-level lease plus a durable queue; make all tasks idempotent and fence stale lease holders.                                                                                               |
-| Database connection count grows with web instances               | Give web reads/writes a transaction-pooled connection. Keep a separate direct/session-pooled worker connection for session advisory locks.                                                                                     |
-| Users need workspaces shared by multiple organizations           | Add workspace and membership tables, scope sources and users to a workspace, and add tenant-isolation tests before promising organization-level privacy.                                                                       |
-| Users need email/push notifications                              | Add an outbox keyed by `(monitor, job, channel)` in the same import transaction, then deliver separately with retries and opt-in preferences.                                                                                  |
-| Older record volume becomes significant                          | Establish an explicit retention policy, keep provenance, archive old descriptions, and partition large run/event tables if measurements justify it.                                                                            |
+| When measurements show…                                      | Make this change                                                                                                                                                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A route approaches its focused payload target                | Reduce its selected fields or page size; never restore the monolithic dashboard response.                                                                                                        |
+| Incremental matching approaches the collection interval      | Process matching in bounded batches and keep a durable cursor and rule version. Collection now recomputes changed jobs, monitor edits recompute one monitor, and onboarding recomputes one user. |
+| Many employer boards exceed one hourly trigger window        | Increase scheduler invocations up to two concurrent claims and retain the existing lease/idempotency boundary.                                                                                   |
+| More than 100 active users or persistent connection pressure | Add a transaction pooler through `DATABASE_WEB_URL`; keep worker access separate through `DATABASE_WORKER_URL`.                                                                                  |
+| Database connection count grows with web instances           | Give web reads/writes a transaction-pooled connection. Keep a separate direct/session-pooled worker connection for session advisory locks.                                                       |
+| Users need workspaces shared by multiple organizations       | Add workspace and membership tables, scope sources and users to a workspace, and add tenant-isolation tests before promising organization-level privacy.                                         |
+| Users need email/push notifications                          | Add an outbox keyed by `(monitor, job, channel)` in the same import transaction, then deliver separately with retries and opt-in preferences.                                                    |
+| Older record volume becomes significant                      | Establish an explicit retention policy, keep provenance, archive old descriptions, and partition large run/event tables if measurements justify it.                                              |
 
 Redis and a dedicated search engine are optional future tools, not prerequisites. PostgreSQL can supply the first queue and search capabilities. Container images avoid tying the architecture to one hosting vendor.
 
 ## Known tradeoffs
 
-Client-side filtering caps the dashboard at the newest 1,000 record summaries, so match counts shown by the dashboard are for that loaded window. Full descriptions load only when an authorized user opens a job. Incremental matching limits routine work to changed jobs, one edited monitor, or one onboarding user, while a full rebuild remains available for maintenance. There is no load-test claim, automatic failover claim, or guarantee that public feeds are complete. Revisit these decisions against actual source count, data volume, and latency rather than labeling the current release infinitely scalable.
+The UI keeps loaded cursor pages in memory, so counts on a job list describe those loaded pages. Summary counts come from PostgreSQL. Incremental matching limits work to changed jobs, one edited monitor, or one onboarding user. JEV is optional and bounded by a database budget; deterministic matching remains available when AI is paused. Public feeds can still be incomplete, and the system does not claim automatic failover.

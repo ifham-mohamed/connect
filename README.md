@@ -14,11 +14,12 @@ A working first release of a job-monitoring workspace for **Sri Lanka and remote
 - Collectors for **ITPro.lk RSS, Remotive, Lever, Greenhouse, and Arbeitnow**. ITPro.lk, Remotive, and Dijital Team’s Lever board are seeded by the migration.
 - Source-specific identifiers, original URLs and source attribution; publication, first discovery, and last observation timestamps.
 - Idempotent imports; previously saved/application states survive re-imports.
-- Source health, run history, timeouts, response-size limits, per-source scheduling, and an advisory lock preventing overlapping collectors.
+- Source health, compact run history, conditional HTTP requests, response-size limits, and atomic per-source leases that prevent duplicate collectors.
 - Per-run result history linking each successful source check to the jobs it found and the listings first discovered in that run.
 - Private account access with scrypt-hashed passwords, expiring database sessions, HTTP-only cookies, and owner/member authorization.
 - Privacy-safe security activity, individual session revocation, strict same-origin writes, streamed request-size enforcement, and PostgreSQL-backed write throttling.
-- Personal JEV job reviews with a configurable member allowance of five new analyses per Sri Lanka calendar day by default. Cached reviews are free and owners are unlimited.
+- Personal JEV job reviews with a configurable member allowance of five new analyses per Sri Lanka calendar day, a workspace monthly zero-spend boundary, cached reviews, and controlled provider-quota pauses.
+- Focused cursor APIs, server-rendered first pages, 15-minute visibility-aware revision checks, and on-demand job/run detail reads instead of a 1,000-job dashboard response.
 - Guided first-run onboarding that creates editable, user-owned monitors from career stage, role, location, and work-arrangement preferences.
 - Docker Compose setup, a standalone worker, and a protected endpoint for external schedulers.
 
@@ -35,7 +36,7 @@ This is a **single shared source catalog**, not a multi-tenant recruiting SaaS. 
 | Tailwind CSS 4 + design tokens   | Established styling tooling with a cohesive custom dashboard style; plain semantic components keep the UI lightweight.                                                  |
 | Lucide React                     | Consistent, accessible interface icons.                                                                                                                                 |
 | Zod                              | Validates owner inputs and structured upstream feeds before they reach storage.                                                                                         |
-| A separate Node worker           | Collection runs independently of browser traffic. No always-open browser or request-triggered scraping is necessary.                                                    |
+| Scheduled Node/Cloudflare runner | Hourly collection runs independently of browser traffic and claims one source through a PostgreSQL lease.                                                               |
 | Vitest + PGlite                  | Fast unit tests and SQL integration tests using PostgreSQL compiled to WebAssembly. The production database remains regular PostgreSQL.                                 |
 
 The implementation deliberately starts as a **modular monolith with a separate collector process**. Redis, Kubernetes, Elasticsearch, and microservices add operational work that this release does not need. See [architecture and scaling](docs/architecture.md) for the expansion path and current limits.
@@ -95,7 +96,7 @@ npm run db:check
 npm run db:migrate
 npm run sync
 npm run dev
-# In another terminal, for ongoing monitoring:
+# Run one due-source drain locally:
 npm run worker
 ```
 
@@ -111,7 +112,7 @@ npm run dev
 npm run worker
 ```
 
-The scripts load `.env`; Next.js also loads it. Alternatively, use `npm run sync` for one check of due sources. Repeated manual checks respect the same intervals as the worker.
+The scripts load `.env`; Next.js also loads it. `npm run sync` drains currently due sources once and exits. Compose invokes it hourly; hosted free deployments use the Cloudflare scheduler in `cloudflare/`.
 
 Database configuration lives in `.env`; credentials are never sent to the client. Use TLS connection parameters supplied by your managed database provider. Do not disable certificate verification.
 
@@ -119,9 +120,9 @@ Database configuration lives in `.env`; credentials are never sent to the client
 
 **Simplest consistent setup:** deploy the Compose stack on a small server, with an HTTPS reverse proxy and managed backups. Alternatively, run the web and worker containers on a managed container platform and use its managed PostgreSQL offering. The web image uses Next.js standalone output and runs as an unprivileged user.
 
-**Vercel + managed PostgreSQL:** deploy the Next.js application, set all environment variables, set `APP_URL` to the exact HTTPS origin, and apply migrations from a trusted terminal before opening the app. `vercel.json` schedules `/api/cron` every six hours; confirm your Vercel plan supports this frequency and function duration. Vercel sends `CRON_SECRET` as a Bearer token. With this schedule, hourly sources are effectively checked every six hours; change the schedule on a supported plan or run the separate worker for hourly checks. Do not run a worker inside a web request.
+**Vercel + Aiven + Cloudflare:** deploy the Next.js application, apply migrations, then deploy `cloudflare/` with `JOBRADAR_URL` and the same `CRON_SECRET`. Its hourly trigger calls the protected POST scheduler until due leases are drained; its daily trigger applies retention. No Vercel cron is required.
 
-**Important pooling requirement:** collection uses a session-level PostgreSQL advisory lock. The worker and `/api/cron` must connect through a **direct database endpoint or session-mode pool**, not a PgBouncer transaction-mode endpoint. This release uses one `DATABASE_URL`; use a direct connection with a conservative pool size, or split web/worker connection configuration before adopting transaction pooling.
+`DATABASE_POOL_MAX=1` protects the free database connection limit. `DATABASE_WEB_URL` and `DATABASE_WORKER_URL` can later point to separate pooled/direct endpoints; both fall back to `DATABASE_URL` today.
 
 Do not enable both schedulers unnecessarily. Overlap is guarded, but one scheduler is easier to operate. Hosted services may require paid plans; this repository does not provision accounts, publish the app, or incur hosting charges.
 
@@ -148,6 +149,7 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
+npm run perf:load
 npm run start
 ```
 
@@ -160,8 +162,9 @@ The optional `npx tsx scripts/check-sources.ts` makes real requests to the three
 - [System architecture and scaling](docs/architecture.md)
 - [Source references and integration decisions](docs/sources.md)
 - [Operations and deployment checklist](docs/operations.md)
+- [Cost and capacity guide](docs/COST_AND_CAPACITY.md)
 - [Security controls, findings, and residual risks](docs/SECURITY_AUDIT.md)
 
 ## Current boundaries
 
-The browser loads the newest 1,000 records and exports its filtered selection. Older records remain in PostgreSQL. Source counts cover all stored records; dashboard counts cover the loaded window. Monitor matches are rebuilt transactionally after imports and rule changes; this is appropriate for a small workspace, not millions of postings. The application has no MFA/passkey or password-reset flow, email/push alerts, organization workspaces, historical job-version snapshots, automatic closure verification, or full-feed pagination yet. Review the security audit before public deployment. Scale these pieces using the documented milestones when real usage warrants it.
+Job reads return 20 summaries by default and never more than 50. Cursor pagination loads further records without sending descriptions; descriptions and personal reviews load on demand. The application is designed for roughly 100 near-term users on the documented free-tier capacity. It has no MFA/passkey or password-reset flow, email/push alerts, organization workspaces, historical job-version snapshots, or automatic closure verification. Review the security audit and [cost and capacity guide](docs/COST_AND_CAPACITY.md) before public deployment.
