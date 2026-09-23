@@ -128,6 +128,7 @@ beforeAll(async () => {
     "024_candidate_cv",
     "025_job_cv_reviews",
     "026_private_image_context",
+    "027_itpro_category_sources",
   ])
     await database.exec(
       await readFile(
@@ -223,6 +224,10 @@ describe("PostgreSQL schema and matching integration", () => {
       expect.arrayContaining([
         "ITPro.lk",
         "ITPro Software Engineering",
+        "ITPro Web Development",
+        "ITPro Mobile Development",
+        "ITPro DevOps and Cloud",
+        "ITPro AI and Data",
         "TopJobs Software Development",
         "JobEka IT Software & Design",
         "Remotive",

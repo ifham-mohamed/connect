@@ -1,26 +1,32 @@
 import { db } from "../src/lib/db";
 import { syncSources } from "../src/lib/sync";
-import { fetchItproJobDetail } from "../src/lib/connectors";
+import {
+  fetchItproJobDetail,
+  itproCategoryBoards,
+} from "../src/lib/connectors";
 import { jevQueueEnabled } from "../src/lib/jev/config";
 import { queueJobsForIntelligence } from "../src/lib/intelligence/queue";
 
 try {
-  const result = await syncSources({
-    kind: "itpro",
-    board: "software-engineering",
-    force: true,
-  });
-  console.log(JSON.stringify(result));
+  const results = [];
+  for (const board of Object.keys(itproCategoryBoards))
+    results.push(
+      await syncSources({ kind: "itpro", board, force: true }),
+    );
+  console.log(JSON.stringify(results));
   if (
-    result.busy ||
-    !result.results.length ||
-    result.results.some((source) => source.status !== "success")
+    results.some(
+      (result) =>
+        result.busy ||
+        !result.results.length ||
+        result.results.some((source) => source.status !== "success"),
+    )
   ) {
     process.exitCode = 1;
   } else {
     const sparse = await db().query<{ id: string; url: string }>(
       `SELECT j.id,j.url FROM jobs j JOIN sources s ON s.id=j.source_id
-       WHERE s.kind='itpro' AND s.board='software-engineering' AND length(j.description)<180`,
+       WHERE s.kind='itpro' AND length(j.description)<180`,
     );
     const updated: string[] = [];
     for (const job of sparse.rows) {

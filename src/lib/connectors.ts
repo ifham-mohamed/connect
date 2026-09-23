@@ -125,6 +125,27 @@ const htmlSourceKinds = [
   "jobster",
 ];
 const roosterSearchUrl = "https://api.rooster.jobs/jobSearch/jobs/search";
+export const itproCategoryBoards = {
+  "software-engineering": "Software Engineering",
+  "web-development": "Web Development",
+  "mobile-development": "Mobile Development",
+  "devops-cloud": "DevOps and Cloud",
+  "ai-and-data": "AI and Data",
+} as const;
+function isItproCategoryBoard(board: string) {
+  return Object.hasOwn(itproCategoryBoards, board);
+}
+function cleanJobDescription(value: string) {
+  return plainText(value)
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+    .replace(/^\s*[-*+]\s+/gm, "• ")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/\[([^\]]+)\]\((?:https?:\/\/)?[^)]+\)/g, "$1")
+    .replace(/[\t ]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
 function metaDescription(payload: string) {
   return (
     payload.match(
@@ -332,8 +353,8 @@ export function sourceUrl(source: Pick<Source, "kind" | "board">) {
     throw new Error("Invalid board identifier");
   switch (source.kind) {
     case "itpro":
-      if (source.board === "software-engineering")
-        return "https://itpro.lk/jobs/software-engineering/";
+      if (isItproCategoryBoard(source.board))
+        return `https://itpro.lk/jobs/${source.board}/`;
       return "https://itpro.lk/rss/all/";
     case "topjobs":
       return `https://www.topjobs.lk/applicant/vacancybyfunctionalarea.jsp?FA=${source.board || "SDQ"}`;
@@ -370,7 +391,7 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
     case "itpro": {
       if (typeof payload !== "string" || /<!ENTITY/i.test(payload))
         throw new Error("Invalid feed");
-      if (/<!DOCTYPE/i.test(payload) && source.board !== "software-engineering")
+      if (/<!DOCTYPE/i.test(payload) && !isItproCategoryBoard(source.board))
         throw new Error("Invalid feed");
       if (!payload.trimStart().startsWith("<rss")) {
         jobs = Array.from(
@@ -393,7 +414,12 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
             description: `${title}\n${company}\n${location}`,
             url: match[2],
             publishedAt,
-            tags: ["Sri Lanka", "Software Engineering"],
+            tags: [
+              "Sri Lanka",
+              itproCategoryBoards[
+                source.board as keyof typeof itproCategoryBoards
+              ] || "ITPro",
+            ],
           };
         });
         break;
@@ -524,7 +550,7 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
           employmentType: job.job_type,
           salary: salaryParts.join(" "),
           tags: [job.department, ...job.tags, "Rooster"].filter(Boolean),
-          description: plainText(job.description),
+          description: cleanJobDescription(job.description),
           url: `https://rooster.jobs/jobs/${job.id}`,
           publishedAt: date(
             job.created_at && !/[zZ]|[+-]\d{2}:\d{2}$/.test(job.created_at)
@@ -688,7 +714,7 @@ export async function collect(source: Source): Promise<IncomingJob[]> {
     source,
     htmlSourceKinds.includes(source.kind) ? body : JSON.parse(body),
   );
-  if (source.kind === "itpro" && source.board === "software-engineering")
+  if (source.kind === "itpro" && isItproCategoryBoard(source.board))
     return enrichItproJobs(jobs);
   if (source.kind === "topjobs") return enrichTopJobs(jobs);
   return jobs;

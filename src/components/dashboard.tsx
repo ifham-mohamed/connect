@@ -3960,25 +3960,33 @@ function SourceForm({
           {["greenhouse", "lever"].includes(kind)
             ? "Employer board identifier"
             : "Source category"}
-          <input
-            required
-            placeholder={
-              kind === "greenhouse"
-                ? "e.g. acme"
-                : kind === "lever"
-                  ? "e.g. dijital-team-pty-ltd"
-                  : kind === "topjobs"
-                    ? "SDQ"
-                    : kind === "xpressjobs"
-                      ? "it"
-                      : kind === "jobeka"
-                        ? "IT-Software-and-Design"
-                        : "software-engineering"
-            }
-            pattern="[a-zA-Z0-9_-]+"
-            value={board}
-            onChange={(e) => setBoard(e.target.value)}
-          />
+          {kind === "itpro" ? (
+            <select value={board} onChange={(e) => setBoard(e.target.value)}>
+              <option value="software-engineering">Software Engineering</option>
+              <option value="web-development">Web Development</option>
+              <option value="mobile-development">Mobile Development</option>
+              <option value="devops-cloud">DevOps and Cloud</option>
+              <option value="ai-and-data">AI and Data</option>
+            </select>
+          ) : (
+            <input
+              required
+              placeholder={
+                kind === "greenhouse"
+                  ? "e.g. acme"
+                  : kind === "lever"
+                    ? "e.g. dijital-team-pty-ltd"
+                    : kind === "topjobs"
+                      ? "SDQ"
+                      : kind === "xpressjobs"
+                        ? "it"
+                        : "IT-Software-and-Design"
+              }
+              pattern="[a-zA-Z0-9_-]+"
+              value={board}
+              onChange={(e) => setBoard(e.target.value)}
+            />
+          )}
           <small>
             {["greenhouse", "lever"].includes(kind)
               ? `The employer name in its ${kindNames[kind]} board URL. Enter the identifier, not the full URL.`
@@ -3994,7 +4002,7 @@ function SourceForm({
           {kind === "remotive"
             ? "Checks every 6 hours. Remotive’s public listings are delayed by 24 hours and always link back to Remotive."
             : kind === "itpro"
-              ? "Checks every hour. Use software-engineering for focused Sri Lankan software roles, or leave blank for the broad RSS feed."
+              ? "Checks every hour. Choose a focused ITPro category; every listing keeps its original page and full job description."
               : kind === "topjobs"
                 ? "Checks every hour. Uses TopJobs’ Software Development / QA category page."
                 : kind === "xpressjobs"
@@ -4053,7 +4061,7 @@ function JobDetail({
   const [personalDescription, setPersonalDescription] = useState<string>();
   const [reviewRevision, setReviewRevision] = useState(0);
   const visibleDescription =
-    personalDescription ?? job.extractedDescription ?? job.description;
+    personalDescription || job.extractedDescription || job.description;
   return (
     <div className="job-detail">
       <section className="detail-summary" aria-labelledby="opportunity-title">

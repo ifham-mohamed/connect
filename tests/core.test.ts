@@ -361,7 +361,8 @@ describe("source normalization and trust boundaries", () => {
             {
               id: 519633,
               title: "Software Engineering - Intern",
-              description: "Build full-stack products with TypeScript and React.",
+              description:
+                "### **What You’ll Learn & Do**\n\n- Build full-stack products with TypeScript and React.\n- Ship production features.",
               company_name: "Rooster",
               subsidiary_company_name: "Example Labs",
               job_type: "internship",
@@ -385,10 +386,35 @@ describe("source normalization and trust boundaries", () => {
       title: "Software Engineering - Intern",
       company: "Example Labs",
       employmentType: "internship",
-      description: "Build full-stack products with TypeScript and React.",
+      description:
+        "What You’ll Learn & Do\n• Build full-stack products with TypeScript and React.\n• Ship production features.",
       url: "https://rooster.jobs/jobs/519633",
     });
     expect(job.publishedAt).toBe("2026-09-22T10:30:00.000Z");
+  });
+  it("collects every supported ITPro category and enriches its job details", async () => {
+    const board = `<article class="job-card" id="15145"><a href="https://itpro.lk/job/15145/junior-software-engineer/"><h2 class="jc-title">Junior Software Engineer</h2><span class="jc-company">Acme</span><span class="la">Colombo</span><time datetime="2026-09-18T08:28:00+05:30"></time></a></article>`;
+    const detail = `<article><header><div id="job-details-subrow"><span class="la">Colombo • <span style="white-space: nowrap;">Full-time</span></span></div></header><section id="job-description"><p>Build modern web applications.</p></section></article>`;
+    const fetchMock = vi.fn(async (url: string | URL | Request) =>
+      new Response(String(url).includes("/job/15145/") ? detail : board, {
+        headers: { "content-type": "text/html; charset=utf-8" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      for (const boardName of [
+        "web-development",
+        "mobile-development",
+        "devops-cloud",
+        "ai-and-data",
+      ]) {
+        const [job] = await collect({ ...source, board: boardName });
+        expect(job.description).toBe("Build modern web applications.");
+        expect(job.url).toContain("/job/15145/");
+      }
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
   it("uses the current Lever description fields for Dijital Team jobs", () => {
     const [job] = normalize(
