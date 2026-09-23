@@ -47,26 +47,34 @@ export async function queueJobsForIntelligence(
     `${intelligenceJobSelect} WHERE j.id=ANY($1::uuid[]) AND j.active`,
     [jobIds],
   );
-  let queued = 0;
-  for (const job of jobs.rows) {
-    const hash = jobDecisionStateHash(stateFromIntelligenceJob(job));
-    await queryable.query(
-      `UPDATE job_intelligence_queue
-          SET status='stale',locked_at=NULL,locked_by=NULL,updated_at=now()
-        WHERE job_id=$1 AND content_hash<>$2
-          AND status IN ('pending','processing','retrying')`,
-      [job.id, hash],
-    );
-    const inserted = await queryable.query(
-      `INSERT INTO job_intelligence_queue(job_id,content_hash,question_set_version)
-       VALUES($1,$2,$3)
-       ON CONFLICT(job_id,content_hash,question_set_version) DO NOTHING
-       RETURNING id`,
-      [job.id, hash, JOB_CLASSIFICATION_VERSION],
-    );
-    queued += inserted.rowCount || 0;
-  }
-  return queued;
+  const entries = jobs.rows.map((job) => ({
+    id: job.id,
+    hash: jobDecisionStateHash(stateFromIntelligenceJob(job)),
+  }));
+  if (!entries.length) return 0;
+  const ids = entries.map((entry) => entry.id);
+  const hashes = entries.map((entry) => entry.hash);
+  await queryable.query(
+    `WITH incoming AS (
+       SELECT * FROM unnest($1::uuid[],$2::text[]) AS item(job_id,content_hash)
+     )
+     UPDATE job_intelligence_queue queue
+        SET status='stale',locked_at=NULL,locked_by=NULL,updated_at=now()
+       FROM incoming
+      WHERE queue.job_id=incoming.job_id
+        AND queue.content_hash<>incoming.content_hash
+        AND queue.status IN ('pending','processing','retrying')`,
+    [ids, hashes],
+  );
+  const inserted = await queryable.query(
+    `INSERT INTO job_intelligence_queue(job_id,content_hash,question_set_version)
+     SELECT item.job_id,item.content_hash,$3
+       FROM unnest($1::uuid[],$2::text[]) AS item(job_id,content_hash)
+     ON CONFLICT(job_id,content_hash,question_set_version) DO NOTHING
+     RETURNING id`,
+    [ids, hashes, JOB_CLASSIFICATION_VERSION],
+  );
+  return inserted.rowCount || 0;
 }
 
 export async function backfillJobIntelligence(
