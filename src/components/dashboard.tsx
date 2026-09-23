@@ -71,7 +71,10 @@ import {
   type LinkedInWorkplace,
 } from "@/lib/linkedin";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
-import { WorkspaceContentSkeleton } from "@/components/workspace-content-skeleton";
+import {
+  SettingsCardSkeleton,
+  WorkspaceContentSkeleton,
+} from "@/components/workspace-content-skeleton";
 const CvWorkspace = dynamic(() => import("@/components/cv-workspace"), {
   loading: () => <WorkspaceContentSkeleton kind="cv" />,
 });
@@ -83,10 +86,17 @@ const JobCvReview = dynamic(() => import("@/components/job-cv-review"));
 const JobImageContext = dynamic(() => import("@/components/job-image-context"));
 const SecurityActivity = dynamic(
   () => import("@/components/security-activity"),
+  { loading: () => <SettingsCardSkeleton /> },
 );
-const AiUsageControls = dynamic(() => import("@/components/ai-usage-controls"));
+const AiUsageControls = dynamic(
+  () => import("@/components/ai-usage-controls"),
+  {
+    loading: () => <SettingsCardSkeleton />,
+  },
+);
 const PerformanceCostPanel = dynamic(
   () => import("@/components/performance-cost-panel"),
+  { loading: () => <SettingsCardSkeleton /> },
 );
 
 type Revisions = Record<string, number>;
@@ -445,80 +455,96 @@ export default function Dashboard({
   const resourceUserRole =
     data?.mode === "live" ? data.user?.role || null : null;
   useEffect(() => {
-    if (!resourceUserRole) return;
-    const owner = resourceUserRole === "owner";
+    if (
+      !resourceUserRole ||
+      !resourceLoading.monitors ||
+      !["overview", "jobs", "saved", "monitors"].includes(view)
+    )
+      return;
     const controller = new AbortController();
-    const loadDeferred = async () => {
-      try {
-        if (
-          resourceLoading.monitors &&
-          ["overview", "jobs", "saved", "monitors"].includes(view)
-        ) {
-          const monitors = await readJson("/api/monitors", {
-            signal: controller.signal,
-          });
-          setData((current) => (current ? { ...current, monitors } : current));
-          setResourceLoading((current) => ({ ...current, monitors: false }));
-        }
-        if (
-          resourceLoading.sources &&
-          ["overview", "jobs", "saved", "sources", "intelligence"].includes(
-            view,
-          )
-        ) {
-          if (owner) {
-            const sources = await readJson("/api/sources", {
-              signal: controller.signal,
-            });
-            setData((current) => (current ? { ...current, sources } : current));
-          }
-          setResourceLoading((current) => ({ ...current, sources: false }));
-        }
-        if (resourceLoading.runs && view === "activity") {
-          if (owner) {
-            const runs = await readJson("/api/runs", {
-              signal: controller.signal,
-            });
-            setData((current) =>
-              current
-                ? {
-                    ...current,
-                    runs: runs.map((run: DashboardData["runs"][number]) => ({
-                      ...run,
-                      jobIds: [],
-                      newJobIds: [],
-                    })),
-                  }
-                : current,
-            );
-          }
-          setResourceLoading((current) => ({ ...current, runs: false }));
-        }
-      } catch (cause) {
+    void readJson("/api/monitors", { signal: controller.signal })
+      .then((monitors) => {
+        setData((current) =>
+          current
+            ? { ...current, monitors: monitors as DashboardData["monitors"] }
+            : current,
+        );
+        setResourceLoading((current) => ({ ...current, monitors: false }));
+      })
+      .catch((cause) => {
         if ((cause as Error).name !== "AbortError") {
           setError((cause as Error).message);
-          if (
-            ["overview", "jobs", "saved", "sources", "intelligence"].includes(
-              view,
-            )
-          )
-            setResourceLoading((current) => ({
-              ...current,
-              sources: false,
-            }));
-          if (view === "activity")
-            setResourceLoading((current) => ({ ...current, runs: false }));
-          if (["overview", "jobs", "saved", "monitors"].includes(view))
-            setResourceLoading((current) => ({
-              ...current,
-              monitors: false,
-            }));
+          setResourceLoading((current) => ({ ...current, monitors: false }));
         }
-      }
-    };
-    void loadDeferred();
+      });
     return () => controller.abort();
-  }, [readJson, resourceLoading, resourceUserRole, view]);
+  }, [readJson, resourceLoading.monitors, resourceUserRole, view]);
+  useEffect(() => {
+    if (
+      !resourceUserRole ||
+      !resourceLoading.sources ||
+      !["overview", "jobs", "saved", "sources", "intelligence"].includes(view)
+    )
+      return;
+    if (resourceUserRole !== "owner") {
+      void Promise.resolve().then(() =>
+        setResourceLoading((current) => ({ ...current, sources: false })),
+      );
+      return;
+    }
+    const controller = new AbortController();
+    void readJson("/api/sources", { signal: controller.signal })
+      .then((sources) => {
+        setData((current) =>
+          current
+            ? { ...current, sources: sources as DashboardData["sources"] }
+            : current,
+        );
+        setResourceLoading((current) => ({ ...current, sources: false }));
+      })
+      .catch((cause) => {
+        if ((cause as Error).name !== "AbortError") {
+          setError((cause as Error).message);
+          setResourceLoading((current) => ({ ...current, sources: false }));
+        }
+      });
+    return () => controller.abort();
+  }, [readJson, resourceLoading.sources, resourceUserRole, view]);
+  useEffect(() => {
+    if (!resourceUserRole || !resourceLoading.runs || view !== "activity")
+      return;
+    if (resourceUserRole !== "owner") {
+      void Promise.resolve().then(() =>
+        setResourceLoading((current) => ({ ...current, runs: false })),
+      );
+      return;
+    }
+    const controller = new AbortController();
+    void readJson("/api/runs", { signal: controller.signal })
+      .then((result) => {
+        const runs = result as DashboardData["runs"];
+        setData((current) =>
+          current
+            ? {
+                ...current,
+                runs: runs.map((run) => ({
+                  ...run,
+                  jobIds: [],
+                  newJobIds: [],
+                })),
+              }
+            : current,
+        );
+        setResourceLoading((current) => ({ ...current, runs: false }));
+      })
+      .catch((cause) => {
+        if ((cause as Error).name !== "AbortError") {
+          setError((cause as Error).message);
+          setResourceLoading((current) => ({ ...current, runs: false }));
+        }
+      });
+    return () => controller.abort();
+  }, [readJson, resourceLoading.runs, resourceUserRole, view]);
   useEffect(() => {
     if (!data?.user?.id || (view !== "cv" && modal?.type !== "job")) return;
     let active = true;
@@ -704,54 +730,57 @@ export default function Dashboard({
     if (!hasLoadedRef.current || runFilter) return;
     if (!["overview", "jobs", "saved"].includes(view)) return;
     const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      const params = jobRequestParams();
-      void fetch(`/api/jobs?${params}`, {
-        cache: "no-store",
-        signal: controller.signal,
-      })
-        .then(async (response) => {
-          const result = await response.json();
-          if (!response.ok)
-            throw new Error(result.error || "Jobs could not be loaded.");
-          setData((current) =>
-            current ? { ...current, jobs: result.items } : current,
-          );
-          setJobsNextCursor(result.nextCursor || null);
-          setJobsTotal(result.total || 0);
-          setResourceLoading((current) => ({ ...current, jobs: false }));
-          const visibleParams = new URLSearchParams(window.location.search);
-          for (const key of [
-            "q",
-            "source",
-            "monitor",
-            "status",
-            "mode",
-            "location",
-          ])
-            visibleParams.delete(key);
-          params.forEach((value, key) => {
-            if (key !== "limit" && key !== "matched")
-              visibleParams.set(key, value);
-          });
-          window.history.replaceState(
-            window.history.state,
-            "",
-            `${window.location.pathname}${visibleParams.size ? `?${visibleParams}` : ""}`,
-          );
+    const timer = window.setTimeout(
+      () => {
+        const params = jobRequestParams();
+        void fetch(`/api/jobs?${params}`, {
+          cache: "no-store",
+          signal: controller.signal,
         })
-        .catch((cause) => {
-          if (cause.name !== "AbortError") {
-            setError(cause.message);
+          .then(async (response) => {
+            const result = await response.json();
+            if (!response.ok)
+              throw new Error(result.error || "Jobs could not be loaded.");
+            setData((current) =>
+              current ? { ...current, jobs: result.items } : current,
+            );
+            setJobsNextCursor(result.nextCursor || null);
+            setJobsTotal(result.total || 0);
             setResourceLoading((current) => ({ ...current, jobs: false }));
-          }
-        });
-    }, 250);
+            const visibleParams = new URLSearchParams(window.location.search);
+            for (const key of [
+              "q",
+              "source",
+              "monitor",
+              "status",
+              "mode",
+              "location",
+            ])
+              visibleParams.delete(key);
+            params.forEach((value, key) => {
+              if (key !== "limit" && key !== "matched")
+                visibleParams.set(key, value);
+            });
+            window.history.replaceState(
+              window.history.state,
+              "",
+              `${window.location.pathname}${visibleParams.size ? `?${visibleParams}` : ""}`,
+            );
+          })
+          .catch((cause) => {
+            if (cause.name !== "AbortError") {
+              setError(cause.message);
+              setResourceLoading((current) => ({ ...current, jobs: false }));
+            }
+          });
+      },
+      resourceLoading.jobs ? 0 : 250,
+    );
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [jobRequestParams, runFilter, view]);
+  }, [jobRequestParams, resourceLoading.jobs, runFilter, view]);
 
   async function loadMoreJobs() {
     if (!jobsNextCursor) return;
@@ -1385,6 +1414,13 @@ export default function Dashboard({
     ? preferenceRoles.slice(0, 3).join(", ")
     : "your active monitor roles";
   const jobViews = ["overview", "jobs", "saved"].includes(view);
+  const overviewLoading =
+    view === "overview" &&
+    (resourceLoading.jobs ||
+      resourceLoading.monitors ||
+      resourceLoading.sources);
+  const opportunityLoading =
+    (view === "jobs" || view === "saved") && resourceLoading.jobs;
   const linkedInMonitor =
     data.monitors.find((monitor) => monitor.id === monitorFilter) ||
     activeMonitors[0] ||
@@ -1827,7 +1863,8 @@ export default function Dashboard({
               </button>
             </div>
           )}
-          {view === "overview" && (
+          {overviewLoading && <WorkspaceContentSkeleton kind="overview" />}
+          {view === "overview" && !overviewLoading && (
             <>
               <div className="stats-grid">
                 <Stat
@@ -1889,7 +1926,10 @@ export default function Dashboard({
               </div>
             </>
           )}
-          {jobViews && (
+          {opportunityLoading && (
+            <WorkspaceContentSkeleton kind={view as "jobs" | "saved"} />
+          )}
+          {jobViews && !overviewLoading && !opportunityLoading && (
             <div
               className={`content-grid ${view !== "overview" ? "wide" : ""}`}
             >
@@ -2425,7 +2465,10 @@ export default function Dashboard({
               )}
             </div>
           )}
-          {view === "monitors" && (
+          {view === "monitors" && resourceLoading.monitors && (
+            <WorkspaceContentSkeleton kind="monitors" />
+          )}
+          {view === "monitors" && !resourceLoading.monitors && (
             <section className="operations-panel">
               <div className="section-heading">
                 <div>

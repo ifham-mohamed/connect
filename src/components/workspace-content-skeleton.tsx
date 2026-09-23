@@ -1,4 +1,13 @@
-type ResourceKind = "sources" | "activity" | "cv" | "intelligence";
+type ResourceKind =
+  | "overview"
+  | "jobs"
+  | "saved"
+  | "monitors"
+  | "sources"
+  | "activity"
+  | "cv"
+  | "intelligence"
+  | "settings";
 
 function Shimmer({ className = "" }: { className?: string }) {
   return (
@@ -7,6 +16,62 @@ function Shimmer({ className = "" }: { className?: string }) {
 }
 
 export function WorkspaceContentSkeleton({ kind }: { kind: ResourceKind }) {
+  if (kind === "overview") {
+    return (
+      <section
+        className="workspace-resource-skeleton overview-content-skeleton"
+        aria-label="Loading your workspace overview"
+        aria-busy="true"
+      >
+        <div className="overview-skeleton-stats">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Shimmer key={index} />
+          ))}
+        </div>
+        <Shimmer className="overview-skeleton-ribbon" />
+        <div className="overview-skeleton-layout">
+          <div className="resource-skeleton-panel">
+            <Shimmer className="heading" />
+            <div className="resource-skeleton-tabs">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Shimmer key={index} />
+              ))}
+            </div>
+            <div className="resource-skeleton-toolbar">
+              <Shimmer />
+              <Shimmer />
+            </div>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Shimmer className="resource-skeleton-row" key={index} />
+            ))}
+          </div>
+          <div className="overview-skeleton-rail">
+            <Shimmer />
+            <Shimmer />
+            <Shimmer />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (kind === "settings") {
+    return (
+      <section
+        className="workspace-resource-skeleton settings-content-skeleton"
+        aria-label="Loading workspace settings"
+        aria-busy="true"
+      >
+        <Shimmer className="settings-skeleton-overview" />
+        <div className="settings-skeleton-grid">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Shimmer key={index} />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   if (kind === "cv") {
     return (
       <section
@@ -77,7 +142,13 @@ export function WorkspaceContentSkeleton({ kind }: { kind: ResourceKind }) {
       aria-label={
         kind === "sources"
           ? "Loading connected sources"
-          : "Loading collection activity"
+          : kind === "activity"
+            ? "Loading collection activity"
+            : kind === "monitors"
+              ? "Loading personal monitors"
+              : kind === "saved"
+                ? "Loading saved opportunities"
+                : "Loading opportunities"
       }
       aria-busy="true"
     >
@@ -101,13 +172,38 @@ export function WorkspaceContentSkeleton({ kind }: { kind: ResourceKind }) {
         <Shimmer className="resource-skeleton-result" />
         <div className="resource-skeleton-table">
           <Shimmer className="resource-skeleton-table-head" />
-          {Array.from({ length: kind === "sources" ? 6 : 5 }).map(
-            (_, index) => (
-              <Shimmer className="resource-skeleton-row" key={index} />
-            ),
-          )}
+          {Array.from({
+            length:
+              kind === "jobs" || kind === "saved"
+                ? 7
+                : kind === "sources" || kind === "monitors"
+                  ? 6
+                  : 5,
+          }).map((_, index) => (
+            <Shimmer className="resource-skeleton-row" key={index} />
+          ))}
         </div>
       </div>
+    </section>
+  );
+}
+
+export function SettingsCardSkeleton() {
+  return (
+    <section
+      className="settings-card settings-card-skeleton"
+      aria-label="Loading settings"
+      aria-busy="true"
+    >
+      <div className="resource-skeleton-heading">
+        <Shimmer className="resource-skeleton-icon" />
+        <div>
+          <Shimmer className="heading" />
+          <Shimmer className="copy" />
+        </div>
+      </div>
+      <Shimmer className="resource-skeleton-row" />
+      <Shimmer className="resource-skeleton-row" />
     </section>
   );
 }

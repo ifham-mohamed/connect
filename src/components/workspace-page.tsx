@@ -2,12 +2,7 @@ import { redirect } from "next/navigation";
 import Dashboard from "@/components/dashboard";
 import { currentUser } from "@/lib/auth";
 import { connectDatabase } from "@/lib/db";
-import {
-  listJobs,
-  listMonitors,
-  listSources,
-  workspaceSummary,
-} from "@/lib/focused-repository";
+import { workspaceSummary } from "@/lib/focused-repository";
 import { getRevisions } from "@/lib/revisions";
 import type { DashboardData } from "@/lib/types";
 
@@ -29,44 +24,22 @@ export default async function WorkspacePage({ view }: { view: View }) {
     if (!user)
       redirect(`/auth?next=/app/${view === "overview" ? "dashboard" : view}`);
     if (!user.onboardingCompleted) redirect("/onboarding");
-    const needsJobs = ["overview", "jobs", "saved"].includes(view);
-    const needsMonitors = ["overview", "jobs", "saved", "monitors"].includes(
-      view,
-    );
-    const needsSources = ["overview", "jobs", "saved"].includes(view);
-    const deferredResources: Array<"jobs" | "monitors" | "sources" | "runs"> =
-      [];
-    if (!needsJobs) deferredResources.push("jobs");
-    if (!needsMonitors) deferredResources.push("monitors");
-    if (!needsSources) deferredResources.push("sources");
-    deferredResources.push("runs");
+    const deferredResources: Array<"jobs" | "monitors" | "sources" | "runs"> = [
+      "jobs",
+      "monitors",
+      "sources",
+      "runs",
+    ];
 
-    const [jobs, monitors, sources, revisions, summary] = await Promise.all([
-      needsJobs
-        ? listJobs(client, user, {
-            limit: 50,
-            cursor: null,
-            search: "",
-            status: view === "saved" ? "shortlist" : "all",
-            monitor: "all",
-            source: "all",
-            matched: view === "overview" || view === "jobs",
-            location: "",
-            mode: "all",
-          })
-        : Promise.resolve({ items: [], nextCursor: null, total: 0 }),
-      needsMonitors ? listMonitors(client, user.id) : Promise.resolve([]),
-      needsSources && user.role === "owner"
-        ? listSources(client)
-        : Promise.resolve([]),
+    const [revisions, summary] = await Promise.all([
       getRevisions(client, user.id),
       workspaceSummary(client, user),
     ]);
     const initialData: DashboardData = {
       mode: "live",
-      jobs: jobs.items,
-      monitors,
-      sources,
+      jobs: [],
+      monitors: [],
+      sources: [],
       runs: [],
       authenticated: true,
       user,
@@ -77,8 +50,8 @@ export default async function WorkspacePage({ view }: { view: View }) {
         initialView={view}
         initialData={JSON.parse(JSON.stringify(initialData))}
         initialRevisions={revisions}
-        initialNextCursor={jobs.nextCursor}
-        initialJobsTotal={jobs.total}
+        initialNextCursor={null}
+        initialJobsTotal={0}
         deferredResources={deferredResources}
       />
     );

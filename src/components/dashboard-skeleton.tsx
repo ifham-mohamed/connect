@@ -1,3 +1,5 @@
+import { WorkspaceContentSkeleton } from "@/components/workspace-content-skeleton";
+
 export type DashboardSkeletonView =
   | "overview"
   | "jobs"
@@ -135,52 +137,8 @@ export function DashboardSkeleton({
           {config.subtitle && <div className="skeleton-subtitle" />}
         </div>
 
-        {config.stats ? (
-          <div className="skeleton-stats">
-            {Array.from({ length: config.stats }).map((_, index) => (
-              <span key={index} />
-            ))}
-          </div>
-        ) : null}
-
-        {config.callout ? <div className="skeleton-callout" /> : null}
-
-        {["sources", "activity", "cv", "intelligence"].includes(view) ? (
-          <WorkspaceContentSkeleton
-            kind={view as "sources" | "activity" | "cv" | "intelligence"}
-          />
-        ) : config.panel === "cards" || config.panel === "sources" ? (
-          <div
-            className={`skeleton-card-grid skeleton-card-grid-${config.panel}`}
-          >
-            {Array.from({ length: config.cards ?? 6 }).map((_, index) => (
-              <span key={index} />
-            ))}
-          </div>
-        ) : config.panel === "settings" ? (
-          <div className="skeleton-settings-grid">
-            {Array.from({ length: config.cards ?? 2 }).map((_, index) => (
-              <span key={index} />
-            ))}
-          </div>
-        ) : config.panel === "activity" ? (
-          <div className="skeleton-table skeleton-activity-table">
-            <div className="skeleton-table-head" />
-            {Array.from({ length: config.rows }).map((_, index) => (
-              <span key={index} />
-            ))}
-          </div>
-        ) : (
-          <div className="skeleton-table skeleton-jobs-table">
-            <div className="skeleton-tabs" />
-            <div className="skeleton-search-row" />
-            {Array.from({ length: config.rows }).map((_, index) => (
-              <span key={index} />
-            ))}
-          </div>
-        )}
+        <WorkspaceContentSkeleton kind={view} />
       </section>
     </main>
   );
 }
-import { WorkspaceContentSkeleton } from "@/components/workspace-content-skeleton";
