@@ -89,6 +89,7 @@ const pageConfig: Record<
     eyebrow: true,
     titleLines: 1,
     subtitle: true,
+    callout: true,
     panel: "settings",
     rows: 3,
     cards: 2,
@@ -144,7 +145,11 @@ export function DashboardSkeleton({
 
         {config.callout ? <div className="skeleton-callout" /> : null}
 
-        {config.panel === "cards" || config.panel === "sources" ? (
+        {["sources", "activity", "cv", "intelligence"].includes(view) ? (
+          <WorkspaceContentSkeleton
+            kind={view as "sources" | "activity" | "cv" | "intelligence"}
+          />
+        ) : config.panel === "cards" || config.panel === "sources" ? (
           <div
             className={`skeleton-card-grid skeleton-card-grid-${config.panel}`}
           >
@@ -178,3 +183,4 @@ export function DashboardSkeleton({
     </main>
   );
 }
+import { WorkspaceContentSkeleton } from "@/components/workspace-content-skeleton";

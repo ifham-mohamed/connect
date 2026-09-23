@@ -71,9 +71,13 @@ import {
   type LinkedInWorkplace,
 } from "@/lib/linkedin";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
-const CvWorkspace = dynamic(() => import("@/components/cv-workspace"));
+import { WorkspaceContentSkeleton } from "@/components/workspace-content-skeleton";
+const CvWorkspace = dynamic(() => import("@/components/cv-workspace"), {
+  loading: () => <WorkspaceContentSkeleton kind="cv" />,
+});
 const IntelligenceControls = dynamic(
   () => import("@/components/intelligence-controls"),
+  { loading: () => <WorkspaceContentSkeleton kind="intelligence" /> },
 );
 const JobCvReview = dynamic(() => import("@/components/job-cv-review"));
 const JobImageContext = dynamic(() => import("@/components/job-image-context"));
@@ -239,12 +243,14 @@ export default function Dashboard({
   initialRevisions = {},
   initialNextCursor = null,
   initialJobsTotal = 0,
+  deferredResources = [],
 }: {
   initialView?: View;
   initialData?: DashboardData | null;
   initialRevisions?: Revisions;
   initialNextCursor?: string | null;
   initialJobsTotal?: number;
+  deferredResources?: Array<"jobs" | "monitors" | "sources" | "runs">;
 }) {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(initialData);
@@ -265,6 +271,12 @@ export default function Dashboard({
     initialNextCursor,
   );
   const [jobsTotal, setJobsTotal] = useState(initialJobsTotal);
+  const [resourceLoading, setResourceLoading] = useState(() => ({
+    jobs: deferredResources.includes("jobs"),
+    monitors: deferredResources.includes("monitors"),
+    sources: deferredResources.includes("sources"),
+    runs: deferredResources.includes("runs"),
+  }));
   const [filters, setFilters] = useState(false);
   const [workspaceFilter, setWorkspaceFilter] = useState("all");
   const [runFilter, setRunFilter] = useState<string | null>(null);
@@ -334,8 +346,8 @@ export default function Dashboard({
   const revisionsEtagRef = useRef("");
   const modalHistoryRef = useRef(false);
   const deepLinkJobRef = useRef(false);
-  const readJson = useCallback(async (url: string) => {
-    const response = await fetch(url, { cache: "no-store" });
+  const readJson = useCallback(async (url: string, init?: RequestInit) => {
+    const response = await fetch(url, { cache: "no-store", ...init });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) {
       const next = encodeURIComponent(
@@ -381,6 +393,12 @@ export default function Dashboard({
       setJobsNextCursor(jobsResult.nextCursor || null);
       setJobsTotal(jobsResult.total || 0);
       setData(result);
+      setResourceLoading({
+        jobs: false,
+        monitors: false,
+        sources: false,
+        runs: false,
+      });
       setProfileName(result.user?.name || "");
       hasLoadedRef.current = true;
       setNow(Date.now());
@@ -424,8 +442,85 @@ export default function Dashboard({
       window.removeEventListener("focus", onVisible);
     };
   }, [checkRevisions, initialData, refresh]);
+  const resourceUserRole =
+    data?.mode === "live" ? data.user?.role || null : null;
   useEffect(() => {
-    if (!data?.user?.id) return;
+    if (!resourceUserRole) return;
+    const owner = resourceUserRole === "owner";
+    const controller = new AbortController();
+    const loadDeferred = async () => {
+      try {
+        if (
+          resourceLoading.monitors &&
+          ["overview", "jobs", "saved", "monitors"].includes(view)
+        ) {
+          const monitors = await readJson("/api/monitors", {
+            signal: controller.signal,
+          });
+          setData((current) => (current ? { ...current, monitors } : current));
+          setResourceLoading((current) => ({ ...current, monitors: false }));
+        }
+        if (
+          resourceLoading.sources &&
+          ["overview", "jobs", "saved", "sources", "intelligence"].includes(
+            view,
+          )
+        ) {
+          if (owner) {
+            const sources = await readJson("/api/sources", {
+              signal: controller.signal,
+            });
+            setData((current) => (current ? { ...current, sources } : current));
+          }
+          setResourceLoading((current) => ({ ...current, sources: false }));
+        }
+        if (resourceLoading.runs && view === "activity") {
+          if (owner) {
+            const runs = await readJson("/api/runs", {
+              signal: controller.signal,
+            });
+            setData((current) =>
+              current
+                ? {
+                    ...current,
+                    runs: runs.map((run: DashboardData["runs"][number]) => ({
+                      ...run,
+                      jobIds: [],
+                      newJobIds: [],
+                    })),
+                  }
+                : current,
+            );
+          }
+          setResourceLoading((current) => ({ ...current, runs: false }));
+        }
+      } catch (cause) {
+        if ((cause as Error).name !== "AbortError") {
+          setError((cause as Error).message);
+          if (
+            ["overview", "jobs", "saved", "sources", "intelligence"].includes(
+              view,
+            )
+          )
+            setResourceLoading((current) => ({
+              ...current,
+              sources: false,
+            }));
+          if (view === "activity")
+            setResourceLoading((current) => ({ ...current, runs: false }));
+          if (["overview", "jobs", "saved", "monitors"].includes(view))
+            setResourceLoading((current) => ({
+              ...current,
+              monitors: false,
+            }));
+        }
+      }
+    };
+    void loadDeferred();
+    return () => controller.abort();
+  }, [readJson, resourceLoading, resourceUserRole, view]);
+  useEffect(() => {
+    if (!data?.user?.id || (view !== "cv" && modal?.type !== "job")) return;
     let active = true;
     fetch("/api/candidate/cv", { cache: "no-store" })
       .then(async (response) => {
@@ -450,7 +545,7 @@ export default function Dashboard({
     return () => {
       active = false;
     };
-  }, [data?.user?.id, cvUserId, cvRetry]);
+  }, [data?.user?.id, cvUserId, cvRetry, modal?.type, view]);
   useEffect(() => {
     if (!data || deepLinkJobRef.current || typeof window === "undefined")
       return;
@@ -624,6 +719,7 @@ export default function Dashboard({
           );
           setJobsNextCursor(result.nextCursor || null);
           setJobsTotal(result.total || 0);
+          setResourceLoading((current) => ({ ...current, jobs: false }));
           const visibleParams = new URLSearchParams(window.location.search);
           for (const key of [
             "q",
@@ -645,7 +741,10 @@ export default function Dashboard({
           );
         })
         .catch((cause) => {
-          if (cause.name !== "AbortError") setError(cause.message);
+          if (cause.name !== "AbortError") {
+            setError(cause.message);
+            setResourceLoading((current) => ({ ...current, jobs: false }));
+          }
         });
     }, 250);
     return () => {
@@ -2623,7 +2722,10 @@ export default function Dashboard({
               </div>
             </section>
           )}
-          {view === "sources" && (
+          {view === "sources" && resourceLoading.sources && (
+            <WorkspaceContentSkeleton kind="sources" />
+          )}
+          {view === "sources" && !resourceLoading.sources && (
             <section className="operations-panel">
               <div className="sources-intro">
                 <ShieldCheck size={20} />
@@ -3180,7 +3282,10 @@ export default function Dashboard({
               </div>
             </section>
           )}
-          {view === "activity" && (
+          {view === "activity" && resourceLoading.runs && (
+            <WorkspaceContentSkeleton kind="activity" />
+          )}
+          {view === "activity" && !resourceLoading.runs && (
             <section className="operations-panel">
               <div className="jobs-panel admin-table-panel">
                 <div className="view-filters" aria-label="Activity filters">
@@ -3649,15 +3754,7 @@ export default function Dashboard({
           {view === "cv" && (
             <div className="cv-page">
               {cvLoading ? (
-                <div className="settings-card cv-page-loading">
-                  <span className="cv-progress-orbit">
-                    <FileText size={18} />
-                  </span>
-                  <div>
-                    <strong>Opening your career profile</strong>
-                    <p>Loading your saved CV…</p>
-                  </div>
-                </div>
+                <WorkspaceContentSkeleton kind="cv" />
               ) : cvLoadError ? (
                 <div className="settings-card cv-page-loading">
                   <div>

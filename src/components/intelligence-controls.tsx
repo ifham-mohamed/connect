@@ -131,34 +131,58 @@ export default function IntelligenceControls({
             explainable.
           </p>
         </div>
-        <em>{health?.mode || "loading"} mode</em>
+        <em>{health ? `${health.mode} mode` : "Preparing data"}</em>
       </div>
       <div className="intelligence-stats">
         <article>
           <CheckCircle2 size={17} />
           <span>
-            <strong>{health?.reviewedJobs.length || 0}</strong>
+            <strong>
+              {health ? (
+                health.reviewedJobs.length
+              ) : (
+                <span className="intelligence-value-skeleton" />
+              )}
+            </strong>
             <small>personal reviews</small>
           </span>
         </article>
         <article>
           <Clock3 size={17} />
           <span>
-            <strong>{health?.pendingJobs.length || 0}</strong>
+            <strong>
+              {health ? (
+                health.pendingJobs.length
+              ) : (
+                <span className="intelligence-value-skeleton" />
+              )}
+            </strong>
             <small>matches ready to review</small>
           </span>
         </article>
         <article>
           <Gauge size={17} />
           <span>
-            <strong>{health?.evaluations.total || 0}</strong>
+            <strong>
+              {health ? (
+                health.evaluations.total
+              ) : (
+                <span className="intelligence-value-skeleton" />
+              )}
+            </strong>
             <small>listings classified</small>
           </span>
         </article>
         <article>
           <BrainCircuit size={17} />
           <span>
-            <strong>{pendingCount}</strong>
+            <strong>
+              {health ? (
+                pendingCount
+              ) : (
+                <span className="intelligence-value-skeleton" />
+              )}
+            </strong>
             <small>classification queue</small>
           </span>
         </article>
@@ -169,11 +193,13 @@ export default function IntelligenceControls({
           eyebrow="ANALYZED JOBS"
           jobs={health?.reviewedJobs || []}
           reviewed
+          loading={!health}
         />
         <JobList
           title="Relevant jobs without a review"
           eyebrow="READY TO ANALYZE"
           jobs={health?.pendingJobs || []}
+          loading={!health}
         />
       </div>
       <details className="intelligence-advanced">
@@ -385,11 +411,13 @@ function JobList({
   eyebrow,
   jobs,
   reviewed = false,
+  loading = false,
 }: {
   title: string;
   eyebrow: string;
   jobs: ReviewJob[];
   reviewed?: boolean;
+  loading?: boolean;
 }) {
   return (
     <section className="intelligence-list-panel">
@@ -398,10 +426,26 @@ function JobList({
           <small>{eyebrow}</small>
           <h3>{title}</h3>
         </div>
-        <span>{jobs.length}</span>
+        <span>
+          {loading ? (
+            <i className="intelligence-count-skeleton" />
+          ) : (
+            jobs.length
+          )}
+        </span>
       </header>
       <div className="intelligence-job-list">
-        {jobs.length ? (
+        {loading ? (
+          Array.from({ length: 3 }).map((_, index) => (
+            <span className="intelligence-job-row skeleton-row" key={index}>
+              <i />
+              <span>
+                <i />
+                <i />
+              </span>
+            </span>
+          ))
+        ) : jobs.length ? (
           jobs.map((job) => (
             <Link
               href={`/app/jobs?job=${job.jobId}`}

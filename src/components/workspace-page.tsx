@@ -5,7 +5,6 @@ import { connectDatabase } from "@/lib/db";
 import {
   listJobs,
   listMonitors,
-  listRuns,
   listSources,
   workspaceSummary,
 } from "@/lib/focused-repository";
@@ -30,31 +29,45 @@ export default async function WorkspacePage({ view }: { view: View }) {
     if (!user)
       redirect(`/auth?next=/app/${view === "overview" ? "dashboard" : view}`);
     if (!user.onboardingCompleted) redirect("/onboarding");
-    const [jobs, monitors, sources, runs, revisions, summary] =
-      await Promise.all([
-        listJobs(client, user, {
-          limit: 50,
-          cursor: null,
-          search: "",
-          status: view === "saved" ? "shortlist" : "all",
-          monitor: "all",
-          source: "all",
-          matched: view === "overview" || view === "jobs",
-          location: "",
-          mode: "all",
-        }),
-        listMonitors(client, user.id),
-        user.role === "owner" ? listSources(client) : Promise.resolve([]),
-        user.role === "owner" ? listRuns(client) : Promise.resolve([]),
-        getRevisions(client, user.id),
-        workspaceSummary(client, user),
-      ]);
+    const needsJobs = ["overview", "jobs", "saved"].includes(view);
+    const needsMonitors = ["overview", "jobs", "saved", "monitors"].includes(
+      view,
+    );
+    const needsSources = ["overview", "jobs", "saved"].includes(view);
+    const deferredResources: Array<"jobs" | "monitors" | "sources" | "runs"> =
+      [];
+    if (!needsJobs) deferredResources.push("jobs");
+    if (!needsMonitors) deferredResources.push("monitors");
+    if (!needsSources) deferredResources.push("sources");
+    deferredResources.push("runs");
+
+    const [jobs, monitors, sources, revisions, summary] = await Promise.all([
+      needsJobs
+        ? listJobs(client, user, {
+            limit: 50,
+            cursor: null,
+            search: "",
+            status: view === "saved" ? "shortlist" : "all",
+            monitor: "all",
+            source: "all",
+            matched: view === "overview" || view === "jobs",
+            location: "",
+            mode: "all",
+          })
+        : Promise.resolve({ items: [], nextCursor: null, total: 0 }),
+      needsMonitors ? listMonitors(client, user.id) : Promise.resolve([]),
+      needsSources && user.role === "owner"
+        ? listSources(client)
+        : Promise.resolve([]),
+      getRevisions(client, user.id),
+      workspaceSummary(client, user),
+    ]);
     const initialData: DashboardData = {
       mode: "live",
       jobs: jobs.items,
       monitors,
       sources,
-      runs: runs.map((run) => ({ ...run, jobIds: [], newJobIds: [] })),
+      runs: [],
       authenticated: true,
       user,
       summary: summary.counts,
@@ -66,6 +79,7 @@ export default async function WorkspacePage({ view }: { view: View }) {
         initialRevisions={revisions}
         initialNextCursor={jobs.nextCursor}
         initialJobsTotal={jobs.total}
+        deferredResources={deferredResources}
       />
     );
   } finally {
