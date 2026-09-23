@@ -41,6 +41,7 @@ try {
     "026_private_image_context",
     "027_itpro_category_sources",
     "028_security_audit",
+    "029_ai_usage_limits",
   ];
   for (const name of migrations) {
     const applied = await client.query(

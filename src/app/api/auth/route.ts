@@ -120,7 +120,10 @@ export async function POST(request: Request) {
       });
       return NextResponse.json(
         { error: "Too many attempts. Try again in five minutes." },
-        { status: 429 },
+        {
+          status: 429,
+          headers: { "Cache-Control": "no-store", "Retry-After": "300" },
+        },
       );
     }
 

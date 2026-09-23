@@ -9,6 +9,7 @@ import {
   CircleAlert,
   FileText,
   LoaderCircle,
+  ShieldCheck,
   Sparkles,
   Target,
 } from "lucide-react";
@@ -19,6 +20,15 @@ type SavedReview = {
   result: CvReviewResult;
   model: string;
   createdAt: string;
+};
+type AiUsage = {
+  unlimited: boolean;
+  memberLimit: number;
+  limit: number | null;
+  used: number;
+  pending: number;
+  remaining: number | null;
+  resetAt: string;
 };
 const labels = {
   role: "Role direction",
@@ -69,6 +79,7 @@ export default function JobCvReview({ jobId }: { jobId: string }) {
   const [stale, setStale] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [usage, setUsage] = useState<AiUsage | null>(null);
   useEffect(() => {
     let active = true;
     fetch(`/api/jobs/${jobId}/cv-review`, { cache: "no-store" })
@@ -83,6 +94,7 @@ export default function JobCvReview({ jobId }: { jobId: string }) {
         setCvAvailable(result.cvAvailable);
         setReview(result.review);
         setStale(result.stale);
+        setUsage(result.usage || null);
       })
       .catch((cause) => {
         if (active) setError((cause as Error).message);
@@ -100,6 +112,7 @@ export default function JobCvReview({ jobId }: { jobId: string }) {
         method: "POST",
       });
       const result = await response.json();
+      if (result.usage) setUsage(result.usage);
       if (!response.ok)
         throw new Error(result.error || "Review could not be completed.");
       setReview(result.review);
@@ -148,7 +161,7 @@ export default function JobCvReview({ jobId }: { jobId: string }) {
           </p>
           <button
             className="btn primary"
-            disabled={busy}
+            disabled={busy || usage?.remaining === 0}
             onClick={() => void analyze()}
           >
             {busy ? (
@@ -158,6 +171,14 @@ export default function JobCvReview({ jobId }: { jobId: string }) {
             )}
             {busy ? "Reviewing evidence…" : "Review with JEV"}
           </button>
+          {usage && (
+            <span className="job-review-allowance">
+              <ShieldCheck size={13} />
+              {usage.unlimited
+                ? "Owner access · unlimited analyses"
+                : `${usage.remaining} of ${usage.limit} analyses remaining today`}
+            </span>
+          )}
           <small>
             JEV receives selected skills and experience excerpts, not your name,
             contact details, or PDF. This is guidance, not a hiring decision.

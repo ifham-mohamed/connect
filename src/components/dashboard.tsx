@@ -75,6 +75,7 @@ import IntelligenceControls from "@/components/intelligence-controls";
 import JobCvReview from "@/components/job-cv-review";
 import JobImageContext from "@/components/job-image-context";
 import SecurityActivity from "@/components/security-activity";
+import AiUsageControls from "@/components/ai-usage-controls";
 
 type View =
   | "overview"
@@ -3315,6 +3316,7 @@ export default function Dashboard({
                   </a>
                 )}
               </section>
+              {data.mode === "live" && isOwner && <AiUsageControls />}
               {data.mode === "live" && <SecurityActivity />}
             </div>
           )}

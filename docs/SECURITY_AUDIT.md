@@ -26,6 +26,9 @@ Reviewed: 2026-09-23
 - Sessions expire after seven days, can be individually revoked, and are bound to a privacy-preserving browser-context hash. A device-context mismatch revokes the session.
 - Network changes are reported but do not automatically revoke a session because legitimate mobile and corporate networks change frequently.
 - Login throttling applies to both the account identifier and a keyed network hash.
+- Authentication throttling returns a five-minute retry window and is enforced in PostgreSQL across application instances.
+- Member CV-to-job analysis uses an atomic daily allowance. The default is five per Sri Lanka calendar day, failed calls release their reservation, cached reviews are free, and owners are unlimited.
+- Only the workspace owner can change the member AI allowance in Workspace settings.
 
 ### Authorization and tenant isolation
 

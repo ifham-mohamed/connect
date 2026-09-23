@@ -7,12 +7,30 @@ import { getJobDetail } from "@/lib/repository";
 import { createJevClient } from "@/lib/jev/client";
 import { jevConfig } from "@/lib/jev/config";
 import { jobCvHash, reviewJobAgainstCv } from "@/lib/intelligence/cv-review";
+import {
+  completeAiJobAnalysis,
+  getAiUsage,
+  reserveAiJobAnalysis,
+  type AiUsage,
+} from "@/lib/ai-usage";
 
 export const dynamic = "force-dynamic";
 const jobIdSchema = z.string().uuid();
 type Context = { params: Promise<{ id: string }> };
 
-export async function GET(_request: Request, context: Context) {
+function usageHeaders(usage: AiUsage) {
+  const headers: Record<string, string> = { "Cache-Control": "no-store" };
+  if (!usage.unlimited && usage.limit !== null && usage.remaining !== null) {
+    headers["RateLimit-Limit"] = String(usage.limit);
+    headers["RateLimit-Remaining"] = String(usage.remaining);
+    headers["RateLimit-Reset"] = String(
+      Math.max(0, Math.ceil(new Date(usage.resetAt).getTime() / 1000)),
+    );
+  }
+  return headers;
+}
+
+export async function GET(request: Request, context: Context) {
   const jobId = jobIdSchema.safeParse((await context.params).id);
   if (!jobId.success)
     return NextResponse.json({ error: "Job not found." }, { status: 404 });
@@ -25,20 +43,21 @@ export async function GET(_request: Request, context: Context) {
       { status: 503 },
     );
   try {
-    const user = await currentUser(client);
+    const user = await currentUser(client, request);
     if (!user)
       return NextResponse.json({ error: "Sign in first." }, { status: 401 });
     const job = await getJobDetail(user, jobId.data, client);
     if (!job)
       return NextResponse.json({ error: "Job not found." }, { status: 404 });
+    const usage = await getAiUsage(client, user);
     const cv = await client.query<{ revision: number }>(
       "SELECT revision FROM candidate_cvs WHERE user_id=$1",
       [user.id],
     );
     if (!cv.rowCount)
       return NextResponse.json(
-        { cvAvailable: false, review: null, stale: false },
-        { headers: { "Cache-Control": "no-store" } },
+        { cvAvailable: false, review: null, stale: false, usage },
+        { headers: usageHeaders(usage) },
       );
     const latest = await client.query<{
       id: string;
@@ -59,8 +78,13 @@ export async function GET(_request: Request, context: Context) {
         row.jobHash !== jobCvHash(job)),
     );
     return NextResponse.json(
-      { cvAvailable: true, review: stale ? null : row || null, stale },
-      { headers: { "Cache-Control": "no-store" } },
+      {
+        cvAvailable: true,
+        review: stale ? null : row || null,
+        stale,
+        usage,
+      },
+      { headers: usageHeaders(usage) },
     );
   } catch (error) {
     console.error("CV job review read failed", error);
@@ -102,6 +126,7 @@ export async function POST(request: Request, context: Context) {
       { error: "The workspace is temporarily unavailable." },
       { status: 503 },
     );
+  let reservationId: string | null = null;
   try {
     const job = await getJobDetail(user, jobId.data, client);
     if (!job)
@@ -129,30 +154,58 @@ export async function POST(request: Request, context: Context) {
        FROM job_cv_reviews WHERE user_id=$1 AND job_id=$2 AND cv_revision=$3 AND job_hash=$4`,
       [user.id, jobId.data, revision, hash],
     );
-    if (existing.rowCount)
-      return NextResponse.json({ review: existing.rows[0], cached: true });
-    const daily = await client.query<{ count: string }>(
-      "SELECT count(*)::text AS count FROM job_cv_reviews WHERE user_id=$1 AND created_at>now()-interval '1 day'",
-      [user.id],
-    );
-    if (Number(daily.rows[0].count) >= 100)
+    if (existing.rowCount) {
+      const usage = await getAiUsage(client, user);
       return NextResponse.json(
-        { error: "Daily review limit reached. Try again tomorrow." },
-        { status: 429 },
+        { review: existing.rows[0], cached: true, usage },
+        { headers: usageHeaders(usage) },
       );
+    }
     const config = jevConfig();
     if (!config.apiKey)
       return NextResponse.json(
         { error: "JEV review is not configured yet." },
         { status: 503 },
       );
+    const reservation = await reserveAiJobAnalysis(client, user, jobId.data);
+    reservationId = reservation.reservationId;
+    if (!reservation.usage.unlimited && !reservationId) {
+      const retryAfter = Math.max(
+        1,
+        Math.ceil(
+          (new Date(reservation.usage.resetAt).getTime() - Date.now()) / 1000,
+        ),
+      );
+      return NextResponse.json(
+        {
+          error: `Daily AI analysis limit reached. Your allowance resets at ${new Date(
+            reservation.usage.resetAt,
+          ).toLocaleTimeString("en-LK", {
+            timeZone: "Asia/Colombo",
+            hour: "numeric",
+            minute: "2-digit",
+          })}.`,
+          usage: reservation.usage,
+        },
+        {
+          status: 429,
+          headers: {
+            ...usageHeaders(reservation.usage),
+            "Retry-After": String(retryAfter),
+          },
+        },
+      );
+    }
     const analyzed = await reviewJobAgainstCv(createJevClient(config), job, cv);
     const currentJob = await getJobDetail(user, jobId.data, client);
-    if (!currentJob || jobCvHash(currentJob) !== hash)
+    if (!currentJob || jobCvHash(currentJob) !== hash) {
+      await completeAiJobAnalysis(client, reservationId, false);
+      reservationId = null;
       return NextResponse.json(
         { error: "This listing changed during review. Try again." },
         { status: 409 },
       );
+    }
     const inserted = await client.query(
       `INSERT INTO job_cv_reviews(user_id,job_id,cv_revision,job_hash,result,model_identifier)
        SELECT $1,$2,$3,$4,$5::jsonb,$6 FROM candidate_cvs WHERE user_id=$1 AND revision=$3
@@ -167,13 +220,23 @@ export async function POST(request: Request, context: Context) {
         analyzed.model,
       ],
     );
-    if (!inserted.rowCount)
+    if (!inserted.rowCount) {
+      await completeAiJobAnalysis(client, reservationId, false);
+      reservationId = null;
       return NextResponse.json(
         { error: "Your CV changed during review. Try again." },
         { status: 409 },
       );
-    return NextResponse.json({ review: inserted.rows[0], cached: false });
+    }
+    await completeAiJobAnalysis(client, reservationId, true);
+    reservationId = null;
+    const usage = await getAiUsage(client, user);
+    return NextResponse.json(
+      { review: inserted.rows[0], cached: false, usage },
+      { headers: usageHeaders(usage) },
+    );
   } catch (error) {
+    await completeAiJobAnalysis(client, reservationId, false).catch(() => {});
     console.error(
       "CV job review failed",
       error instanceof Error ? error.name : "unknown",
