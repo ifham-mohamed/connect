@@ -7,7 +7,17 @@ const querySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
   cursor: z.string().max(500).nullable(),
   search: z.string().trim().max(120).default(""),
-  status: z.enum(["all", "new", "saved", "applied", "archived"]).default("all"),
+  status: z
+    .enum([
+      "all",
+      "new",
+      "saved",
+      "applied",
+      "archived",
+      "shortlist",
+      "unreviewed",
+    ])
+    .default("all"),
   monitor: z.union([z.literal("all"), z.string().uuid()]).default("all"),
   source: z.union([z.literal("all"), z.string().uuid()]).default("all"),
   matched: z

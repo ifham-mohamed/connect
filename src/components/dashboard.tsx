@@ -238,11 +238,13 @@ export default function Dashboard({
   initialData = null,
   initialRevisions = {},
   initialNextCursor = null,
+  initialJobsTotal = 0,
 }: {
   initialView?: View;
   initialData?: DashboardData | null;
   initialRevisions?: Revisions;
   initialNextCursor?: string | null;
+  initialJobsTotal?: number;
 }) {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(initialData);
@@ -262,6 +264,7 @@ export default function Dashboard({
   const [jobsNextCursor, setJobsNextCursor] = useState<string | null>(
     initialNextCursor,
   );
+  const [jobsTotal, setJobsTotal] = useState(initialJobsTotal);
   const [filters, setFilters] = useState(false);
   const [workspaceFilter, setWorkspaceFilter] = useState("all");
   const [runFilter, setRunFilter] = useState<string | null>(null);
@@ -372,9 +375,11 @@ export default function Dashboard({
         })),
         authenticated: true,
         user: summary.user,
+        summary: summary.counts,
       };
       revisionsRef.current = summary.revisions || {};
       setJobsNextCursor(jobsResult.nextCursor || null);
+      setJobsTotal(jobsResult.total || 0);
       setData(result);
       setProfileName(result.user?.name || "");
       hasLoadedRef.current = true;
@@ -581,21 +586,31 @@ export default function Dashboard({
   const ownerAccess = data?.mode === "demo" || data?.user?.role === "owner";
   const activeTab =
     !ownerAccess && tab === "all" && view !== "saved" ? "matched" : tab;
-  useEffect(() => {
-    if (!hasLoadedRef.current || runFilter) return;
-    if (!["overview", "jobs", "saved"].includes(view)) return;
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      const params = new URLSearchParams();
-      params.set("limit", "50");
+  const jobRequestParams = useCallback(
+    (cursor?: string | null) => {
+      const params = new URLSearchParams({ limit: "50" });
+      if (cursor) params.set("cursor", cursor);
       if (query.trim()) params.set("q", query.trim());
       if (sourceFilter !== "all") params.set("source", sourceFilter);
       if (monitorFilter !== "all") params.set("monitor", monitorFilter);
       if (activeTab === "matched") params.set("matched", "true");
       if (activeTab === "archived") params.set("status", "archived");
       if (activeTab === "applied") params.set("status", "applied");
+      if (activeTab === "new") params.set("status", "unreviewed");
+      if (view === "saved" && activeTab === "all")
+        params.set("status", "shortlist");
       if (region === "remote") params.set("mode", "remote");
       if (region === "sri-lanka") params.set("location", "Sri Lanka");
+      return params;
+    },
+    [activeTab, monitorFilter, query, region, sourceFilter, view],
+  );
+  useEffect(() => {
+    if (!hasLoadedRef.current || runFilter) return;
+    if (!["overview", "jobs", "saved"].includes(view)) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      const params = jobRequestParams();
       void fetch(`/api/jobs?${params}`, {
         cache: "no-store",
         signal: controller.signal,
@@ -608,6 +623,7 @@ export default function Dashboard({
             current ? { ...current, jobs: result.items } : current,
           );
           setJobsNextCursor(result.nextCursor || null);
+          setJobsTotal(result.total || 0);
           const visibleParams = new URLSearchParams(window.location.search);
           for (const key of [
             "q",
@@ -636,19 +652,11 @@ export default function Dashboard({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [activeTab, monitorFilter, query, region, runFilter, sourceFilter, view]);
+  }, [jobRequestParams, runFilter, view]);
 
   async function loadMoreJobs() {
     if (!jobsNextCursor) return;
-    const params = new URLSearchParams({ limit: "50", cursor: jobsNextCursor });
-    if (query.trim()) params.set("q", query.trim());
-    if (sourceFilter !== "all") params.set("source", sourceFilter);
-    if (monitorFilter !== "all") params.set("monitor", monitorFilter);
-    if (activeTab === "matched") params.set("matched", "true");
-    if (activeTab === "archived") params.set("status", "archived");
-    if (activeTab === "applied") params.set("status", "applied");
-    if (region === "remote") params.set("mode", "remote");
-    if (region === "sri-lanka") params.set("location", "Sri Lanka");
+    const params = jobRequestParams(jobsNextCursor);
     const result = await readJson(`/api/jobs?${params}`);
     setData((current) =>
       current
@@ -665,6 +673,7 @@ export default function Dashboard({
         : current,
     );
     setJobsNextCursor(result.nextCursor || null);
+    setJobsTotal(result.total || 0);
     setPage((value) => value + 1);
   }
   const selectedRun = data?.runs.find((run) => run.id === runFilter);
@@ -727,10 +736,11 @@ export default function Dashboard({
       selectedRunJobIds,
     ],
   );
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const resultTotal = selectedRun ? filtered.length : jobsTotal;
+  const totalPages = Math.max(1, Math.ceil(resultTotal / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const pageStart = filtered.length ? (currentPage - 1) * pageSize + 1 : 0;
-  const pageEnd = Math.min(currentPage * pageSize, filtered.length);
+  const pageStart = resultTotal ? (currentPage - 1) * pageSize + 1 : 0;
+  const pageEnd = Math.min(currentPage * pageSize, resultTotal);
   const paginatedJobs = filtered.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
@@ -1054,7 +1064,7 @@ export default function Dashboard({
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error);
-    if (actionName === "job-status")
+    if (actionName === "job-status") {
       setData((current) =>
         current
           ? {
@@ -1075,7 +1085,23 @@ export default function Dashboard({
             }
           : current,
       );
-    else if (actionName === "job-reviewed")
+      const [summary, jobsResult] = await Promise.all([
+        readJson("/api/workspace/summary"),
+        readJson(`/api/jobs?${jobRequestParams()}`),
+      ]);
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              jobs: jobsResult.items,
+              summary: summary.counts,
+            }
+          : current,
+      );
+      setJobsNextCursor(jobsResult.nextCursor || null);
+      setJobsTotal(jobsResult.total || 0);
+      setPage(1);
+    } else if (actionName === "job-reviewed") {
       setData((current) =>
         current
           ? {
@@ -1086,7 +1112,23 @@ export default function Dashboard({
             }
           : current,
       );
-    else if (actionName === "job-note")
+      const [summary, jobsResult] = await Promise.all([
+        readJson("/api/workspace/summary"),
+        readJson(`/api/jobs?${jobRequestParams()}`),
+      ]);
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              jobs: jobsResult.items,
+              summary: summary.counts,
+            }
+          : current,
+      );
+      setJobsNextCursor(jobsResult.nextCursor || null);
+      setJobsTotal(jobsResult.total || 0);
+      setPage(1);
+    } else if (actionName === "job-note")
       setData((current) =>
         current
           ? {
@@ -1112,8 +1154,13 @@ export default function Dashboard({
           : current,
       );
     else if (actionName.startsWith("monitor-")) {
-      const monitors = await readJson("/api/monitors");
-      setData((current) => (current ? { ...current, monitors } : current));
+      const [monitors, summary] = await Promise.all([
+        readJson("/api/monitors"),
+        readJson("/api/workspace/summary"),
+      ]);
+      setData((current) =>
+        current ? { ...current, monitors, summary: summary.counts } : current,
+      );
     } else if (actionName.startsWith("source-")) {
       const sources = await readJson("/api/sources");
       setData((current) => (current ? { ...current, sources } : current));
@@ -1301,12 +1348,24 @@ export default function Dashboard({
       audience: "global",
     }),
   };
-  const savedCount = jobs.filter((j) => j.status === "saved").length;
-  const newCount = jobs.filter(
-    (j) => now - new Date(j.firstSeenAt).getTime() < 86400000,
-  ).length;
+  const savedCount =
+    data.summary?.saved ?? jobs.filter((j) => j.status === "saved").length;
+  const appliedCount =
+    data.summary?.applied ?? jobs.filter((j) => j.status === "applied").length;
+  const relevantCount =
+    data.summary?.relevant ??
+    jobs.filter((j) => j.matchedMonitors.length > 0).length;
+  const collectedCount = data.summary?.totalCollected ?? jobs.length;
+  const unreviewedCount =
+    data.summary?.unreviewed ?? jobs.filter((j) => !j.reviewed).length;
+  const archivedCount =
+    data.summary?.archived ??
+    jobs.filter((j) => j.status === "archived").length;
+  const newCount =
+    data.summary?.newToday ??
+    jobs.filter((j) => now - new Date(j.firstSeenAt).getTime() < 86400000)
+      .length;
   const liveSources = data.sources.filter((s) => s.enabled);
-  const matchedJobs = jobs.filter((j) => j.matchedMonitors.length > 0);
   const signOut = async () => {
     setAccountMenu(null);
     const response = await fetch("/api/auth", { method: "DELETE" });
@@ -1674,18 +1733,18 @@ export default function Dashboard({
               <div className="stats-grid">
                 <Stat
                   label="Relevant opportunities"
-                  value={matchedJobs.length}
+                  value={relevantCount}
                   icon={<BriefcaseBusiness size={18} />}
                   detail={
                     isOwner
-                      ? `${jobs.length} total records collected`
-                      : `${jobs.length} personal opportunities available`
+                      ? `${collectedCount} total records collected`
+                      : `${collectedCount} personal opportunities available`
                   }
                   trend={`${newCount} new records today`}
                 />
                 <Stat
                   label="Matching your interests"
-                  value={matchedJobs.length}
+                  value={relevantCount}
                   icon={<Target size={18} />}
                   detail="Matched to your keyword monitors"
                   trend="Made for your search"
@@ -1701,7 +1760,7 @@ export default function Dashboard({
                   label="Saved for later"
                   value={savedCount}
                   icon={<Bookmark size={18} />}
-                  detail={`${jobs.filter((j) => j.status === "applied").length} applications recorded`}
+                  detail={`${appliedCount} applications recorded`}
                   action={() => navigate("saved")}
                 />
               </div>
@@ -1742,7 +1801,7 @@ export default function Dashboard({
                       {view === "saved"
                         ? "Your shortlist"
                         : "Latest opportunities"}
-                      <span className="count-pill">{filtered.length}</span>
+                      <span className="count-pill">{resultTotal}</span>
                     </h2>
                     <p>
                       {view === "saved"
@@ -1802,25 +1861,20 @@ export default function Dashboard({
                         {key === "all" && (
                           <span>
                             {view === "saved"
-                              ? savedCount +
-                                jobs.filter((j) => j.status === "applied")
-                                  .length
+                              ? savedCount + appliedCount
                               : selectedRun
                                 ? contextJobs.length
-                                : contextJobs.filter(
-                                    (j) => j.status !== "archived",
-                                  ).length}
+                                : collectedCount}
                           </span>
                         )}
                         {key === "matched" && (
                           <span>
-                            {
-                              contextJobs.filter(
-                                (j) => j.matchedMonitors.length > 0,
-                              ).length
-                            }
+                            {selectedRun ? filtered.length : relevantCount}
                           </span>
                         )}
+                        {key === "new" && <span>{unreviewedCount}</span>}
+                        {key === "archived" && <span>{archivedCount}</span>}
+                        {key === "applied" && <span>{appliedCount}</span>}
                       </button>
                     ))}
                   </div>
@@ -1945,7 +1999,7 @@ export default function Dashboard({
                   )}
                   <div className="results-row compact-results-row">
                     <span>
-                      <strong>{filtered.length}</strong> opportunities{" "}
+                      <strong>{resultTotal}</strong> opportunities{" "}
                       <span className="muted">
                         {query ? `for “${query}”` : "to explore"}
                       </span>
@@ -2066,7 +2120,7 @@ export default function Dashboard({
                       </article>
                     ))}
                   </div>
-                  {filtered.length === 0 && (
+                  {resultTotal === 0 && (
                     <Empty
                       icon={<Search size={25} />}
                       title="Room for a new possibility."
@@ -2087,10 +2141,10 @@ export default function Dashboard({
                       label={jobs.length ? "Clear filters" : "Manage sources"}
                     />
                   )}
-                  {filtered.length > 0 && (
+                  {resultTotal > 0 && (
                     <div className="list-footer pagination-footer">
                       <span>
-                        Showing {pageStart}-{pageEnd} of {filtered.length}
+                        Showing {pageStart}-{pageEnd} of {resultTotal}
                       </span>
                       <div
                         className="pagination-controls"
@@ -2128,7 +2182,10 @@ export default function Dashboard({
                         <button
                           className="btn small pagination-btn"
                           onClick={() => {
-                            if (currentPage === totalPages && jobsNextCursor)
+                            if (
+                              (currentPage + 1) * pageSize > filtered.length &&
+                              jobsNextCursor
+                            )
                               void loadMoreJobs().catch((cause) =>
                                 setError(cause.message),
                               );

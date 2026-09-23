@@ -102,6 +102,16 @@ export interface DashboardData {
   sources: Source[];
   runs: Run[];
   authenticated: boolean;
+  summary?: {
+    totalCollected: number;
+    relevant: number;
+    newToday: number;
+    unreviewed: number;
+    archived: number;
+    saved: number;
+    applied: number;
+    monitors: number;
+  };
   user: {
     id: string;
     name: string;

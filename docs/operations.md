@@ -123,7 +123,7 @@ Use provider-managed backups or scheduled PostgreSQL backups stored separately f
 
 ## Focused-read and scheduler checks
 
-- `GET /api/jobs?limit=20` returns summaries only and caps `limit` at 50.
+- `GET /api/jobs?limit=20` returns summaries plus the total matching the same visibility, tab, search, source, monitor, location, and work-mode filters. It caps `limit` at 50 and returns a cursor only when another page exists.
 - `GET /api/jobs/:id` loads description and personal detail on demand.
 - `/api/sources`, `/api/runs`, `/api/runs/:id/jobs`, and `/api/performance` require owner access.
 - `GET /api/revisions` supports `If-None-Match` and returns `304` when unchanged.

@@ -43,21 +43,22 @@ export async function listJobs(
     SELECT 1 FROM monitor_matches vm JOIN monitors m ON m.id=vm.monitor_id
     WHERE vm.job_id=j.id AND m.user_id=$1 AND m.enabled))`,
   ];
-  if (input.cursor) {
-    const at = add(input.cursor.at);
-    const id = add(input.cursor.id);
-    where.push(
-      `(COALESCE(j.published_at,j.first_seen_at),j.id)<(${at}::timestamptz,${id}::uuid)`,
-    );
-  }
   if (input.search) {
     const search = add(`%${input.search}%`);
     where.push(
-      `(j.title ILIKE ${search} OR j.company ILIKE ${search} OR j.location ILIKE ${search})`,
+      `(j.title ILIKE ${search} OR j.company ILIKE ${search} OR j.location ILIKE ${search}
+        OR array_to_string(j.tags,' ') ILIKE ${search})`,
     );
   }
-  if (input.status && input.status !== "all")
+  if (input.status === "shortlist")
+    where.push("personal_state.status IN ('saved','applied')");
+  else if (input.status === "unreviewed")
+    where.push(
+      "personal_state.reviewed_at IS NULL AND COALESCE(personal_state.status,'new')<>'archived'",
+    );
+  else if (input.status && input.status !== "all")
     where.push(`COALESCE(personal_state.status,'new')=${add(input.status)}`);
+  else where.push("COALESCE(personal_state.status,'new')<>'archived'");
   if (input.monitor && input.monitor !== "all")
     where.push(
       `EXISTS(SELECT 1 FROM monitor_matches fm WHERE fm.job_id=j.id AND fm.monitor_id=${add(input.monitor)}::uuid)`,
@@ -68,7 +69,11 @@ export async function listJobs(
     where.push(
       `EXISTS(SELECT 1 FROM monitor_matches selected_match JOIN monitors selected_monitor ON selected_monitor.id=selected_match.monitor_id WHERE selected_match.job_id=j.id AND selected_monitor.user_id=$1 AND selected_monitor.enabled)`,
     );
-  if (input.location)
+  if (input.location?.toLowerCase() === "sri lanka")
+    where.push(
+      `lower(j.location) ~ '\\m(sri lanka|western province|central province|southern province|northern province|eastern province|north western province|north central province|uva province|sabaragamuwa province|colombo|kandy|galle|jaffna|gampaha|negombo|matara|kurunegala|anuradhapura|polonnaruwa|badulla|ratnapura|trincomalee|batticaloa|kalutara|hambantota|kilinochchi|mannar|mullaitivu|vavuniya|puttalam|matale|nuwara eliya|kegalle|monaragala|ampara)\\M'`,
+    );
+  else if (input.location)
     where.push(`j.location ILIKE ${add(`%${input.location}%`)}`);
   if (input.mode === "remote") where.push("j.remote");
   if (input.mode === "onsite")
@@ -79,6 +84,23 @@ export async function listJobs(
     where.push(
       "lower(j.title||' '||j.location||' '||j.employment_type) LIKE '%hybrid%'",
     );
+  const total = Number(
+    (
+      await client.query(
+        `SELECT count(*)::int AS total FROM jobs j JOIN sources s ON s.id=j.source_id
+         LEFT JOIN job_user_states personal_state ON personal_state.job_id=j.id AND personal_state.user_id=$1
+         WHERE ${where.join(" AND ")}`,
+        values,
+      )
+    ).rows[0]?.total || 0,
+  );
+  if (input.cursor) {
+    const at = add(input.cursor.at);
+    const id = add(input.cursor.id);
+    where.push(
+      `(COALESCE(j.published_at,j.first_seen_at),j.id)<(${at}::timestamptz,${id}::uuid)`,
+    );
+  }
   values.push(input.limit + 1);
   const result = await client.query(
     `SELECT j.id,j.external_id AS "externalId",j.source_id AS "sourceId",s.name AS "sourceName",
@@ -100,6 +122,7 @@ export async function listJobs(
   const last = items.at(-1);
   return {
     items,
+    total,
     nextCursor:
       hasMore && last
         ? encodeCursor({
@@ -113,12 +136,27 @@ export async function listJobs(
 export async function workspaceSummary(client: PoolClient, user: AuthUser) {
   const [counts, latest] = await Promise.all([
     client.query(
-      `SELECT
-      (SELECT count(*)::int FROM monitors WHERE user_id=$1 AND enabled) AS monitors,
-      (SELECT count(*)::int FROM job_user_states WHERE user_id=$1 AND status='saved') AS saved,
-      (SELECT count(*)::int FROM job_user_states WHERE user_id=$1 AND status='applied') AS applied,
-      (SELECT count(DISTINCT mm.job_id)::int FROM monitor_matches mm JOIN monitors m ON m.id=mm.monitor_id WHERE m.user_id=$1 AND m.enabled) AS matched`,
-      [user.id],
+      `WITH visible AS (
+         SELECT j.id,j.first_seen_at,personal_state.status,personal_state.reviewed_at,
+           EXISTS(SELECT 1 FROM monitor_matches mm JOIN monitors m ON m.id=mm.monitor_id
+             WHERE mm.job_id=j.id AND m.user_id=$1 AND m.enabled) AS relevant
+         FROM jobs j
+         LEFT JOIN job_user_states personal_state ON personal_state.job_id=j.id AND personal_state.user_id=$1
+         WHERE $2::text='owner' OR personal_state.job_id IS NOT NULL OR EXISTS(
+           SELECT 1 FROM monitor_matches vm JOIN monitors visible_monitor ON visible_monitor.id=vm.monitor_id
+           WHERE vm.job_id=j.id AND visible_monitor.user_id=$1 AND visible_monitor.enabled)
+       )
+       SELECT
+         count(*) FILTER(WHERE COALESCE(status,'new')<>'archived')::int AS "totalCollected",
+         count(*) FILTER(WHERE relevant AND COALESCE(status,'new')<>'archived')::int AS relevant,
+         count(*) FILTER(WHERE COALESCE(status,'new')<>'archived' AND first_seen_at>=now()-interval '24 hours')::int AS "newToday",
+         count(*) FILTER(WHERE reviewed_at IS NULL AND COALESCE(status,'new')<>'archived')::int AS unreviewed,
+         count(*) FILTER(WHERE status='archived')::int AS archived,
+         count(*) FILTER(WHERE status='saved')::int AS saved,
+         count(*) FILTER(WHERE status='applied')::int AS applied,
+         (SELECT count(*)::int FROM monitors WHERE user_id=$1 AND enabled) AS monitors
+       FROM visible`,
+      [user.id, user.role],
     ),
     client.query(
       "SELECT max(last_synced_at) AS latest FROM sources WHERE enabled",

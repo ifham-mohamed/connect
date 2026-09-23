@@ -17,7 +17,7 @@ const {
 } = await import("../src/lib/sync");
 const { getDashboard, getJobDetail, jobSelect, sourceSelect } =
   await import("../src/lib/repository");
-const { decodeCursor, listJobs } =
+const { decodeCursor, listJobs, workspaceSummary } =
   await import("../src/lib/focused-repository");
 const client = {
   query: (text: string, params?: unknown[]) => database.query(text, params),
@@ -616,6 +616,7 @@ describe("PostgreSQL schema and matching integration", () => {
       input,
     );
     expect(first.items.length).toBeLessThanOrEqual(2);
+    expect(first.total).toBeGreaterThanOrEqual(first.items.length);
     if (first.nextCursor) {
       const second = await listJobs(
         client,
@@ -633,6 +634,7 @@ describe("PostgreSQL schema and matching integration", () => {
       expect(
         new Set([...first.items, ...second.items].map((job) => job.id)).size,
       ).toBe(first.items.length + second.items.length);
+      expect(second.total).toBe(first.total);
     }
     const member = await database.query<{
       id: string;
@@ -652,5 +654,16 @@ describe("PostgreSQL schema and matching integration", () => {
       input,
     );
     expect(hidden.items).toEqual([]);
+    expect(hidden.total).toBe(0);
+    const summary = await workspaceSummary(client, {
+      ...owner.rows[0],
+      role: "owner",
+      onboardingCompleted: true,
+      preferences: {},
+    });
+    expect(summary.counts.totalCollected).toBe(first.total);
+    expect(summary.counts.relevant).toBeLessThanOrEqual(
+      summary.counts.totalCollected,
+    );
   });
 });

@@ -109,7 +109,7 @@ No absence-based closure is inferred from limited feeds. The initial release doe
 
 ## Scaling decisions and measurable next steps
 
-The web and scheduled runner deploy independently. Focused reads cap job summaries at 50, descriptions load by ID, and a sub-kilobyte revision resource replaces full-data polling. Hidden tabs make no periodic checks; visible tabs check every 15 minutes and on focus.
+The web and scheduled runner deploy independently. Focused reads cap each job-summary fetch at 50, descriptions load by ID, and a sub-kilobyte revision resource replaces full-data polling. Every filtered job response includes its database total, allowing the interface to show accurate summary, tab, range, and page counts while fetching additional cursor pages only when the user reaches them. Hidden tabs make no periodic checks; visible tabs check every 15 minutes and on focus.
 
 | When measurements show…                                      | Make this change                                                                                                                                                                                 |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -126,4 +126,4 @@ Redis and a dedicated search engine are optional future tools, not prerequisites
 
 ## Known tradeoffs
 
-The UI keeps loaded cursor pages in memory, so counts on a job list describe those loaded pages. Summary counts come from PostgreSQL. Incremental matching limits work to changed jobs, one edited monitor, or one onboarding user. JEV is optional and bounded by a database budget; deterministic matching remains available when AI is paused. Public feeds can still be incomplete, and the system does not claim automatic failover.
+The UI keeps loaded cursor pages in memory, while list totals and page counts come from the same filtered PostgreSQL query used by the active tab. Dashboard summary counts come from a separate visibility-scoped aggregate, so totals do not depend on how many cursor pages the browser has loaded. Incremental matching limits work to changed jobs, one edited monitor, or one onboarding user. JEV is optional and bounded by a database budget; deterministic matching remains available when AI is paused. Public feeds can still be incomplete, and the system does not claim automatic failover.
