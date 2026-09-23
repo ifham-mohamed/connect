@@ -18,12 +18,18 @@ A working first release of a job-monitoring workspace for **Sri Lanka and remote
 - Per-run result history linking each successful source check to the jobs it found and the listings first discovered in that run.
 - Private account access with scrypt-hashed passwords, expiring database sessions, HTTP-only cookies, and owner/member authorization.
 - Privacy-safe security activity, individual session revocation, strict same-origin writes, streamed request-size enforcement, and PostgreSQL-backed write throttling.
-- Personal JEV job reviews with a configurable member allowance of five new analyses per Sri Lanka calendar day, a workspace monthly zero-spend boundary, cached reviews, and controlled provider-quota pauses.
+- Personal JEV job reviews with compatible role-family matching, explicit career-level checks, merged dated experience, complete detected-skill comparison, evidence completeness, and a configurable member allowance of five new analyses per Sri Lanka calendar day.
 - Focused cursor APIs, server-rendered first pages, 15-minute visibility-aware revision checks, and on-demand job/run detail reads instead of a 1,000-job dashboard response.
 - Guided first-run onboarding that creates editable, user-owned monitors from career stage, role, location, and work-arrangement preferences.
 - Docker Compose setup, a standalone worker, and a protected endpoint for external schedulers.
 
 This is a **single shared source catalog**, not a multi-tenant recruiting SaaS. Every live dashboard request requires an account. Owners manage sources and can review the full collection. Members receive jobs matched to their monitors. Monitor rules, matches, review state, shortlists, applications, archives, and preference profiles belong to each account.
+
+Personal review uses the versioned `cv-fit-v4` contract. The displayed
+percentage measures evidence in the approved CV against explicit listing
+requirements; it is not a hiring probability. Sparse listings show an
+insufficient-detail state, and image-only listings must be extracted and
+approved locally in the member's browser before JEV analysis is enabled.
 
 ## Technology choices
 

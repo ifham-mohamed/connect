@@ -147,3 +147,25 @@ Jobradar produces explanations from facts, for example:
 
 Each clause maps to a persisted deterministic signal or an accepted typed JEV
 answer. JEV is not asked to generate this prose.
+
+## Personal CV review v4
+
+`cv-fit-v4` keeps personal job reviews evidence-led and reproducible. Jobradar
+normalizes role families, career-level markers, skill aliases, date ranges, and
+experience totals before JEV is called. JEV receives the normalized facts and
+redacted evidence excerpts and answers four typed questions: role direction,
+career level, skills, and experience. It cannot add a credential, skill, date,
+or employment record that is absent from the approved CV.
+
+The score is calculated by Jobradar from evaluable evidence: role direction
+20%, career level 15%, required skills 25%, preferred skills 5%, relevant dated
+experience 25%, and formal qualifications 10%. Unstated criteria are excluded
+from the score and lower the separate completeness value. Completeness below
+50% produces no percentage. Explicit seniority or minimum-experience gaps cap
+the recommendation at `stretch`; experience above a stated range is reported
+as `exceeds` and is not penalized.
+
+Dated Work experience and Freelance & client projects contribute to tenure.
+Overlapping calendar months count once. Undated entries remain visible evidence
+but do not increase the total. Image-only listings require locally extracted,
+user-approved text before a personal review can run.

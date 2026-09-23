@@ -4456,7 +4456,30 @@ function JobDetail({
           Illustrative sample — this is not a verified job opening.
         </div>
       )}
-      <section className="detail-description" aria-labelledby="opportunity-about">
+      {!demo && (
+        <JobCvReview key={`${job.id}-${reviewRevision}`} jobId={job.id} />
+      )}
+      {!demo && (job.sourceImageUrl || /topjobs/i.test(job.sourceName)) && (
+        <div id="listing-text-workspace">
+          <JobImageContext
+            key={`${job.id}-${job.extractedAt || "new"}`}
+            jobId={job.id}
+            imageUrl={job.sourceImageUrl}
+            listingUrl={job.url}
+            initialText={job.extractedDescription}
+            initialConfidence={job.extractedDescriptionConfidence}
+            extractedAt={job.extractedAt}
+            onSaved={(text) => {
+              setPersonalDescription(text);
+              setReviewRevision((current) => current + 1);
+            }}
+          />
+        </div>
+      )}
+      <section
+        className="detail-description"
+        aria-labelledby="opportunity-about"
+      >
         <h3 id="opportunity-about">About the opportunity</h3>
         {loading ? (
           <div
@@ -4475,24 +4498,6 @@ function JobDetail({
           </p>
         )}
       </section>
-      {!demo && (job.sourceImageUrl || /topjobs/i.test(job.sourceName)) && (
-        <JobImageContext
-          key={`${job.id}-${job.extractedAt || "new"}`}
-          jobId={job.id}
-          imageUrl={job.sourceImageUrl}
-          listingUrl={job.url}
-          initialText={job.extractedDescription}
-          initialConfidence={job.extractedDescriptionConfidence}
-          extractedAt={job.extractedAt}
-          onSaved={(text) => {
-            setPersonalDescription(text);
-            setReviewRevision((current) => current + 1);
-          }}
-        />
-      )}
-      {!demo && (
-        <JobCvReview key={`${job.id}-${reviewRevision}`} jobId={job.id} />
-      )}
       {!!job.requirements?.length && (
         <section className="detail-description">
           <h3>Requirements found in this listing</h3>

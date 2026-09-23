@@ -2734,6 +2734,65 @@ html[data-theme="dark"] .auth-theme .theme-moon { display: none; }
 .job-review-chevron { margin-left:auto; color:hsl(var(--muted-foreground)); transition:transform .18s ease; }
 .job-review-dimension[open] .job-review-chevron { transform:rotate(90deg); }
 .job-review-evidence-pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:0 13px 13px; border-top:1px solid hsl(var(--border)); }
+.job-review-score.score-empty { background:hsl(var(--muted)); }
+.job-review-result { display:grid; gap:10px; min-width:0; }
+.job-review-extraction-needed { grid-template-columns:auto minmax(0,1fr) auto; align-items:center; padding:13px; border:1px dashed hsl(var(--primary)/.32); border-radius:12px; background:hsl(var(--card)/.68); }
+.job-review-extraction-needed>svg { color:hsl(var(--primary)); }
+.job-review-extraction-needed strong { display:block; margin-bottom:3px; font-size:12px; }
+.job-review-facts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+.job-review-facts article { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:start; gap:9px; min-width:0; padding:11px 12px; border:1px solid hsl(var(--border)); border-radius:11px; background:hsl(var(--card)); color:hsl(var(--primary)); }
+.job-review-facts article>span { display:grid; min-width:0; gap:2px; }
+.job-review-facts small { color:hsl(var(--muted-foreground)); font-size:8px; font-weight:800; letter-spacing:.08em; }
+.job-review-facts strong { overflow:hidden; color:hsl(var(--foreground)); font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+.job-review-facts em { width:fit-content; margin-top:3px; padding:3px 6px; border-radius:999px; background:hsl(var(--muted)); color:hsl(var(--muted-foreground)); font-size:8px; font-style:normal; font-weight:750; }
+.job-review-facts .fit-exact,.job-review-facts .fit-compatible,.job-review-facts .fit-meets,.job-review-facts .fit-exceeds { background:hsl(var(--success)/.12); color:hsl(var(--success)); }
+.job-review-facts .fit-adjacent,.job-review-facts .fit-below,.job-review-facts .fit-partial { background:hsl(var(--warning)/.14); color:hsl(var(--warning)); }
+.job-review-facts .fit-mismatch,.job-review-facts .fit-not_shown { background:hsl(var(--destructive)/.12); color:hsl(var(--destructive)); }
+.job-review-breakdown { overflow:hidden; border:1px solid hsl(var(--border)); border-radius:12px; background:hsl(var(--card)); }
+.job-review-breakdown>summary { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 13px; cursor:pointer; list-style:none; }
+.job-review-breakdown>summary::-webkit-details-marker { display:none; }
+.job-review-breakdown>summary>span { display:flex; align-items:center; gap:7px; color:hsl(var(--primary)); }
+.job-review-breakdown>summary strong { color:hsl(var(--foreground)); font-size:11px; }
+.job-review-breakdown>summary small { color:hsl(var(--muted-foreground)); font-size:9px; }
+.job-review-skill-groups { display:grid; gap:12px; padding:0 13px 13px; border-top:1px solid hsl(var(--border)); }
+.job-review-skill-groups>section { display:grid; gap:7px; padding-top:11px; }
+.job-review-skill-groups h5 { margin:0; color:hsl(var(--muted-foreground)); font-size:9px; letter-spacing:.06em; text-transform:uppercase; }
+.job-review-skill-groups h5 span { margin-left:4px; color:hsl(var(--foreground)); }
+.job-review-skill-groups>section>div,.job-review-additional>div { display:flex; flex-wrap:wrap; gap:5px; }
+.skill-fit { display:inline-flex; align-items:center; gap:5px; max-width:100%; padding:5px 7px; border:1px solid hsl(var(--border)); border-radius:7px; background:hsl(var(--background)/.55); color:hsl(var(--foreground)); font-size:9px; overflow-wrap:anywhere; }
+.skill-fit small { padding:2px 4px; border-radius:4px; background:hsl(var(--muted)); color:hsl(var(--muted-foreground)); font-size:7px; text-transform:uppercase; }
+.skill-matched { border-color:hsl(var(--success)/.25); background:hsl(var(--success)/.07); }
+.skill-related { border-color:hsl(var(--warning)/.28); background:hsl(var(--warning)/.07); }
+.skill-missing { border-color:hsl(var(--destructive)/.25); background:hsl(var(--destructive)/.06); }
+.job-review-additional { padding-top:10px; border-top:1px solid hsl(var(--border)); }
+.job-review-additional>summary { margin-bottom:8px; color:hsl(var(--primary)); font-size:9px; font-weight:750; cursor:pointer; }
+.job-review-tenure-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; padding:11px 13px; border-top:1px solid hsl(var(--border)); }
+.job-review-tenure-summary>span { display:grid; gap:2px; padding:9px; border-radius:8px; background:hsl(var(--background)/.55); }
+.job-review-tenure-summary small { color:hsl(var(--muted-foreground)); font-size:8px; }
+.job-review-tenure-summary strong { font-size:11px; }
+.job-review-timeline { display:grid; gap:0; padding:0 13px 12px; }
+.job-review-timeline article { display:grid; grid-template-columns:auto minmax(0,1fr); gap:9px; min-width:0; padding:8px 0; border-top:1px solid hsl(var(--border)); }
+.job-review-timeline i { width:7px; height:7px; margin-top:4px; border-radius:50%; background:hsl(var(--muted-foreground)/.45); }
+.job-review-timeline i.relevant { background:hsl(var(--primary)); box-shadow:0 0 0 4px hsl(var(--primary)/.1); }
+.job-review-timeline article>span { display:grid; min-width:0; gap:2px; }
+.job-review-timeline strong { overflow:hidden; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+.job-review-timeline small { color:hsl(var(--muted-foreground)); font-size:8px; line-height:1.4; }
+html { scroll-behavior:smooth; }
+@media(max-width:980px) and (min-width:761px) { .job-review-facts { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:760px) {
+.job-review-facts { grid-template-columns:1fr; }
+.job-review-extraction-needed { grid-template-columns:auto minmax(0,1fr); }
+.job-review-extraction-needed .btn { grid-column:1/-1; width:100%; justify-content:center; }
+}
+@media(max-width:560px) {
+.job-review-card { gap:12px; padding:13px; }
+.job-review-overview { grid-template-columns:68px minmax(0,1fr); gap:10px; padding:11px; }
+.job-review-score { width:68px; }
+.job-review-score::before { width:54px; }
+.job-review-score strong { font-size:16px; }
+.job-review-signal { grid-column:1/-1; min-width:0; }
+.job-review-tenure-summary { grid-template-columns:1fr; }
+}
 .cv-profile-status { display:inline-flex; align-items:center; gap:4px; color:hsl(var(--success))!important; }
 .intelligence-hero { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:16px; padding:clamp(18px,2.5vw,30px); border:1px solid hsl(var(--primary)/.2); border-radius:18px; background:linear-gradient(120deg,hsl(var(--primary)/.13),hsl(var(--card)) 70%); }
 .intelligence-hero>span { display:grid; width:48px; height:48px; place-items:center; border-radius:14px; background:hsl(var(--primary)/.15); color:hsl(var(--primary)); }

@@ -29,6 +29,18 @@ export const dynamic = "force-dynamic";
 const jobIdSchema = z.string().uuid();
 type Context = { params: Promise<{ id: string }> };
 
+function reviewReadiness(job: {
+  sourceName?: string;
+  sourceImageUrl?: string | null;
+  extractedDescription?: string | null;
+}) {
+  const imageListing =
+    Boolean(job.sourceImageUrl) || /topjobs/i.test(job.sourceName || "");
+  return imageListing && !job.extractedDescription?.trim()
+    ? { reviewReady: false, blockedReason: "LISTING_TEXT_REQUIRED" as const }
+    : { reviewReady: true, blockedReason: null };
+}
+
 function usageHeaders(usage: AiUsage) {
   const headers: Record<string, string> = { "Cache-Control": "no-store" };
   if (!usage.unlimited && usage.limit !== null && usage.remaining !== null) {
@@ -53,14 +65,34 @@ export async function GET(request: Request, context: Context) {
       const job = await getJobDetail(user, jobId.data, client);
       if (!job)
         return NextResponse.json({ error: "Job not found." }, { status: 404 });
+      const readiness = reviewReadiness(job);
       const usage = await getAiUsage(client, user);
-      const cv = await client.query<{ revision: number }>(
-        "SELECT revision FROM candidate_cvs WHERE user_id=$1",
+      const cv = await client.query<{ revision: number; profile: unknown }>(
+        "SELECT revision,profile FROM candidate_cvs WHERE user_id=$1",
         [user.id],
       );
       if (!cv.rowCount)
         return NextResponse.json(
-          { cvAvailable: false, review: null, stale: false, usage },
+          {
+            cvAvailable: false,
+            review: null,
+            stale: false,
+            usage,
+            ...readiness,
+          },
+          { headers: usageHeaders(usage) },
+        );
+      const parsedCv = cvProfileSchema.safeParse(cv.rows[0].profile);
+      if (!parsedCv.success)
+        return NextResponse.json(
+          {
+            cvAvailable: false,
+            review: null,
+            stale: true,
+            usage,
+            reviewReady: false,
+            blockedReason: "CV_REVIEW_REQUIRED",
+          },
           { headers: usageHeaders(usage) },
         );
       const latest = await client.query<{
@@ -79,14 +111,15 @@ export async function GET(request: Request, context: Context) {
       const stale = Boolean(
         row &&
         (row.cvRevision !== cv.rows[0].revision ||
-          row.jobHash !== jobCvHash(job)),
+          row.jobHash !== jobCvHash(job, parsedCv.data)),
       );
       return NextResponse.json(
         {
           cvAvailable: true,
-          review: stale ? null : row || null,
+          review: stale || !readiness.reviewReady ? null : row || null,
           stale,
           usage,
+          ...readiness,
         },
         { headers: usageHeaders(usage) },
       );
@@ -136,6 +169,16 @@ export async function POST(request: Request, context: Context) {
     const job = await getJobDetail(user, jobId.data, client);
     if (!job)
       return NextResponse.json({ error: "Job not found." }, { status: 404 });
+    const readiness = reviewReadiness(job);
+    if (!readiness.reviewReady)
+      return NextResponse.json(
+        {
+          error:
+            "Extract and approve the listing text in your browser before running a personal review.",
+          code: readiness.blockedReason,
+        },
+        { status: 409 },
+      );
     const cvRow = await client.query<{ profile: unknown; revision: number }>(
       "SELECT profile,revision FROM candidate_cvs WHERE user_id=$1",
       [user.id],
@@ -153,7 +196,7 @@ export async function POST(request: Request, context: Context) {
       );
     const cv = parsedCv.data;
     const revision = cvRow.rows[0].revision;
-    const hash = jobCvHash(job);
+    const hash = jobCvHash(job, cv);
     const existing = await client.query(
       `SELECT id,result,model_identifier AS model,created_at AS "createdAt"
        FROM job_cv_reviews WHERE user_id=$1 AND job_id=$2 AND cv_revision=$3 AND job_hash=$4`,
@@ -228,7 +271,7 @@ export async function POST(request: Request, context: Context) {
     });
     workspaceReserved = false;
     const currentJob = await getJobDetail(user, jobId.data, client);
-    if (!currentJob || jobCvHash(currentJob) !== hash) {
+    if (!currentJob || jobCvHash(currentJob, cv) !== hash) {
       await completeAiJobAnalysis(client, reservationId, false);
       reservationId = null;
       return NextResponse.json(

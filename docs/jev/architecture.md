@@ -199,3 +199,19 @@ Candidate profiles, CV evidence, and application tracking require separate
 privacy, retention, consent, and product decisions. They can reuse the same
 typed-decision pattern after job intelligence is proven, but they are not part
 of the first integration.
+
+## Personal review boundary
+
+Personal review is an on-demand boundary. The browser extracts the CV and any
+image-based listing text locally; only content the user has reviewed and saved
+is eligible for comparison. The application builds a deterministic fit profile
+from the approved CV and effective job description, then sends JEV normalized
+role, level, duration, skill, and exact evidence fields without identity,
+contact details, or PDF bytes.
+
+Saved review identity includes the CV revision, effective job content,
+`cv-fit-v4` contract version, and a calendar-month anchor only when an approved
+CV contains an ongoing role. A changed CV, changed listing, approved image
+extraction, contract update, or relevant month rollover produces a fresh review
+while unchanged input reuses the cached result without spending a member
+allowance.
