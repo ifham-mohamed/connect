@@ -25,17 +25,46 @@ export async function GET() {
         { error: "Only the workspace owner can view JEV health." },
         { status: 403 },
       );
-    const [health, rules, corrections] = await Promise.all([
-      getIntelligenceHealth(client),
-      client.query(`SELECT source_kind AS "sourceKind",field,min_confidence AS "minConfidence",enabled,rationale,updated_at AS "updatedAt"
+    const [health, rules, corrections, reviewedJobs, pendingJobs] =
+      await Promise.all([
+        getIntelligenceHealth(client),
+        client.query(`SELECT source_kind AS "sourceKind",field,min_confidence AS "minConfidence",enabled,rationale,updated_at AS "updatedAt"
         FROM jev_rollout_rules ORDER BY source_kind,field`),
-      client.query(`SELECT c.id,c.job_id AS "jobId",j.title,c.field,c.value,c.reason,c.created_at AS "createdAt"
+        client.query(`SELECT c.id,c.job_id AS "jobId",j.title,c.field,c.value,c.reason,c.created_at AS "createdAt"
         FROM jev_corrections c JOIN jobs j ON j.id=c.job_id ORDER BY c.created_at DESC LIMIT 50`),
-    ]);
+        client.query(
+          `SELECT DISTINCT ON (r.job_id) r.job_id AS "jobId",j.title,j.company,s.name AS source,
+                r.result->>'overallScore' AS "overallScore",r.model_identifier AS model,
+                r.created_at AS "createdAt"
+           FROM job_cv_reviews r
+           JOIN jobs j ON j.id=r.job_id
+           JOIN sources s ON s.id=j.source_id
+          WHERE r.user_id=$1
+          ORDER BY r.job_id,r.created_at DESC`,
+          [user.id],
+        ),
+        client.query(
+          `SELECT DISTINCT j.id AS "jobId",j.title,j.company,s.name AS source,j.published_at AS "publishedAt"
+           FROM monitor_matches mm
+           JOIN monitors m ON m.id=mm.monitor_id AND m.user_id=$1 AND m.enabled
+           JOIN jobs j ON j.id=mm.job_id AND j.active
+           JOIN sources s ON s.id=j.source_id
+          WHERE NOT EXISTS (
+            SELECT 1 FROM job_cv_reviews review WHERE review.user_id=$1 AND review.job_id=j.id
+          )
+          ORDER BY j.published_at DESC NULLS LAST
+          LIMIT 12`,
+          [user.id],
+        ),
+      ]);
     return NextResponse.json({
       ...health,
       rules: rules.rows,
       corrections: corrections.rows,
+      reviewedJobs: reviewedJobs.rows
+        .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+        .slice(0, 12),
+      pendingJobs: pendingJobs.rows,
     });
   } catch (error) {
     console.error("JEV health read failed", error);

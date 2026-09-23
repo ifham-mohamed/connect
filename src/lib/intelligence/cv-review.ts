@@ -5,7 +5,7 @@ import type { CvProfile } from "../cv/profile";
 import { containsKeyword } from "../matching";
 import { extractRequirementCandidates, requirementText } from "./requirements";
 
-export const CV_REVIEW_VERSION = "cv-fit-v2";
+export const CV_REVIEW_VERSION = "cv-fit-v3";
 const verdictSchema = z.enum(["supported", "partial", "not_shown", "unclear"]);
 const answerSchema = z.object({
   type: z.literal("choice"),
@@ -14,6 +14,9 @@ const answerSchema = z.object({
 });
 export const cvReviewResultSchema = z.object({
   version: z.literal(CV_REVIEW_VERSION),
+  overallScore: z.number().int().min(0).max(100),
+  matchedKeywords: z.array(z.string().min(1).max(120)).max(12),
+  missingRequirements: z.array(z.string().min(1).max(300)).max(6),
   dimensions: z
     .array(
       z.object({
@@ -76,6 +79,42 @@ function compact(text: string, limit = 300) {
     .slice(0, limit);
 }
 
+function cleanEvidence(items: string[], limit: number) {
+  return Array.from(
+    new Set(
+      items
+        .map((item) => compact(item))
+        .filter((item) => item.length > 2 && !/^[-–—•]+$/.test(item)),
+    ),
+  ).slice(0, limit);
+}
+
+function evidenceCoverage(
+  dimensions: {
+    key: "role" | "skills" | "experience";
+    verdict: z.infer<typeof verdictSchema>;
+    confidence: number;
+  }[],
+) {
+  const weights = { role: 0.3, skills: 0.4, experience: 0.3 } as const;
+  const values = {
+    supported: 100,
+    partial: 62,
+    not_shown: 18,
+    unclear: 42,
+  } as const;
+  return Math.round(
+    dimensions.reduce(
+      (total, item) =>
+        total +
+        values[item.verdict] *
+          weights[item.key] *
+          (0.85 + Math.min(1, Math.max(0, item.confidence)) * 0.15),
+      0,
+    ),
+  );
+}
+
 export function jobCvHash(job: ReviewJob) {
   return createHash("sha256")
     .update(
@@ -93,10 +132,11 @@ export function jobCvHash(job: ReviewJob) {
 
 export function buildCvReviewEvidence(job: ReviewJob, cv: CvProfile) {
   const jobText = requirementText(job.description);
-  const requirements = extractRequirementCandidates(jobText, 6).map(
-    (item) => item.evidence,
+  const requirements = cleanEvidence(
+    extractRequirementCandidates(jobText, 8).map((item) => item.evidence),
+    8,
   );
-  const jobEvidence = [compact(job.title), ...requirements].filter(Boolean);
+  const jobEvidence = cleanEvidence([compact(job.title), ...requirements], 7);
   const titleHasSkill =
     /\b(?:React|Angular|Vue|TypeScript|JavaScript|Python|Java|C\+\+|C#|\.NET|Node\.js|SQL|AWS|Azure|Docker|Kubernetes)\b/i.test(
       job.title,
@@ -104,18 +144,21 @@ export function buildCvReviewEvidence(job: ReviewJob, cv: CvProfile) {
   const skills = cv.skills
     .flatMap((group) => group.items)
     .map((item) => compact(item, 120));
-  const matchedSkills = Array.from(
-    new Set(
-      skills.filter(
-        (skill) =>
-          skill.length >= 2 &&
-          containsKeyword(
-            `${job.title} ${job.tags.join(" ")} ${jobText}`,
-            skill,
-          ),
+  const matchedSkills = cleanEvidence(
+    Array.from(
+      new Set(
+        skills.filter(
+          (skill) =>
+            skill.length >= 2 &&
+            containsKeyword(
+              `${job.title} ${job.tags.join(" ")} ${jobText}`,
+              skill,
+            ),
+        ),
       ),
     ),
-  ).slice(0, 8);
+    12,
+  );
   const entries = cv.sections
     .filter((section) =>
       /experience|project|research|education|certification/i.test(
@@ -144,13 +187,23 @@ export function buildCvReviewEvidence(job: ReviewJob, cv: CvProfile) {
     .filter((item) => item.score > 0)
     .slice(0, 5)
     .map((item) => item.entry);
-  const roleEvidence = [
-    compact(cv.identity.headline),
-    ...ranked
-      .filter((item) => item.score > 0)
-      .slice(0, 3)
-      .map((item) => item.entry),
-  ].filter(Boolean);
+  const roleEvidence = cleanEvidence(
+    [
+      compact(cv.identity.headline),
+      ...ranked
+        .filter((item) => item.score > 0)
+        .slice(0, 3)
+        .map((item) => item.entry),
+    ],
+    4,
+  );
+  const cvText = cleanEvidence(
+    [cv.identity.headline, ...skills, ...entries],
+    skills.length + entries.length + 1,
+  ).join(" ");
+  const missingRequirements = requirements
+    .filter((requirement) => overlap(requirement, cvText) === 0)
+    .slice(0, 6);
   return {
     role: {
       jobEvidence: jobEvidence.slice(0, 2),
@@ -166,6 +219,10 @@ export function buildCvReviewEvidence(job: ReviewJob, cv: CvProfile) {
     experience: {
       jobEvidence: requirements,
       cvEvidence: relevantEntries,
+    },
+    insights: {
+      matchedKeywords: matchedSkills,
+      missingRequirements,
     },
   } as const;
 }
@@ -216,14 +273,17 @@ export async function reviewJobAgainstCv(
             ? ("not_shown" as const)
             : answer.choice,
       confidence: answer.confidence,
-      jobEvidence: [...snippets.jobEvidence],
-      cvEvidence: [...snippets.cvEvidence],
+      jobEvidence: cleanEvidence([...snippets.jobEvidence], 6),
+      cvEvidence: cleanEvidence([...snippets.cvEvidence], 8),
     };
   });
   return {
     model: response.model,
     result: cvReviewResultSchema.parse({
       version: CV_REVIEW_VERSION,
+      overallScore: evidenceCoverage(dimensions),
+      matchedKeywords: evidence.insights.matchedKeywords,
+      missingRequirements: evidence.insights.missingRequirements,
       dimensions,
     }),
   };

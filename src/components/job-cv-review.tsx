@@ -5,9 +5,12 @@ import Link from "next/link";
 import {
   ArrowRight,
   Check,
+  CheckCircle2,
+  CircleAlert,
   FileText,
   LoaderCircle,
   Sparkles,
+  Target,
 } from "lucide-react";
 import type { CvReviewResult } from "@/lib/intelligence/cv-review";
 
@@ -28,6 +31,13 @@ const verdicts = {
   not_shown: "Not shown in CV",
   unclear: "Needs a closer look",
 } as const;
+
+function scoreLabel(score: number) {
+  if (score >= 80) return "Strong evidence match";
+  if (score >= 60) return "Promising match";
+  if (score >= 40) return "Partial match";
+  return "Limited evidence";
+}
 
 function EvidenceList({ items, empty }: { items: string[]; empty: string }) {
   if (!items.length) return <p>{empty}</p>;
@@ -164,32 +174,114 @@ export default function JobCvReview({ jobId }: { jobId: string }) {
               {new Date(review.createdAt).toLocaleDateString()} · {review.model}
             </small>
           </div>
-          <div className="job-review-grid">
+          <div className="job-review-overview">
+            <div
+              className="job-review-score"
+              style={
+                {
+                  "--review-score": `${review.result.overallScore * 3.6}deg`,
+                } as React.CSSProperties
+              }
+              aria-label={`${review.result.overallScore}% CV evidence coverage`}
+            >
+              <span>
+                <strong>{review.result.overallScore}%</strong>
+                <small>coverage</small>
+              </span>
+            </div>
+            <div className="job-review-overview-copy">
+              <small>CV EVIDENCE COVERAGE</small>
+              <h4>{scoreLabel(review.result.overallScore)}</h4>
+              <p>
+                This score compares evidence saved in your CV with statements in
+                this listing. It is guidance, not a hiring probability.
+              </p>
+            </div>
+            <div className="job-review-signal">
+              <Target size={17} />
+              <span>
+                <strong>
+                  {
+                    review.result.dimensions.filter(
+                      (item) => item.verdict === "supported",
+                    ).length
+                  }{" "}
+                  of 3
+                </strong>
+                <small>areas strongly supported</small>
+              </span>
+            </div>
+          </div>
+          <div className="job-review-insights">
+            <article className="job-review-insight positive">
+              <div>
+                <CheckCircle2 size={16} />
+                <strong>Evidence that connects</strong>
+              </div>
+              {review.result.matchedKeywords.length ? (
+                <div className="job-review-chips">
+                  {review.result.matchedKeywords.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+              ) : (
+                <p>
+                  No exact skill keyword overlap was found. Review the role
+                  evidence below.
+                </p>
+              )}
+            </article>
+            <article className="job-review-insight caution">
+              <div>
+                <CircleAlert size={16} />
+                <strong>Check before applying</strong>
+              </div>
+              {review.result.missingRequirements.length ? (
+                <ul>
+                  {review.result.missingRequirements.slice(0, 3).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>
+                  No clear requirement gaps were detected in the extracted
+                  listing.
+                </p>
+              )}
+            </article>
+          </div>
+          <div
+            className="job-review-grid"
+            aria-label="Detailed evidence comparison"
+          >
             {review.result.dimensions.map((item) => (
-              <article className="job-review-dimension" key={item.key}>
-                <div className="job-review-dimension-head">
+              <details className="job-review-dimension" key={item.key}>
+                <summary className="job-review-dimension-head">
                   <h4>{labels[item.key]}</h4>
                   <span
                     className={`job-review-verdict verdict-${item.verdict}`}
                   >
                     {verdicts[item.verdict]}
                   </span>
+                  <ArrowRight size={14} className="job-review-chevron" />
+                </summary>
+                <div className="job-review-evidence-pair">
+                  <div className="job-review-evidence">
+                    <strong>Your CV evidence</strong>
+                    <EvidenceList
+                      items={item.cvEvidence}
+                      empty="This evidence is not stated in the saved CV."
+                    />
+                  </div>
+                  <div className="job-review-evidence">
+                    <strong>Listing evidence</strong>
+                    <EvidenceList
+                      items={item.jobEvidence}
+                      empty="The source listing does not state a clear requirement here."
+                    />
+                  </div>
                 </div>
-                <div className="job-review-evidence">
-                  <strong>From your CV</strong>
-                  <EvidenceList
-                    items={item.cvEvidence}
-                    empty="No matching evidence found in the saved CV."
-                  />
-                </div>
-                <div className="job-review-evidence">
-                  <strong>From this listing</strong>
-                  <EvidenceList
-                    items={item.jobEvidence}
-                    empty="The source listing does not state specific requirements for this area."
-                  />
-                </div>
-              </article>
+              </details>
             ))}
           </div>
           <p className="job-review-disclaimer">

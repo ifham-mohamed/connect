@@ -296,6 +296,14 @@ export default function CvWorkspace({
                       "Add a professional headline in Edit details."}
                   </p>
                   <div className="cv-profile-meta">
+                    <span className="cv-profile-status">
+                      <Check size={12} /> Reviewed and saved
+                    </span>
+                    <span>
+                      {profile.source.pages}{" "}
+                      {profile.source.pages === 1 ? "page" : "pages"}
+                    </span>
+                    <span>{counts.skills} extracted skills</span>
                     {[
                       profile.identity.location,
                       profile.identity.email,
@@ -367,7 +375,10 @@ export default function CvWorkspace({
                 <pre>{profile.rawText}</pre>
               </details>
               <div className="cv-profile-footer">
-                <span>Based on {profile.source.fileName}</span>
+                <span>
+                  Extracted from {profile.source.fileName} ·{" "}
+                  {new Date(profile.source.importedAt).toLocaleDateString()}
+                </span>
                 <div className="cv-review-controls">
                   <button className="btn" type="button" onClick={exportLocal}>
                     <ArrowDownToLine size={14} /> Export profile
@@ -399,7 +410,19 @@ export default function CvWorkspace({
                       ] as const
                     ).map((field) => (
                       <label className="settings-field" key={field}>
-                        <span>{field}</span>
+                        <span>
+                          {
+                            (
+                              {
+                                name: "Full name",
+                                headline: "Professional headline",
+                                email: "Email address",
+                                phone: "Phone number",
+                                location: "Location",
+                              } as const
+                            )[field]
+                          }
+                        </span>
                         <input
                           value={profile.identity[field]}
                           onChange={(event) =>

@@ -56,6 +56,11 @@ describe("private CV job review", () => {
     } as unknown as TypeSafeClient;
     const result = await reviewJobAgainstCv(client, job, cv);
     expect(result.result.dimensions).toHaveLength(3);
+    expect(result.result.overallScore).toBeGreaterThan(0);
+    expect(result.result.matchedKeywords).toEqual(
+      expect.arrayContaining(["TypeScript", "Python"]),
+    );
+    expect(result.result.missingRequirements).toEqual(expect.any(Array));
     expect(result.result.dimensions[1].verdict).toBe("supported");
     expect(JSON.stringify(sent)).not.toContain("alex@example.com");
     expect(JSON.stringify(sent)).not.toContain("123 4567");

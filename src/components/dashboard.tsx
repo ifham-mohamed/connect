@@ -302,6 +302,7 @@ export default function Dashboard({
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const hasLoadedRef = useRef(false);
   const modalHistoryRef = useRef(false);
+  const deepLinkJobRef = useRef(false);
   const refresh = useCallback(async () => {
     if (hasLoadedRef.current) setRefreshing(true);
     try {
@@ -386,6 +387,16 @@ export default function Dashboard({
       active = false;
     };
   }, [data?.user?.id, cvUserId, cvRetry]);
+  useEffect(() => {
+    if (!data || deepLinkJobRef.current || typeof window === "undefined")
+      return;
+    const jobId = new URLSearchParams(window.location.search).get("job");
+    if (!jobId) return;
+    const job = data.jobs.find((item) => item.id === jobId);
+    if (!job) return;
+    deepLinkJobRef.current = true;
+    setModalState({ type: "job", job });
+  }, [data]);
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(""), 5000);
