@@ -4456,6 +4456,25 @@ function JobDetail({
           Illustrative sample — this is not a verified job opening.
         </div>
       )}
+      <section className="detail-description" aria-labelledby="opportunity-about">
+        <h3 id="opportunity-about">About the opportunity</h3>
+        {loading ? (
+          <div
+            className="detail-loading"
+            aria-label="Loading opportunity details"
+            aria-live="polite"
+          >
+            <span />
+            <span />
+            <span />
+          </div>
+        ) : (
+          <p>
+            {visibleDescription ||
+              "Read the full description on the original listing."}
+          </p>
+        )}
+      </section>
       {!demo && (job.sourceImageUrl || /topjobs/i.test(job.sourceName)) && (
         <JobImageContext
           key={`${job.id}-${job.extractedAt || "new"}`}
@@ -4474,25 +4493,6 @@ function JobDetail({
       {!demo && (
         <JobCvReview key={`${job.id}-${reviewRevision}`} jobId={job.id} />
       )}
-      <div className="detail-description">
-        <h3>About the opportunity</h3>
-        {loading ? (
-          <div
-            className="detail-loading"
-            aria-label="Loading opportunity details"
-            aria-live="polite"
-          >
-            <span />
-            <span />
-            <span />
-          </div>
-        ) : (
-          <p>
-            {visibleDescription ||
-              "Read the full description on the original listing."}
-          </p>
-        )}
-      </div>
       {!!job.requirements?.length && (
         <section className="detail-description">
           <h3>Requirements found in this listing</h3>
