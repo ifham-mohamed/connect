@@ -137,6 +137,8 @@ beforeAll(async () => {
     "031_scaling_foundation",
     "032_cost_controls",
     "033_source_observability",
+    "034_role_title_aliases",
+    "035_unspecified_stage_compatibility",
   ])
     await database.exec(
       await readFile(
@@ -149,6 +151,44 @@ afterAll(async () => {
   await database.close();
 });
 describe("PostgreSQL schema and matching integration", () => {
+  it("normalizes source title punctuation and retains role-family aliases", async () => {
+    const variants = await database.query<{
+      fullStack: boolean;
+      frontend: boolean;
+      backend: boolean;
+    }>(`SELECT
+      jobradar_keyword_match('Full-stack Engineer - Java & React','full stack engineer') AS "fullStack",
+      jobradar_keyword_match('Front-end Developer','frontend developer') AS frontend,
+      jobradar_keyword_match('Back End Engineer','backend engineer') AS backend`);
+    expect(variants.rows[0]).toEqual({
+      fullStack: true,
+      frontend: true,
+      backend: true,
+    });
+
+    const softwareMonitor = await database.query<{ keywords: string[] }>(
+      "SELECT keywords FROM monitors WHERE name='Software Engineer' LIMIT 1",
+    );
+    expect(softwareMonitor.rows[0].keywords).toContain("software developer");
+    expect(softwareMonitor.rows[0].keywords).toContain(
+      "software development engineer",
+    );
+
+    const stages = await database.query<{
+      entry: boolean;
+      internship: boolean;
+      explicitConflict: boolean;
+    }>(`SELECT
+      jobradar_experience_match('Full-stack Engineer - Java & React','entry') AS entry,
+      jobradar_experience_match('Full-stack Engineer - Java & React','internship') AS internship,
+      jobradar_experience_match('Senior Full-stack Engineer','entry') AS "explicitConflict"`);
+    expect(stages.rows[0]).toEqual({
+      entry: true,
+      internship: false,
+      explicitConflict: false,
+    });
+  });
+
   it("keeps reviewed CVs per account and removes them with the account", async () => {
     const users = await database.query<{ id: string }>(
       `INSERT INTO users(name,email,password_hash) VALUES

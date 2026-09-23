@@ -1,12 +1,12 @@
 import { readFile } from "node:fs/promises";
-import { db } from "../src/lib/db";
+import { connectDatabase, db } from "../src/lib/db";
 import { databaseError } from "../src/lib/database-error";
 import type { PoolClient } from "pg";
 let pool: ReturnType<typeof db> | undefined;
 let client: PoolClient | undefined;
 try {
   pool = db();
-  client = await pool.connect();
+  client = await connectDatabase(pool);
   await client.query("BEGIN");
   await client.query("SELECT pg_advisory_xact_lock(741211)");
   await client.query(
@@ -46,6 +46,8 @@ try {
     "031_scaling_foundation",
     "032_cost_controls",
     "033_source_observability",
+    "034_role_title_aliases",
+    "035_unspecified_stage_compatibility",
   ];
   for (const name of migrations) {
     const applied = await client.query(

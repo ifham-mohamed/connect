@@ -1,7 +1,21 @@
 import type { ExperienceLevel, Job, Monitor, WorkMode } from "./types";
+export function normalizeMatchPhrase(value: string) {
+  return value
+    .normalize("NFKC")
+    .replace(/[-\u2010-\u2015]+/g, " ")
+    .replace(/\bfull\s*stack\b/gi, "full stack")
+    .replace(/\bfront\s*end\b/gi, "frontend")
+    .replace(/\bback\s*end\b/gi, "backend")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 export function containsKeyword(text: string, keyword: string) {
-  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`(^|[^a-z0-9_])${escaped}($|[^a-z0-9_])`, "i").test(text);
+  const normalizedKeyword = normalizeMatchPhrase(keyword);
+  if (!normalizedKeyword) return false;
+  const escaped = normalizedKeyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[^a-z0-9_])${escaped}($|[^a-z0-9_])`, "i").test(
+    normalizeMatchPhrase(text),
+  );
 }
 export function matchesLocation(location: string, target: string) {
   if (!target) return true;
@@ -139,7 +153,11 @@ export function detectExperienceSignals(text: string) {
 
 export function matchesExperience(text: string, preference?: ExperienceLevel) {
   if (!preference) return true;
-  return detectExperience(text) === preference;
+  const detected = detectExperience(text);
+  return (
+    detected === preference ||
+    (detected === "other" && ["entry", "mid", "senior"].includes(preference))
+  );
 }
 
 export function matchesMonitor(

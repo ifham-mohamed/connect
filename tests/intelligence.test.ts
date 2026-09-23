@@ -105,6 +105,8 @@ beforeAll(async () => {
     "031_scaling_foundation",
     "032_cost_controls",
     "033_source_observability",
+    "034_role_title_aliases",
+    "035_unspecified_stage_compatibility",
   ];
   for (const migration of migrations)
     await database.exec(
@@ -121,7 +123,7 @@ beforeAll(async () => {
 afterAll(async () => database.close());
 
 describe("JEV queue and shadow persistence", () => {
-  it("keeps assisted matching off until a source field is enabled and preserves explicit senior exclusions", async () => {
+  it("uses reviewed stages only when enabled and preserves explicit senior exclusions", async () => {
     const inserted = await database.query<{ id: string }>(
       `INSERT INTO jobs(source_id,external_id,title,company,location,url)
        SELECT id,'jev-assisted-test','Software Engineer','Acme','Colombo','https://example.com/assisted'
@@ -147,7 +149,7 @@ describe("JEV queue and shadow persistence", () => {
           [jobId, title],
         )
       ).rows[0].allowed;
-    expect(await matched("Software Engineer")).toBe(false);
+    expect(await matched("Software Engineer")).toBe(true);
     await database.query(`INSERT INTO jev_rollout_rules(source_kind,field,min_confidence,enabled,rationale)
       VALUES('itpro','career_stage',0.9,true,'Approved controlled test for ambiguous stages.')`);
     expect(await matched("Software Engineer")).toBe(true);
@@ -162,7 +164,7 @@ describe("JEV queue and shadow persistence", () => {
     await database.query(
       "UPDATE jev_rollout_rules SET enabled=false WHERE source_kind='itpro' AND field='career_stage'",
     );
-    expect(await matched("Software Engineer")).toBe(false);
+    expect(await matched("Software Engineer")).toBe(true);
   });
   it("queues each content version once and processes it with a fake classifier", async () => {
     const inserted = await database.query<{ id: string }>(

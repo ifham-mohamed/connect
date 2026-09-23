@@ -82,6 +82,10 @@ describe("keyword matching", () => {
       false,
     );
     expect(matchesExperience("Software Engineer", "other")).toBe(true);
+    expect(matchesExperience("Software Engineer", "entry")).toBe(true);
+    expect(matchesExperience("Software Engineer", "mid")).toBe(true);
+    expect(matchesExperience("Software Engineer", "senior")).toBe(true);
+    expect(matchesExperience("Software Engineer", "internship")).toBe(false);
     expect(matchesExperience("Junior Software Engineer", "other")).toBe(false);
     expect(matchesExperience("Full Stack Developer (1)", "entry")).toBe(true);
     expect(matchesExperience("Full Stack Developer I", "entry")).toBe(true);
@@ -124,6 +128,21 @@ describe("keyword matching", () => {
     expect(containsKeyword("C++ engineer", "C++")).toBe(true);
     expect(containsKeyword("Next.js developer", "Next.js")).toBe(true);
   });
+  it("normalizes common compound-role title variants", () => {
+    expect(
+      containsKeyword(
+        "Full-stack Engineer - Java & React",
+        "full stack engineer",
+      ),
+    ).toBe(true);
+    expect(containsKeyword("Fullstack Developer", "full stack developer")).toBe(
+      true,
+    );
+    expect(containsKeyword("Front-end Developer", "frontend developer")).toBe(
+      true,
+    );
+    expect(containsKeyword("Back End Engineer", "backend engineer")).toBe(true);
+  });
   const job = {
     title: "React engineer",
     company: "Acme",
@@ -136,6 +155,41 @@ describe("keyword matching", () => {
     expect(matchesMonitor(job, monitor)).toBe(true);
     expect(
       matchesMonitor({ ...job, title: "C++ engineer", tags: [] }, monitor),
+    ).toBe(true);
+  });
+  it("places equivalent engineer and developer titles under role monitors", () => {
+    const entrySoftwareMonitor = {
+      ...monitor,
+      keywords: ["software engineer", "software developer"],
+      remoteOnly: false,
+    };
+    expect(
+      matchesMonitor(
+        { ...job, title: "Junior Software Developer", tags: [] },
+        entrySoftwareMonitor,
+        "entry",
+      ),
+    ).toBe(true);
+    expect(
+      matchesMonitor(
+        { ...job, title: "Senior Software Developer", tags: [] },
+        entrySoftwareMonitor,
+        "entry",
+      ),
+    ).toBe(false);
+    expect(
+      matchesMonitor(
+        {
+          ...job,
+          title: "Full-stack Engineer - Java & React",
+          tags: [],
+        },
+        {
+          ...entrySoftwareMonitor,
+          keywords: ["full stack developer", "full stack engineer"],
+        },
+        "entry",
+      ),
     ).toBe(true);
   });
   it("honors exclusion, enabled state, remote restriction and location together", () => {

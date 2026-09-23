@@ -59,8 +59,8 @@ const experiences: { id: Experience; label: string; detail: string }[] = [
 ];
 
 const rolePresets = [
-  { label: "Software Engineer", keywords: ["software engineer", "application engineer", "product engineer"] },
-  { label: "Full Stack Developer", keywords: ["full stack developer", "full stack engineer", "mern stack developer"] },
+  { label: "Software Engineer", keywords: ["software engineer", "software developer", "software development engineer", "application engineer", "application developer", "product engineer"] },
+  { label: "Full Stack Developer", keywords: ["full stack developer", "full stack engineer", "fullstack developer", "fullstack engineer", "mern stack developer"] },
   { label: "Frontend Developer", keywords: ["frontend developer", "frontend engineer", "react developer", "next.js developer"] },
   { label: "Backend Developer", keywords: ["backend developer", "backend engineer", "node developer", "api developer"] },
   { label: "Mobile Developer", keywords: ["mobile developer", "react native developer", "flutter developer", "android developer"] },
