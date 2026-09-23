@@ -1,0 +1,6 @@
+name = "jobradar-hourly-scheduler"
+main = "scheduler.js"
+compatibility_date = "2026-09-23"
+
+[triggers]
+crons = ["0 * * * *", "30 18 * * *"]

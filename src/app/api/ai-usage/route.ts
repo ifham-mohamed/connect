@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { readJsonBody, RequestBodyError } from "@/lib/request-body";
 import { recordSecurityEvent } from "@/lib/security";
 import { rateLimitResponse } from "@/lib/rate-limit";
+import { getWorkspaceAiBudget } from "@/lib/ai-budget";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,8 @@ export async function GET(request: Request) {
         usage,
         memberSummary:
           user.role === "owner" ? await memberUsageSummary(client) : null,
+        workspaceBudget:
+          user.role === "owner" ? await getWorkspaceAiBudget(client) : null,
       },
       { headers: { "Cache-Control": "no-store" } },
     );
@@ -51,7 +54,17 @@ export async function PATCH(request: Request) {
   try {
     const user = await authorizeWrite(request, "owner");
     const input = z
-      .object({ memberDailyJobAnalysisLimit: z.number().int().min(1).max(100) })
+      .object({
+        memberDailyJobAnalysisLimit: z.number().int().min(1).max(100),
+        backgroundEnabled: z.boolean().default(false),
+        monthlyRequestLimit: z.number().int().min(1).max(100000).default(500),
+        monthlyTokenLimit: z
+          .number()
+          .int()
+          .min(1000)
+          .max(100000000)
+          .default(1000000),
+      })
       .parse(await readJsonBody(request, 2_000));
     await db().query(
       `INSERT INTO ai_usage_policy(singleton,member_daily_job_analysis_limit,updated_by,updated_at)
@@ -60,6 +73,15 @@ export async function PATCH(request: Request) {
          member_daily_job_analysis_limit=excluded.member_daily_job_analysis_limit,
          updated_by=excluded.updated_by,updated_at=now()`,
       [input.memberDailyJobAnalysisLimit, user.id],
+    );
+    await db().query(
+      `UPDATE ai_workspace_budget SET background_enabled=$1,monthly_request_limit=$2,
+        monthly_token_limit=$3,paused_reason=NULL,updated_at=now() WHERE singleton=true`,
+      [
+        input.backgroundEnabled,
+        input.monthlyRequestLimit,
+        input.monthlyTokenLimit,
+      ],
     );
     await recordSecurityEvent({
       request,

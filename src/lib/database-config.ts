@@ -3,12 +3,17 @@ import type { PoolConfig } from "pg";
 
 export function databaseConfig(
   env: Record<string, string | undefined> = process.env,
+  role: "web" | "worker" = "web",
 ): PoolConfig {
-  if (!env.DATABASE_URL)
+  const configuredUrl =
+    role === "worker"
+      ? env.DATABASE_WORKER_URL || env.DATABASE_URL
+      : env.DATABASE_WEB_URL || env.DATABASE_URL;
+  if (!configuredUrl)
     throw new Error("Set DATABASE_URL in .env to connect PostgreSQL.");
   let url: URL;
   try {
-    url = new URL(env.DATABASE_URL);
+    url = new URL(configuredUrl);
   } catch {
     throw new Error(
       "DATABASE_URL must be a valid PostgreSQL URL, without backslashes.",
@@ -55,7 +60,7 @@ export function databaseConfig(
     ...(tls
       ? { ssl: { rejectUnauthorized: true, ...(ca ? { ca } : {}) } }
       : {}),
-    max: Math.max(1, Math.min(10, Number(env.DATABASE_POOL_MAX || 5))),
+    max: Math.max(1, Math.min(10, Number(env.DATABASE_POOL_MAX || 1))),
     connectionTimeoutMillis: 15000,
     idleTimeoutMillis: 20000,
     keepAlive: true,

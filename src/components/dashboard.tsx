@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -57,7 +58,6 @@ import {
 } from "@/lib/matching";
 import type { CvProfile } from "@/lib/cv/profile";
 import { cvSkillTerms } from "@/lib/cv/profile";
-import CvWorkspace from "@/components/cv-workspace";
 import { monitorSchema, sourceSchema } from "@/lib/validation";
 import {
   linkedInJobPostsSearchUrl,
@@ -71,11 +71,21 @@ import {
   type LinkedInWorkplace,
 } from "@/lib/linkedin";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
-import IntelligenceControls from "@/components/intelligence-controls";
-import JobCvReview from "@/components/job-cv-review";
-import JobImageContext from "@/components/job-image-context";
-import SecurityActivity from "@/components/security-activity";
-import AiUsageControls from "@/components/ai-usage-controls";
+const CvWorkspace = dynamic(() => import("@/components/cv-workspace"));
+const IntelligenceControls = dynamic(
+  () => import("@/components/intelligence-controls"),
+);
+const JobCvReview = dynamic(() => import("@/components/job-cv-review"));
+const JobImageContext = dynamic(() => import("@/components/job-image-context"));
+const SecurityActivity = dynamic(
+  () => import("@/components/security-activity"),
+);
+const AiUsageControls = dynamic(() => import("@/components/ai-usage-controls"));
+const PerformanceCostPanel = dynamic(
+  () => import("@/components/performance-cost-panel"),
+);
+
+type Revisions = Record<string, number>;
 
 type View =
   | "overview"
@@ -225,11 +235,17 @@ function accountInitials(name: string) {
 
 export default function Dashboard({
   initialView = "overview",
+  initialData = null,
+  initialRevisions = {},
+  initialNextCursor = null,
 }: {
   initialView?: View;
+  initialData?: DashboardData | null;
+  initialRevisions?: Revisions;
+  initialNextCursor?: string | null;
 }) {
   const router = useRouter();
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [data, setData] = useState<DashboardData | null>(initialData);
   const [error, setError] = useState("");
   const [now, setNow] = useState(0);
   const [view, setView] = useState<View>(initialView);
@@ -243,6 +259,9 @@ export default function Dashboard({
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
+  const [jobsNextCursor, setJobsNextCursor] = useState<string | null>(
+    initialNextCursor,
+  );
   const [filters, setFilters] = useState(false);
   const [workspaceFilter, setWorkspaceFilter] = useState("all");
   const [runFilter, setRunFilter] = useState<string | null>(null);
@@ -271,7 +290,7 @@ export default function Dashboard({
   const [accountMenu, setAccountMenu] = useState<"top" | "sidebar" | null>(
     null,
   );
-  const [profileName, setProfileName] = useState("");
+  const [profileName, setProfileName] = useState(initialData?.user?.name || "");
   const [localCvState, setLocalCvState] = useState<{
     userId: string;
     profile: CvProfile;
@@ -307,44 +326,55 @@ export default function Dashboard({
   });
   const searchRef = useRef<HTMLInputElement>(null);
   const accountMenuRef = useRef<HTMLDivElement>(null);
-  const hasLoadedRef = useRef(false);
+  const hasLoadedRef = useRef(Boolean(initialData));
+  const revisionsRef = useRef<Revisions>(initialRevisions);
+  const revisionsEtagRef = useRef("");
   const modalHistoryRef = useRef(false);
   const deepLinkJobRef = useRef(false);
+  const readJson = useCallback(async (url: string) => {
+    const response = await fetch(url, { cache: "no-store" });
+    const result = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      const next = encodeURIComponent(
+        `${window.location.pathname}${window.location.search}`,
+      );
+      window.location.replace(`/auth?next=${next}`);
+      throw new Error("Sign in required.");
+    }
+    if (!response.ok)
+      throw new Error(result.error || "The workspace could not be loaded.");
+    return result;
+  }, []);
   const refresh = useCallback(async () => {
     if (hasLoadedRef.current) setRefreshing(true);
     try {
-      const response = await fetch("/api/dashboard", { cache: "no-store" });
-      const result = await response.json();
-      if (response.status === 401 && result.code === "AUTH_REQUIRED") {
-        setData(null);
-        setError("");
-        const next = encodeURIComponent(
-          `${window.location.pathname}${window.location.search}`,
-        );
-        window.location.replace(`/auth?next=${next}`);
-        return;
-      }
-      if (response.status === 409 && result.code === "ONBOARDING_REQUIRED") {
+      const summary = await readJson("/api/workspace/summary");
+      if (!summary.user?.onboardingCompleted) {
         router.replace("/onboarding");
         return;
       }
-      if (!response.ok) throw new Error(result.error);
-      if (result.mode === "demo") {
-        try {
-          const saved = localStorage.getItem("jobradar-demo-v2");
-          if (saved) {
-            const state = JSON.parse(saved);
-            result.monitors = state.monitors || result.monitors;
-            result.sources = state.sources || result.sources;
-            result.jobs = result.jobs.map((j: Job) => ({
-              ...j,
-              status: state.statuses?.[j.id] || j.status,
-            }));
-          }
-        } catch {
-          /* Storage may be unavailable in private browsing. */
-        }
-      }
+      const owner = summary.user.role === "owner";
+      const [jobsResult, monitors, sources, runs] = await Promise.all([
+        readJson("/api/jobs?limit=50"),
+        readJson("/api/monitors"),
+        owner ? readJson("/api/sources") : Promise.resolve([]),
+        owner ? readJson("/api/runs") : Promise.resolve([]),
+      ]);
+      const result: DashboardData = {
+        mode: "live",
+        jobs: jobsResult.items,
+        monitors,
+        sources,
+        runs: runs.map((run: DashboardData["runs"][number]) => ({
+          ...run,
+          jobIds: [],
+          newJobIds: [],
+        })),
+        authenticated: true,
+        user: summary.user,
+      };
+      revisionsRef.current = summary.revisions || {};
+      setJobsNextCursor(jobsResult.nextCursor || null);
       setData(result);
       setProfileName(result.user?.name || "");
       hasLoadedRef.current = true;
@@ -353,20 +383,42 @@ export default function Dashboard({
     } finally {
       setRefreshing(false);
     }
-  }, [router]);
-  useEffect(() => {
-    const initial = setTimeout(
-      () => refresh().catch((e) => setError(e.message)),
-      0,
-    );
-    const timer = setInterval(() => {
-      refresh().catch(() => {});
-    }, 60000);
-    return () => {
-      clearTimeout(initial);
-      clearInterval(timer);
-    };
+  }, [readJson, router]);
+
+  const checkRevisions = useCallback(async () => {
+    if (!hasLoadedRef.current || document.visibilityState !== "visible") return;
+    const response = await fetch("/api/revisions", {
+      cache: "no-store",
+      headers: revisionsEtagRef.current
+        ? { "If-None-Match": revisionsEtagRef.current }
+        : undefined,
+    });
+    if (response.status === 304) return;
+    if (!response.ok) return;
+    revisionsEtagRef.current = response.headers.get("etag") || "";
+    const next = (await response.json()).revisions as Revisions;
+    const previous = revisionsRef.current;
+    if (Object.keys(next).some((scope) => next[scope] !== previous[scope]))
+      await refresh();
+    revisionsRef.current = next;
   }, [refresh]);
+  useEffect(() => {
+    const initial = initialData
+      ? undefined
+      : setTimeout(() => refresh().catch((e) => setError(e.message)), 0);
+    const timer = setInterval(() => void checkRevisions(), 15 * 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void checkRevisions();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      if (initial) clearTimeout(initial);
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [checkRevisions, initialData, refresh]);
   useEffect(() => {
     if (!data?.user?.id) return;
     let active = true;
@@ -529,6 +581,92 @@ export default function Dashboard({
   const ownerAccess = data?.mode === "demo" || data?.user?.role === "owner";
   const activeTab =
     !ownerAccess && tab === "all" && view !== "saved" ? "matched" : tab;
+  useEffect(() => {
+    if (!hasLoadedRef.current || runFilter) return;
+    if (!["overview", "jobs", "saved"].includes(view)) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams();
+      params.set("limit", "50");
+      if (query.trim()) params.set("q", query.trim());
+      if (sourceFilter !== "all") params.set("source", sourceFilter);
+      if (monitorFilter !== "all") params.set("monitor", monitorFilter);
+      if (activeTab === "matched") params.set("matched", "true");
+      if (activeTab === "archived") params.set("status", "archived");
+      if (activeTab === "applied") params.set("status", "applied");
+      if (region === "remote") params.set("mode", "remote");
+      if (region === "sri-lanka") params.set("location", "Sri Lanka");
+      void fetch(`/api/jobs?${params}`, {
+        cache: "no-store",
+        signal: controller.signal,
+      })
+        .then(async (response) => {
+          const result = await response.json();
+          if (!response.ok)
+            throw new Error(result.error || "Jobs could not be loaded.");
+          setData((current) =>
+            current ? { ...current, jobs: result.items } : current,
+          );
+          setJobsNextCursor(result.nextCursor || null);
+          const visibleParams = new URLSearchParams(window.location.search);
+          for (const key of [
+            "q",
+            "source",
+            "monitor",
+            "status",
+            "mode",
+            "location",
+          ])
+            visibleParams.delete(key);
+          params.forEach((value, key) => {
+            if (key !== "limit" && key !== "matched")
+              visibleParams.set(key, value);
+          });
+          window.history.replaceState(
+            window.history.state,
+            "",
+            `${window.location.pathname}${visibleParams.size ? `?${visibleParams}` : ""}`,
+          );
+        })
+        .catch((cause) => {
+          if (cause.name !== "AbortError") setError(cause.message);
+        });
+    }, 250);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [activeTab, monitorFilter, query, region, runFilter, sourceFilter, view]);
+
+  async function loadMoreJobs() {
+    if (!jobsNextCursor) return;
+    const params = new URLSearchParams({ limit: "50", cursor: jobsNextCursor });
+    if (query.trim()) params.set("q", query.trim());
+    if (sourceFilter !== "all") params.set("source", sourceFilter);
+    if (monitorFilter !== "all") params.set("monitor", monitorFilter);
+    if (activeTab === "matched") params.set("matched", "true");
+    if (activeTab === "archived") params.set("status", "archived");
+    if (activeTab === "applied") params.set("status", "applied");
+    if (region === "remote") params.set("mode", "remote");
+    if (region === "sri-lanka") params.set("location", "Sri Lanka");
+    const result = await readJson(`/api/jobs?${params}`);
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            jobs: [
+              ...current.jobs,
+              ...(result.items as Job[]).filter(
+                (job) =>
+                  !current.jobs.some((existing) => existing.id === job.id),
+              ),
+            ],
+          }
+        : current,
+    );
+    setJobsNextCursor(result.nextCursor || null);
+    setPage((value) => value + 1);
+  }
   const selectedRun = data?.runs.find((run) => run.id === runFilter);
   const selectedRunJobIds = useMemo(
     () =>
@@ -687,7 +825,39 @@ export default function Dashboard({
       window.history.pushState({ view: next }, "", viewPaths[next]);
     }
   }
-  function viewRun(runId: string, scope: "all" | "new" = "all") {
+  async function viewRun(runId: string, scope: "all" | "new" = "all") {
+    try {
+      const result = await readJson(
+        `/api/runs/${encodeURIComponent(runId)}/jobs?limit=50&scope=${scope}`,
+      );
+      const runJobs = result.items as Job[];
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              jobs: [
+                ...runJobs,
+                ...current.jobs.filter(
+                  (job) => !runJobs.some((runJob) => runJob.id === job.id),
+                ),
+              ],
+              runs: current.runs.map((run) =>
+                run.id === runId
+                  ? {
+                      ...run,
+                      ...(scope === "new"
+                        ? { newJobIds: runJobs.map((job) => job.id) }
+                        : { jobIds: runJobs.map((job) => job.id) }),
+                    }
+                  : run,
+              ),
+            }
+          : current,
+      );
+    } catch (cause) {
+      setToast((cause as Error).message);
+      return;
+    }
     navigate("jobs");
     setRunFilter(runId);
     setRunScope(scope);
@@ -884,7 +1054,70 @@ export default function Dashboard({
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error);
-    await refresh();
+    if (actionName === "job-status")
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              jobs: current.jobs.map((job) =>
+                job.id === id
+                  ? {
+                      ...job,
+                      status: value as JobStatus,
+                      reviewed: true,
+                      appliedAt:
+                        value === "applied"
+                          ? job.appliedAt || new Date().toISOString()
+                          : job.appliedAt,
+                    }
+                  : job,
+              ),
+            }
+          : current,
+      );
+    else if (actionName === "job-reviewed")
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              jobs: current.jobs.map((job) =>
+                job.id === id ? { ...job, reviewed: true } : job,
+              ),
+            }
+          : current,
+      );
+    else if (actionName === "job-note")
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              jobs: current.jobs.map((job) =>
+                job.id === id
+                  ? { ...job, applicationNote: String(value || "") }
+                  : job,
+              ),
+            }
+          : current,
+      );
+    else if (actionName === "profile-update")
+      setData((current) =>
+        current?.user
+          ? {
+              ...current,
+              user: {
+                ...current.user,
+                name: String((value as { name?: string })?.name || ""),
+              },
+            }
+          : current,
+      );
+    else if (actionName.startsWith("monitor-")) {
+      const monitors = await readJson("/api/monitors");
+      setData((current) => (current ? { ...current, monitors } : current));
+    } else if (actionName.startsWith("source-")) {
+      const sources = await readJson("/api/sources");
+      setData((current) => (current ? { ...current, sources } : current));
+    } else if (actionName === "sync") await refresh();
     return result;
   }
   async function changeStatus(job: Job, status: JobStatus) {
@@ -1894,10 +2127,19 @@ export default function Dashboard({
                         </span>
                         <button
                           className="btn small pagination-btn"
-                          onClick={() =>
-                            setPage((value) => Math.min(totalPages, value + 1))
+                          onClick={() => {
+                            if (currentPage === totalPages && jobsNextCursor)
+                              void loadMoreJobs().catch((cause) =>
+                                setError(cause.message),
+                              );
+                            else
+                              setPage((value) =>
+                                Math.min(totalPages, value + 1),
+                              );
+                          }}
+                          disabled={
+                            currentPage === totalPages && !jobsNextCursor
                           }
-                          disabled={currentPage === totalPages}
                         >
                           Next
                         </button>
@@ -1910,7 +2152,7 @@ export default function Dashboard({
                   Always check availability and location eligibility on the
                   original listing.
                   {data.mode === "live" &&
-                    " Showing the latest 1,000 collected records."}
+                    ` ${jobsNextCursor ? "Load more as you browse." : "All matching records are loaded."}`}
                 </div>
               </section>
               {view === "overview" && (
@@ -3004,15 +3246,15 @@ export default function Dashboard({
                               <div className="run-result-actions">
                                 <button
                                   className="btn small"
-                                  disabled={!run.jobIds.length}
-                                  onClick={() => viewRun(run.id)}
+                                  disabled={run.fetched === 0}
+                                  onClick={() => void viewRun(run.id)}
                                 >
                                   View run <ArrowRight size={13} />
                                 </button>
-                                {run.newJobIds.length > 0 && (
+                                {run.added > 0 && (
                                   <button
                                     className="btn small subtle"
-                                    onClick={() => viewRun(run.id, "new")}
+                                    onClick={() => void viewRun(run.id, "new")}
                                   >
                                     New only
                                   </button>
@@ -3316,6 +3558,7 @@ export default function Dashboard({
                   </a>
                 )}
               </section>
+              {data.mode === "live" && isOwner && <PerformanceCostPanel />}
               {data.mode === "live" && isOwner && <AiUsageControls />}
               {data.mode === "live" && <SecurityActivity />}
             </div>

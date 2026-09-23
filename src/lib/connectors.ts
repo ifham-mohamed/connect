@@ -13,6 +13,11 @@ export type IncomingJob = Omit<
   | "matchedMonitors"
   | "reviewed"
 > & { detailFetchFailed?: boolean };
+export type CollectionResult = IncomingJob[] & {
+  responseEtag?: string | null;
+  responseLastModified?: string | null;
+  notModified?: boolean;
+};
 type IncomingJobBase = Pick<
   IncomingJob,
   "sourceId" | "salary" | "employmentType" | "tags" | "publishedAt"
@@ -665,7 +670,7 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
       description: j.description.slice(0, 60000),
     }));
 }
-export async function collect(source: Source): Promise<IncomingJob[]> {
+export async function collect(source: Source): Promise<CollectionResult> {
   const response = await fetch(
     source.kind === "rooster" ? roosterSearchUrl : sourceUrl(source),
     {
@@ -676,6 +681,12 @@ export async function collect(source: Source): Promise<IncomingJob[]> {
         "User-Agent": "Jobradar/1.0 (job monitoring; public feeds)",
         ...(source.kind === "rooster"
           ? { "Content-Type": "application/json" }
+          : {}),
+        ...(source.kind !== "rooster" && source.responseEtag
+          ? { "If-None-Match": source.responseEtag }
+          : {}),
+        ...(source.kind !== "rooster" && source.responseLastModified
+          ? { "If-Modified-Since": source.responseLastModified }
           : {}),
         Accept: htmlSourceKinds.includes(source.kind)
           ? "text/html,application/rss+xml"
@@ -700,6 +711,14 @@ export async function collect(source: Source): Promise<IncomingJob[]> {
       cache: "no-store",
     },
   );
+  const responseMetadata = {
+    responseEtag: response.headers.get("etag"),
+    responseLastModified: response.headers.get("last-modified"),
+  };
+  if (response.status === 304)
+    return Object.assign([] as IncomingJob[], responseMetadata, {
+      notModified: true,
+    });
   if (!response.ok) throw new Error(`Source returned HTTP ${response.status}`);
   const reader = response.body?.getReader();
   if (!reader) throw new Error("Source returned an empty response");
@@ -720,8 +739,11 @@ export async function collect(source: Source): Promise<IncomingJob[]> {
     source,
     htmlSourceKinds.includes(source.kind) ? body : JSON.parse(body),
   );
-  if (source.kind === "itpro" && isItproCategoryBoard(source.board))
-    return enrichItproJobs(jobs);
-  if (source.kind === "topjobs") return enrichTopJobs(jobs);
-  return jobs;
+  const enriched =
+    source.kind === "itpro" && isItproCategoryBoard(source.board)
+      ? await enrichItproJobs(jobs)
+      : source.kind === "topjobs"
+        ? await enrichTopJobs(jobs)
+        : jobs;
+  return Object.assign(enriched, responseMetadata);
 }

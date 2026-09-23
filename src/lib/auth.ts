@@ -89,9 +89,10 @@ export async function currentUser(
       sessionId: string;
       ipHash: string | null;
       userAgentHash: string | null;
+      lastSeenAt: Date;
     }
   >(
-    `SELECT u.id, u.name, u.email, u.role,s.id AS "sessionId",
+    `SELECT u.id, u.name, u.email, u.role,s.id AS "sessionId",s.last_seen_at AS "lastSeenAt",
             s.ip_hash AS "ipHash",s.user_agent_hash AS "userAgentHash",
             (u.onboarding_completed_at IS NOT NULL) AS "onboardingCompleted",
             u.preferences
@@ -129,7 +130,14 @@ export async function currentUser(
       });
       return null;
     }
-    if (user.ipHash && context.ipHash && user.ipHash !== context.ipHash) {
+    const touchDue =
+      Date.now() - new Date(user.lastSeenAt).getTime() >= 15 * 60_000;
+    if (
+      touchDue &&
+      user.ipHash &&
+      context.ipHash &&
+      user.ipHash !== context.ipHash
+    ) {
       await recordSecurityEvent({
         request: securityRequest,
         eventType: "session.network_changed",
@@ -139,12 +147,13 @@ export async function currentUser(
         queryable: connection,
       });
     }
-    await connection.query(
-      `UPDATE user_sessions SET last_seen_at=now(),
+    if (touchDue)
+      await connection.query(
+        `UPDATE user_sessions SET last_seen_at=now(),
               ip_hash=COALESCE($2,ip_hash),user_agent_hash=COALESCE($3,user_agent_hash)
         WHERE id=$1`,
-      [user.sessionId, context.ipHash, context.userAgentHash],
-    );
+        [user.sessionId, context.ipHash, context.userAgentHash],
+      );
   }
   return {
     id: user.id,
@@ -160,7 +169,8 @@ export function originAllowed(request: Request) {
   const origin = request.headers.get("origin");
   let applicationOrigin = "";
   try {
-    if (process.env.APP_URL) applicationOrigin = new URL(process.env.APP_URL).origin;
+    if (process.env.APP_URL)
+      applicationOrigin = new URL(process.env.APP_URL).origin;
     else if (process.env.NODE_ENV !== "production")
       applicationOrigin = new URL(request.url).origin;
   } catch {

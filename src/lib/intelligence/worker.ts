@@ -15,6 +15,12 @@ import type { ValidatedJobClassification } from "../jev/contract";
 import { reviewShadowDecision } from "../jev/policy";
 import { rebuildMatchesForJobs } from "../sync";
 import {
+  completeWorkspaceAiRequest,
+  getWorkspaceAiBudget,
+  pauseWorkspaceAi,
+  reserveWorkspaceAiRequest,
+} from "../ai-budget";
+import {
   claimIntelligenceTasks,
   currentTaskState,
   markIntelligenceTaskStale,
@@ -164,6 +170,20 @@ export async function processIntelligenceBatch(
   config: Pick<JevConfig, "batchSize" | "maxAttempts">,
   workerId: string,
 ) {
+  const budget = await getWorkspaceAiBudget(client);
+  if (!budget.backgroundEnabled || !budget.available)
+    return {
+      claimed: 0,
+      succeeded: 0,
+      retrying: 0,
+      dead: 0,
+      stale: 0,
+      pausedReason:
+        budget.pausedReason ||
+        (!budget.backgroundEnabled
+          ? "Background AI is disabled."
+          : "Monthly zero-spend allowance reached."),
+    };
   const tasks = await claimIntelligenceTasks(
     client,
     workerId,
@@ -177,6 +197,7 @@ export async function processIntelligenceBatch(
     stale: 0,
   };
   for (const task of tasks) {
+    let workspaceReserved = false;
     try {
       const state = await currentTaskState(client, task);
       if (!state) {
@@ -185,12 +206,40 @@ export async function processIntelligenceBatch(
         summary.stale++;
         continue;
       }
+      const reservation = await reserveWorkspaceAiRequest(
+        client as PoolClient,
+        true,
+      );
+      if (!reservation.allowed) {
+        await client.query(
+          `UPDATE job_intelligence_queue SET status='pending',locked_at=NULL,locked_by=NULL,
+             available_at=now()+interval '1 hour',updated_at=now() WHERE id=$1`,
+          [task.id],
+        );
+        break;
+      }
+      workspaceReserved = true;
       const response = await classifier(state);
+      await completeWorkspaceAiRequest(client, {
+        inputTokens: response.result.usage.input_tokens,
+        outputTokens: response.result.usage.output_tokens,
+      });
       if (await saveEvaluation(client, task, response, state))
         summary.succeeded++;
       else summary.stale++;
     } catch (error) {
+      if (workspaceReserved)
+        await completeWorkspaceAiRequest(client, { failed: true }).catch(
+          () => {},
+        );
       const failure = jevFailure(error);
+      if (failure.code === "rate_limited" || failure.code === "provider_402")
+        await pauseWorkspaceAi(
+          client,
+          failure.code === "provider_402"
+            ? "AI provider credit is unavailable. Background processing is paused."
+            : "AI provider quota was reached. Background processing is paused.",
+        ).catch(() => {});
       const status = await retryOrDeadLetterTask(
         client,
         task,

@@ -343,6 +343,35 @@ describe("source normalization and trust boundaries", () => {
       vi.unstubAllGlobals();
     }
   });
+  it("uses source validators and skips parsing a 304 response", async () => {
+    const fetchMock = vi.fn(
+      async (_url: string | URL | Request, init?: RequestInit) => {
+        expect(new Headers(init?.headers).get("if-none-match")).toBe(
+          '"feed-v2"',
+        );
+        expect(new Headers(init?.headers).get("if-modified-since")).toBe(
+          "Wed, 23 Sep 2026 10:00:00 GMT",
+        );
+        return new Response(null, {
+          status: 304,
+          headers: { etag: '"feed-v2"' },
+        });
+      },
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const result = await collect({
+        ...source,
+        responseEtag: '"feed-v2"',
+        responseLastModified: "Wed, 23 Sep 2026 10:00:00 GMT",
+      });
+      expect(result).toHaveLength(0);
+      expect(result.notModified).toBe(true);
+      expect(result.responseEtag).toBe('"feed-v2"');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
   it("keeps feed publication timezone and source URL with Sri Lankan location", () => {
     const feed = `<rss><channel><item><title>Software Engineer</title><guid>42</guid><link>https://itpro.lk/job/42/</link><pubDate>Sun, 20 Sep 2026 14:21:54 +0530</pubDate><content:encoded><![CDATA[<strong>Company:</strong> Acme<br><strong>Location:</strong> Colombo<br><strong>Job Type:</strong> Full-time<br><p>Build software.</p>]]></content:encoded></item></channel></rss>`;
     const [job] = normalize(source, feed);
@@ -395,10 +424,11 @@ describe("source normalization and trust boundaries", () => {
   it("collects every supported ITPro category and enriches its job details", async () => {
     const board = `<article class="job-card" id="15145"><a href="https://itpro.lk/job/15145/junior-software-engineer/"><h2 class="jc-title">Junior Software Engineer</h2><span class="jc-company">Acme</span><span class="la">Colombo</span><time datetime="2026-09-18T08:28:00+05:30"></time></a></article>`;
     const detail = `<article><header><div id="job-details-subrow"><span class="la">Colombo • <span style="white-space: nowrap;">Full-time</span></span></div></header><section id="job-description"><p>Build modern web applications.</p></section></article>`;
-    const fetchMock = vi.fn(async (url: string | URL | Request) =>
-      new Response(String(url).includes("/job/15145/") ? detail : board, {
-        headers: { "content-type": "text/html; charset=utf-8" },
-      }),
+    const fetchMock = vi.fn(
+      async (url: string | URL | Request) =>
+        new Response(String(url).includes("/job/15145/") ? detail : board, {
+          headers: { "content-type": "text/html; charset=utf-8" },
+        }),
     );
     vi.stubGlobal("fetch", fetchMock);
     try {
@@ -428,7 +458,11 @@ describe("source normalization and trust boundaries", () => {
         {
           id: "current-lever-record",
           text: "Automation Engineer - Rewst",
-          categories: { location: "Colombo", commitment: "Full-time", team: "IT" },
+          categories: {
+            location: "Colombo",
+            commitment: "Full-time",
+            team: "IT",
+          },
           description: "",
           descriptionPlain: "",
           descriptionBody: "",
@@ -437,14 +471,17 @@ describe("source normalization and trust boundaries", () => {
           openingPlain: "Join a global engineering team.",
           additional: "",
           additionalPlain: "Applications are reviewed weekly.",
-          hostedUrl: "https://jobs.lever.co/dijital-team-pty-ltd/current-lever-record",
+          hostedUrl:
+            "https://jobs.lever.co/dijital-team-pty-ltd/current-lever-record",
           workplaceType: "hybrid",
           lists: [],
         },
       ],
     );
 
-    expect(job.description).toContain("Build and maintain production automation.");
+    expect(job.description).toContain(
+      "Build and maintain production automation.",
+    );
     expect(job.description).toContain("Join a global engineering team.");
     expect(job.description).toContain("Applications are reviewed weekly.");
   });

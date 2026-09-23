@@ -1,5 +1,5 @@
-import Dashboard from "@/components/dashboard";
+import WorkspacePage from "@/components/workspace-page";
 
 export default function MonitorsPage() {
-  return <Dashboard initialView="monitors" />;
+  return <WorkspacePage view="monitors" />;
 }

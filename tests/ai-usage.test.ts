@@ -7,6 +7,11 @@ import {
   getAiUsage,
   reserveAiJobAnalysis,
 } from "../src/lib/ai-usage";
+import {
+  completeWorkspaceAiRequest,
+  getWorkspaceAiBudget,
+  reserveWorkspaceAiRequest,
+} from "../src/lib/ai-budget";
 
 const database = new PGlite();
 const client = database as unknown as PoolClient;
@@ -18,7 +23,13 @@ beforeAll(async () => {
   for (const migration of [
     "001_initial",
     "007_user_auth",
+    "008_personal_onboarding",
+    "009_personal_job_states",
     "029_ai_usage_limits",
+    "028_security_audit",
+    "030_request_rate_limits",
+    "031_scaling_foundation",
+    "032_cost_controls",
   ])
     await database.exec(
       await readFile(
@@ -98,5 +109,26 @@ describe("AI analysis allowance", () => {
     );
     const usage = await getAiUsage(client, { id: memberId, role: "member" });
     expect(usage).toMatchObject({ memberLimit: 7, limit: 7, remaining: 7 });
+  });
+
+  it("stops at the workspace monthly boundary without provider overage", async () => {
+    await database.query(
+      `UPDATE ai_workspace_budget SET monthly_request_limit=2,monthly_token_limit=1000,
+        paused_reason=NULL WHERE singleton=true`,
+    );
+    await database.query("DELETE FROM ai_workspace_usage");
+    expect((await reserveWorkspaceAiRequest(client)).allowed).toBe(true);
+    await completeWorkspaceAiRequest(client, {
+      inputTokens: 100,
+      outputTokens: 20,
+    });
+    expect((await reserveWorkspaceAiRequest(client)).allowed).toBe(true);
+    expect((await reserveWorkspaceAiRequest(client)).allowed).toBe(false);
+    const budget = await getWorkspaceAiBudget(client);
+    expect(budget).toMatchObject({
+      requests: 2,
+      available: false,
+      avoidedRequests: 1,
+    });
   });
 });

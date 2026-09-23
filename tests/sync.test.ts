@@ -115,6 +115,20 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  for (const migration of [
+    "028_security_audit",
+    "029_ai_usage_limits",
+    "030_request_rate_limits",
+    "031_scaling_foundation",
+    "032_cost_controls",
+    "033_source_observability",
+  ])
+    await database.exec(
+      await readFile(
+        new URL(`../db/${migration}.sql`, import.meta.url),
+        "utf8",
+      ),
+    );
   await database.query("UPDATE sources SET enabled=false WHERE kind='lever'");
 });
 afterAll(async () => {
@@ -193,16 +207,20 @@ describe("collector transactions and scheduling", () => {
     expect(failed.rows[0].error).toContain("429");
     expect((await syncSources()).results).toHaveLength(0);
   });
-  it("skips overlapping invocations and recovers interrupted run records", async () => {
-    locked = true;
-    expect((await syncSources()).busy).toBe(true);
-    locked = false;
+  it("honors active source leases and recovers expired run records", async () => {
     await database.query(
-      "INSERT INTO sync_runs(source_id) SELECT id FROM sources WHERE kind='itpro'",
+      "UPDATE sources SET lease_token=gen_random_uuid(),lease_until=now()+interval '10 minutes',last_attempt_at=NULL",
+    );
+    expect((await syncSources()).results).toHaveLength(0);
+    await database.query(
+      "UPDATE sources SET lease_token=NULL,lease_until=NULL,last_attempt_at=NULL",
+    );
+    await database.query(
+      "INSERT INTO sync_runs(source_id,started_at) SELECT id,now()-interval '20 minutes' FROM sources WHERE kind='itpro' LIMIT 1",
     );
     await syncSources();
     const orphan = await database.query<{ status: string }>(
-      "SELECT status FROM sync_runs WHERE error LIKE 'Collector interrupted%'",
+      "SELECT status FROM sync_runs WHERE error LIKE 'Collector lease expired%'",
     );
     expect(orphan.rows[0].status).toBe("failed");
   });

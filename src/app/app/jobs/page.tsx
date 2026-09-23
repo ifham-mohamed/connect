@@ -1,5 +1,5 @@
-import Dashboard from "@/components/dashboard";
+import WorkspacePage from "@/components/workspace-page";
 
 export default function JobsPage() {
-  return <Dashboard initialView="jobs" />;
+  return <WorkspacePage view="jobs" />;
 }

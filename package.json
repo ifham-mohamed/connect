@@ -26,7 +26,8 @@
     "jev:requirements": "tsx --env-file-if-exists=.env scripts/evaluate-requirements.ts",
     "jev:rematch:deterministic": "tsx --env-file-if-exists=.env scripts/rematch-deterministic.ts --confirm",
     "format": "prettier --write src scripts tests docs README.md",
-    "db:check": "tsx --env-file-if-exists=.env scripts/check-database.ts"
+    "db:check": "tsx --env-file-if-exists=.env scripts/check-database.ts",
+    "perf:load": "tsx --env-file-if-exists=.env scripts/load-sim.ts --users=100"
   },
   "license": "ISC",
   "type": "module",

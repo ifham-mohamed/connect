@@ -79,6 +79,8 @@ export interface Source {
   lastSyncedAt: string | null;
   lastAttemptAt: string | null;
   lastError: string | null;
+  responseEtag?: string | null;
+  responseLastModified?: string | null;
   jobCount: number;
 }
 export interface Run {

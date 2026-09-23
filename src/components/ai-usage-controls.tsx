@@ -25,11 +25,27 @@ type UsageResponse = {
     analyses: number;
     pending: number;
   };
+  workspaceBudget: {
+    backgroundEnabled: boolean;
+    monthlyRequestLimit: number;
+    monthlyTokenLimit: number;
+    pausedReason: string | null;
+    requests: number;
+    inputTokens: number;
+    outputTokens: number;
+    cacheHits: number;
+    failures: number;
+    avoidedRequests: number;
+    available: boolean;
+  } | null;
 };
 
 export default function AiUsageControls() {
   const [data, setData] = useState<UsageResponse | null>(null);
   const [limit, setLimit] = useState(5);
+  const [backgroundEnabled, setBackgroundEnabled] = useState(false);
+  const [monthlyRequestLimit, setMonthlyRequestLimit] = useState(500);
+  const [monthlyTokenLimit, setMonthlyTokenLimit] = useState(1_000_000);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const load = useCallback(async () => {
@@ -39,6 +55,11 @@ export default function AiUsageControls() {
       throw new Error(result.error || "AI usage could not be loaded.");
     setData(result);
     setLimit(result.usage.memberLimit);
+    if (result.workspaceBudget) {
+      setBackgroundEnabled(result.workspaceBudget.backgroundEnabled);
+      setMonthlyRequestLimit(result.workspaceBudget.monthlyRequestLimit);
+      setMonthlyTokenLimit(result.workspaceBudget.monthlyTokenLimit);
+    }
   }, []);
   useEffect(() => {
     const timer = setTimeout(
@@ -55,7 +76,12 @@ export default function AiUsageControls() {
       const response = await fetch("/api/ai-usage", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ memberDailyJobAnalysisLimit: limit }),
+        body: JSON.stringify({
+          memberDailyJobAnalysisLimit: limit,
+          backgroundEnabled,
+          monthlyRequestLimit,
+          monthlyTokenLimit,
+        }),
       });
       const result = await response.json();
       if (!response.ok)
@@ -80,7 +106,7 @@ export default function AiUsageControls() {
           <h3>AI analysis allowance</h3>
         </span>
         <em className="ai-owner-unlimited">
-          <ShieldCheck size={13} /> Owner unlimited
+          <ShieldCheck size={13} /> No owner daily cap
         </em>
       </div>
       <p>
@@ -130,6 +156,42 @@ export default function AiUsageControls() {
                 }
               />
             </label>
+            <label className="settings-field">
+              <span>Monthly AI requests</span>
+              <input
+                type="number"
+                min={1}
+                max={100000}
+                value={monthlyRequestLimit}
+                onChange={(event) =>
+                  setMonthlyRequestLimit(
+                    Math.max(1, Number(event.target.value)),
+                  )
+                }
+              />
+            </label>
+            <label className="settings-field">
+              <span>Monthly tokens</span>
+              <input
+                type="number"
+                min={1000}
+                max={100000000}
+                value={monthlyTokenLimit}
+                onChange={(event) =>
+                  setMonthlyTokenLimit(
+                    Math.max(1000, Number(event.target.value)),
+                  )
+                }
+              />
+            </label>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={backgroundEnabled}
+                onChange={(event) => setBackgroundEnabled(event.target.checked)}
+              />
+              <span>Allow background JEV classification within this cap</span>
+            </label>
             <button className="btn primary" disabled={busy} onClick={save}>
               {busy ? (
                 <LoaderCircle className="spin" size={14} />
@@ -139,6 +201,20 @@ export default function AiUsageControls() {
               Save allowance
             </button>
           </div>
+          {data.workspaceBudget && (
+            <p className="intelligence-message" role="status">
+              This month: {data.workspaceBudget.requests} requests ·{" "}
+              {(
+                data.workspaceBudget.inputTokens +
+                data.workspaceBudget.outputTokens
+              ).toLocaleString()}{" "}
+              tokens · {data.workspaceBudget.cacheHits} cached ·{" "}
+              {data.workspaceBudget.avoidedRequests} avoided.
+              {data.workspaceBudget.pausedReason
+                ? ` Paused: ${data.workspaceBudget.pausedReason}`
+                : " Zero-spend guard is active."}
+            </p>
+          )}
         </>
       )}
       {message && (

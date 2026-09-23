@@ -1,5 +1,5 @@
-import Dashboard from "@/components/dashboard";
+import WorkspacePage from "@/components/workspace-page";
 
 export default function SettingsPage() {
-  return <Dashboard initialView="settings" />;
+  return <WorkspacePage view="settings" />;
 }

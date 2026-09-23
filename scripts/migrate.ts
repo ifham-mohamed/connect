@@ -43,6 +43,9 @@ try {
     "028_security_audit",
     "029_ai_usage_limits",
     "030_request_rate_limits",
+    "031_scaling_foundation",
+    "032_cost_controls",
+    "033_source_observability",
   ];
   for (const name of migrations) {
     const applied = await client.query(

@@ -95,6 +95,16 @@ beforeAll(async () => {
     "021_candidate_workspace",
     "022_assisted_corrections",
     "023_assisted_rule_lookup",
+    "024_candidate_cv",
+    "025_job_cv_reviews",
+    "026_private_image_context",
+    "027_itpro_category_sources",
+    "028_security_audit",
+    "029_ai_usage_limits",
+    "030_request_rate_limits",
+    "031_scaling_foundation",
+    "032_cost_controls",
+    "033_source_observability",
   ];
   for (const migration of migrations)
     await database.exec(
@@ -103,6 +113,9 @@ beforeAll(async () => {
         "utf8",
       ),
     );
+  await database.query(
+    "UPDATE ai_workspace_budget SET background_enabled=true,monthly_request_limit=1000,monthly_token_limit=10000000,paused_reason=NULL",
+  );
 });
 
 afterAll(async () => database.close());

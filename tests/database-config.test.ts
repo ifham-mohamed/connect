@@ -36,7 +36,7 @@ describe("database connection configuration", () => {
       databaseConfig({
         DATABASE_URL: "postgres://jobradar:jobradar@localhost/db",
       }).max,
-    ).toBe(5);
+    ).toBe(1);
     expect(
       databaseConfig({
         DATABASE_URL: "postgres://jobradar:jobradar@localhost/db",

@@ -1,5 +1,5 @@
-import Dashboard from "@/components/dashboard";
+import WorkspacePage from "@/components/workspace-page";
 
 export default function SourcesPage() {
-  return <Dashboard initialView="sources" />;
+  return <WorkspacePage view="sources" />;
 }

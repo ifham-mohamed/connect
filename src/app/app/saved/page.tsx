@@ -1,5 +1,5 @@
-import Dashboard from "@/components/dashboard";
+import WorkspacePage from "@/components/workspace-page";
 
 export default function SavedPage() {
-  return <Dashboard initialView="saved" />;
+  return <WorkspacePage view="saved" />;
 }

@@ -279,6 +279,7 @@ export async function reviewJobAgainstCv(
   });
   return {
     model: response.model,
+    usage: response.usage,
     result: cvReviewResultSchema.parse({
       version: CV_REVIEW_VERSION,
       overallScore: evidenceCoverage(dimensions),

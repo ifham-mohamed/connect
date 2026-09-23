@@ -1,5 +1,5 @@
-import Dashboard from "@/components/dashboard";
+import WorkspacePage from "@/components/workspace-page";
 
 export default function ActivityPage() {
-  return <Dashboard initialView="activity" />;
+  return <WorkspacePage view="activity" />;
 }

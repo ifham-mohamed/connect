@@ -1,5 +1,5 @@
-import Dashboard from "@/components/dashboard";
+import WorkspacePage from "@/components/workspace-page";
 
 export default function CvPage() {
-  return <Dashboard initialView="cv" />;
+  return <WorkspacePage view="cv" />;
 }

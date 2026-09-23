@@ -17,6 +17,8 @@ const {
 } = await import("../src/lib/sync");
 const { getDashboard, getJobDetail, jobSelect, sourceSelect } =
   await import("../src/lib/repository");
+const { decodeCursor, listJobs } =
+  await import("../src/lib/focused-repository");
 const client = {
   query: (text: string, params?: unknown[]) => database.query(text, params),
 } as unknown as PoolClient;
@@ -129,6 +131,12 @@ beforeAll(async () => {
     "025_job_cv_reviews",
     "026_private_image_context",
     "027_itpro_category_sources",
+    "028_security_audit",
+    "029_ai_usage_limits",
+    "030_request_rate_limits",
+    "031_scaling_foundation",
+    "032_cost_controls",
+    "033_source_observability",
   ])
     await database.exec(
       await readFile(
@@ -577,5 +585,72 @@ describe("PostgreSQL schema and matching integration", () => {
     await expect(
       database.query("UPDATE jobs SET status='unknown'"),
     ).rejects.toThrow();
+  });
+  it("paginates stable job summaries without leaking jobs to an unrelated member", async () => {
+    const owner = await database.query<{
+      id: string;
+      name: string;
+      email: string;
+    }>(
+      "SELECT id,name,email FROM users WHERE role='owner' ORDER BY created_at LIMIT 1",
+    );
+    const input = {
+      limit: 2,
+      cursor: null,
+      search: "",
+      status: "all",
+      monitor: "all",
+      source: "all",
+      matched: false,
+      location: "",
+      mode: "all",
+    };
+    const first = await listJobs(
+      client,
+      {
+        ...owner.rows[0],
+        role: "owner",
+        onboardingCompleted: true,
+        preferences: {},
+      },
+      input,
+    );
+    expect(first.items.length).toBeLessThanOrEqual(2);
+    if (first.nextCursor) {
+      const second = await listJobs(
+        client,
+        {
+          ...owner.rows[0],
+          role: "owner",
+          onboardingCompleted: true,
+          preferences: {},
+        },
+        { ...input, cursor: decodeCursor(first.nextCursor) },
+      );
+      expect(second.items.map((job) => job.id)).not.toContain(
+        first.items[0]?.id,
+      );
+      expect(
+        new Set([...first.items, ...second.items].map((job) => job.id)).size,
+      ).toBe(first.items.length + second.items.length);
+    }
+    const member = await database.query<{
+      id: string;
+      name: string;
+      email: string;
+    }>(
+      "INSERT INTO users(name,email,password_hash) VALUES('No Access','no-access@example.com','hash') RETURNING id,name,email",
+    );
+    const hidden = await listJobs(
+      client,
+      {
+        ...member.rows[0],
+        role: "member",
+        onboardingCompleted: true,
+        preferences: {},
+      },
+      input,
+    );
+    expect(hidden.items).toEqual([]);
   });
 });

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { equalSecret } from "@/lib/auth";
-import { syncSources } from "@/lib/sync";
+import { syncNextSource } from "@/lib/sync";
 export const maxDuration = 300;
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   const secret = process.env.CRON_SECRET;
   if (
     !secret ||
@@ -11,9 +11,16 @@ export async function GET(request: Request) {
   )
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    return NextResponse.json(await syncSources());
+    return NextResponse.json(await syncNextSource());
   } catch (error) {
     console.error("Scheduled collection failed", error);
     return NextResponse.json({ error: "Collection failed" }, { status: 503 });
   }
+}
+
+export function GET() {
+  return NextResponse.json(
+    { error: "Use the authenticated POST scheduler endpoint." },
+    { status: 405, headers: { Allow: "POST" } },
+  );
 }

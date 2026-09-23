@@ -1,16 +1,30 @@
 import { Pool, type PoolClient } from "pg";
 import { databaseConfig } from "./database-config";
-const globalDb = globalThis as unknown as { jobradarPool?: Pool };
-export function db() {
-  if (!process.env.DATABASE_URL)
+const globalDb = globalThis as unknown as {
+  jobradarPool?: Pool;
+  jobradarWorkerPool?: Pool;
+};
+function pool(role: "web" | "worker") {
+  if (
+    !process.env.DATABASE_URL &&
+    !process.env.DATABASE_WEB_URL &&
+    !process.env.DATABASE_WORKER_URL
+  )
     throw new Error("DATABASE_URL is not configured");
-  if (!globalDb.jobradarPool) {
-    globalDb.jobradarPool = new Pool(databaseConfig());
-    globalDb.jobradarPool.on("error", (error) =>
+  const key = role === "worker" ? "jobradarWorkerPool" : "jobradarPool";
+  if (!globalDb[key]) {
+    globalDb[key] = new Pool(databaseConfig(process.env, role));
+    globalDb[key]!.on("error", (error) =>
       console.error("Idle database connection failed", error.message),
     );
   }
-  return globalDb.jobradarPool;
+  return globalDb[key]!;
+}
+export function db() {
+  return pool("web");
+}
+export function workerDb() {
+  return pool("worker");
 }
 
 type Connectable = { connect: () => Promise<PoolClient> };

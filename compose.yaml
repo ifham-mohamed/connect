@@ -50,6 +50,7 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+    command: ["sh", "-c", "while true; do npm run sync; sleep 3600; done"]
     restart: unless-stopped
   intelligence:
     profiles: ["jev"]
@@ -72,6 +73,6 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-    restart: unless-stopped
+    restart: "no"
 volumes:
   postgres_data:

@@ -1,5 +1,5 @@
-import Dashboard from "@/components/dashboard";
+import WorkspacePage from "@/components/workspace-page";
 
 export default function IntelligencePage() {
-  return <Dashboard initialView="intelligence" />;
+  return <WorkspacePage view="intelligence" />;
 }

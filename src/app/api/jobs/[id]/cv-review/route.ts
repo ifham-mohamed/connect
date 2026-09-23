@@ -14,6 +14,11 @@ import {
   type AiUsage,
 } from "@/lib/ai-usage";
 import { rateLimitResponse } from "@/lib/rate-limit";
+import {
+  completeWorkspaceAiRequest,
+  pauseWorkspaceAi,
+  reserveWorkspaceAiRequest,
+} from "@/lib/ai-budget";
 
 export const dynamic = "force-dynamic";
 const jobIdSchema = z.string().uuid();
@@ -130,6 +135,7 @@ export async function POST(request: Request, context: Context) {
       { status: 503 },
     );
   let reservationId: string | null = null;
+  let workspaceReserved = false;
   try {
     const job = await getJobDetail(user, jobId.data, client);
     if (!job)
@@ -158,6 +164,7 @@ export async function POST(request: Request, context: Context) {
       [user.id, jobId.data, revision, hash],
     );
     if (existing.rowCount) {
+      await completeWorkspaceAiRequest(client, { cacheHit: true });
       const usage = await getAiUsage(client, user);
       return NextResponse.json(
         { review: existing.rows[0], cached: true, usage },
@@ -199,7 +206,25 @@ export async function POST(request: Request, context: Context) {
         },
       );
     }
+    const workspaceReservation = await reserveWorkspaceAiRequest(client);
+    if (!workspaceReservation.allowed) {
+      await completeAiJobAnalysis(client, reservationId, false);
+      reservationId = null;
+      return NextResponse.json(
+        {
+          error: workspaceReservation.reason,
+          usage: reservation.usage,
+        },
+        { status: 429, headers: usageHeaders(reservation.usage) },
+      );
+    }
+    workspaceReserved = true;
     const analyzed = await reviewJobAgainstCv(createJevClient(config), job, cv);
+    await completeWorkspaceAiRequest(client, {
+      inputTokens: analyzed.usage.input_tokens,
+      outputTokens: analyzed.usage.output_tokens,
+    });
+    workspaceReserved = false;
     const currentJob = await getJobDetail(user, jobId.data, client);
     if (!currentJob || jobCvHash(currentJob) !== hash) {
       await completeAiJobAnalysis(client, reservationId, false);
@@ -240,6 +265,21 @@ export async function POST(request: Request, context: Context) {
     );
   } catch (error) {
     await completeAiJobAnalysis(client, reservationId, false).catch(() => {});
+    if (workspaceReserved)
+      await completeWorkspaceAiRequest(client, { failed: true }).catch(
+        () => {},
+      );
+    const status =
+      typeof error === "object" && error && "status" in error
+        ? Number(error.status)
+        : 0;
+    if (status === 402 || status === 429)
+      await pauseWorkspaceAi(
+        client,
+        status === 402
+          ? "AI provider credit is unavailable. Requests are paused to prevent paid overage."
+          : "AI provider quota was reached. Requests are paused until the owner resumes them.",
+      ).catch(() => {});
     console.error(
       "CV job review failed",
       error instanceof Error ? error.name : "unknown",
