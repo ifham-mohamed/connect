@@ -4,6 +4,7 @@ import { authorizeWrite, currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getIntelligenceHealth } from "@/lib/intelligence/report";
 import { rebuildMatches, rebuildMatchesForJobs } from "@/lib/sync";
+import { readJsonBody, RequestBodyError } from "@/lib/request-body";
 
 export const dynamic = "force-dynamic";
 
@@ -135,7 +136,7 @@ export async function POST(request: Request) {
     const user = await authorizeWrite(request, "owner");
     const input = z
       .union([ruleInput, correctionInput])
-      .parse(await request.json());
+      .parse(await readJsonBody(request, 12_000));
     const client = await db().connect();
     try {
       await client.query("BEGIN");
@@ -174,6 +175,11 @@ export async function POST(request: Request) {
       client.release();
     }
   } catch (error) {
+    if (error instanceof RequestBodyError)
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
     if (error instanceof ZodError)
       return NextResponse.json(
         { error: error.issues[0]?.message || "Invalid input." },

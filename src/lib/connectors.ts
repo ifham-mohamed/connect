@@ -106,7 +106,8 @@ const rooster = z.object({
 });
 function absolutize(url: string, base: string) {
   try {
-    return new URL(url, base).href;
+    const resolved = new URL(url, base);
+    return ["https:", "http:"].includes(resolved.protocol) ? resolved.href : "";
   } catch {
     return "";
   }
@@ -544,7 +545,9 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
           externalId: `rooster-${job.id}`,
           title: job.title,
           company:
-            job.subsidiary_company_name || job.company_name || "Company not listed",
+            job.subsidiary_company_name ||
+            job.company_name ||
+            "Company not listed",
           location: job.location || "Location not specified",
           remote: job.remote || /remote|work from home|wfh/i.test(job.location),
           employmentType: job.job_type,
@@ -641,7 +644,9 @@ export function normalize(source: Source, payload: unknown): IncomingJob[] {
         ]
           .map((section) => plainText(section).trim())
           .filter(Boolean)
-          .filter((section, index, sections) => sections.indexOf(section) === index)
+          .filter(
+            (section, index, sections) => sections.indexOf(section) === index,
+          )
           .join("\n\n"),
         url: j.hostedUrl,
       }));
@@ -664,36 +669,37 @@ export async function collect(source: Source): Promise<IncomingJob[]> {
   const response = await fetch(
     source.kind === "rooster" ? roosterSearchUrl : sourceUrl(source),
     {
-    method: source.kind === "rooster" ? "POST" : "GET",
-    signal: AbortSignal.timeout(25000),
-    redirect: "error",
-    headers: {
-      "User-Agent": "Jobradar/1.0 (job monitoring; public feeds)",
-      ...(source.kind === "rooster"
-        ? { "Content-Type": "application/json" }
-        : {}),
-      Accept: htmlSourceKinds.includes(source.kind)
-        ? "text/html,application/rss+xml"
-        : "application/json",
+      method: source.kind === "rooster" ? "POST" : "GET",
+      signal: AbortSignal.timeout(25000),
+      redirect: "error",
+      headers: {
+        "User-Agent": "Jobradar/1.0 (job monitoring; public feeds)",
+        ...(source.kind === "rooster"
+          ? { "Content-Type": "application/json" }
+          : {}),
+        Accept: htmlSourceKinds.includes(source.kind)
+          ? "text/html,application/rss+xml"
+          : "application/json",
+      },
+      body:
+        source.kind === "rooster"
+          ? JSON.stringify({
+              query: [
+                "software",
+                "developer",
+                "engineer",
+                "data",
+                "IT",
+                "technology",
+              ],
+              limit: 1000,
+              page: 1,
+              filters: { country: "Sri Lanka" },
+            })
+          : undefined,
+      cache: "no-store",
     },
-    body:
-      source.kind === "rooster"
-        ? JSON.stringify({
-            query: [
-              "software",
-              "developer",
-              "engineer",
-              "data",
-              "IT",
-              "technology",
-            ],
-            limit: 1000,
-            page: 1,
-            filters: { country: "Sri Lanka" },
-          })
-        : undefined,
-    cache: "no-store",
-  });
+  );
   if (!response.ok) throw new Error(`Source returned HTTP ${response.status}`);
   const reader = response.body?.getReader();
   if (!reader) throw new Error("Source returned an empty response");

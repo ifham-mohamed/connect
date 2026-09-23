@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getJobDetail } from "@/lib/repository";
 import { containsKeyword } from "@/lib/matching";
 import { fetchTopJobsAdvertImageUrl } from "@/lib/connectors";
+import { recordSecurityEvent } from "@/lib/security";
 import {
   requirementDescriptionHash,
   requirementText,
@@ -13,7 +14,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const parsed = z
@@ -36,15 +37,24 @@ export async function GET(
     );
 
   try {
-    const user = await currentUser(client);
+    const user = await currentUser(client, request);
     if (!user)
       return NextResponse.json(
         { error: "Sign in to continue." },
         { status: 401 },
       );
     const job = await getJobDetail(user, parsed.data, client);
-    if (!job)
+    if (!job) {
+      await recordSecurityEvent({
+        request,
+        eventType: "authorization.job_read_denied",
+        severity: "critical",
+        userId: user.id,
+        metadata: { jobId: parsed.data },
+        queryable: client,
+      });
       return NextResponse.json({ error: "Job not found." }, { status: 404 });
+    }
     if (!job.sourceImageUrl && /topjobs/i.test(job.sourceName)) {
       try {
         const sourceImageUrl = await fetchTopJobsAdvertImageUrl(job.url);

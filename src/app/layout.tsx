@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "Jobradar — Your next opportunity, in view",
   description:
     "A thoughtful workspace for discovering and tracking Sri Lankan and remote technology jobs.",
 };
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const nonce = (await headers()).get("x-nonce") || undefined;
   const themeScript = `
     try {
       const stored = localStorage.getItem("jobradar-theme");
@@ -31,7 +33,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{ __html: themeScript }}
+        />
         {children}
       </body>
     </html>

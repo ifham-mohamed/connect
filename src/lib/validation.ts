@@ -15,29 +15,53 @@ const onboardingFields = {
   experience: z.enum(["internship", "entry", "mid", "senior", "other"]),
   roles: z.array(z.string().trim().min(2).max(60)).min(1).max(4),
   workModes: z.array(workMode).min(1).max(3),
-  locationWorkModes: z.array(z.object({
-    location: z.string().trim().min(2).max(80),
-    workModes: z.array(workMode).min(1).max(3),
-  })).optional(),
+  locationWorkModes: z
+    .array(
+      z.object({
+        location: z.string().trim().min(2).max(80),
+        workModes: z.array(workMode).min(1).max(3),
+      }),
+    )
+    .optional(),
 };
 function validLocationModes(value: {
   locations: string[];
   locationWorkModes?: Array<{ location: string; workModes: string[] }>;
 }) {
   if (!value.locationWorkModes) return true;
-  const configured = new Set(value.locationWorkModes.map((item) => item.location));
-  return configured.size === value.locations.length && value.locations.every((location) => configured.has(location)) && value.locationWorkModes.every((item) => item.location !== "Worldwide" || (item.workModes.length === 1 && item.workModes[0] === "remote"));
+  const configured = new Set(
+    value.locationWorkModes.map((item) => item.location),
+  );
+  return (
+    configured.size === value.locations.length &&
+    value.locations.every((location) => configured.has(location)) &&
+    value.locationWorkModes.every(
+      (item) =>
+        item.location !== "Worldwide" ||
+        (item.workModes.length === 1 && item.workModes[0] === "remote"),
+    )
+  );
 }
-export const onboardingSchema = z.object({
-  ...onboardingFields,
-  locations: z.array(z.string().trim().min(2).max(80)).min(1).max(6),
-  monitors: z.array(monitorSchema).min(1).max(24),
-}).refine(validLocationModes, { message: "Choose valid work arrangements for every country.", path: ["locationWorkModes"] });
-export const ownerOnboardingSchema = z.object({
-  ...onboardingFields,
-  locations: z.array(z.string().trim().min(2).max(80)).min(1),
-  monitors: z.array(monitorSchema).min(1),
-}).refine(validLocationModes, { message: "Choose valid work arrangements for every country.", path: ["locationWorkModes"] });
+export const onboardingSchema = z
+  .object({
+    ...onboardingFields,
+    locations: z.array(z.string().trim().min(2).max(80)).min(1).max(6),
+    monitors: z.array(monitorSchema).min(1).max(24),
+  })
+  .refine(validLocationModes, {
+    message: "Choose valid work arrangements for every country.",
+    path: ["locationWorkModes"],
+  });
+export const ownerOnboardingSchema = z
+  .object({
+    ...onboardingFields,
+    locations: z.array(z.string().trim().min(2).max(80)).min(1).max(100),
+    monitors: z.array(monitorSchema).min(1).max(500),
+  })
+  .refine(validLocationModes, {
+    message: "Choose valid work arrangements for every country.",
+    path: ["locationWorkModes"],
+  });
 export const sourceSchema = z
   .object({
     name: z.string().trim().min(1).max(80),
@@ -61,13 +85,8 @@ export const sourceSchema = z
   })
   .refine(
     (v) =>
-      ![
-        "topjobs",
-        "xpressjobs",
-        "jobeka",
-        "greenhouse",
-        "lever",
-      ].includes(v.kind) ||
-      v.board.length > 0,
+      !["topjobs", "xpressjobs", "jobeka", "greenhouse", "lever"].includes(
+        v.kind,
+      ) || v.board.length > 0,
     { message: "Enter the employer’s board identifier.", path: ["board"] },
   );

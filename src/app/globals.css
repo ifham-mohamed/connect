@@ -2774,6 +2774,22 @@ html[data-theme="dark"] .auth-theme .theme-moon { display: none; }
 .intelligence-message { margin:0; padding:10px 12px; border-radius:9px; background:hsl(var(--primary)/.08); font-size:11px; }
 @media(max-width:900px) { .intelligence-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .intelligence-review-layout { grid-template-columns:1fr; } }
 @media(max-width:640px) { .intelligence-hero { grid-template-columns:auto minmax(0,1fr); } .intelligence-hero em { grid-column:2; justify-self:start; } .job-review-overview { grid-template-columns:auto minmax(0,1fr); } .job-review-signal { grid-column:1/-1; } .job-review-insights,.job-review-evidence-pair { grid-template-columns:1fr; } }
+.security-activity-card { grid-column:1/-1; }
+.security-loading { display:inline-flex; align-items:center; gap:7px; color:hsl(var(--muted-foreground)); font-size:11px; }
+.security-section { display:grid; gap:9px; padding-top:14px; border-top:1px solid hsl(var(--border)); }
+.security-section h4 { margin:0; font-size:12px; }
+.security-session-list,.security-event-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.security-session-list article,.security-event-list article { display:flex; align-items:center; gap:9px; min-width:0; padding:11px; border:1px solid hsl(var(--border)); border-radius:10px; background:hsl(var(--background)/.55); }
+.security-session-list article>span,.security-event-list article>span { display:grid; min-width:0; flex:1; }
+.security-session-list strong,.security-event-list strong { overflow:hidden; font-size:10px; text-overflow:ellipsis; white-space:nowrap; text-transform:capitalize; }
+.security-session-list small,.security-event-list small { overflow:hidden; margin-top:3px; color:hsl(var(--muted-foreground)); font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
+.security-event>svg { color:hsl(var(--muted-foreground)); }
+.security-event.warning>svg { color:hsl(var(--warning)); }
+.security-event.critical>svg { color:hsl(var(--destructive)); }
+.security-event em { padding:3px 6px; border-radius:999px; background:hsl(var(--muted)); color:hsl(var(--muted-foreground)); font-size:8px; font-style:normal; text-transform:uppercase; }
+.security-event.critical em { background:hsl(var(--destructive)/.1); color:hsl(var(--destructive)); }
+.security-event-list>p { margin:0; color:hsl(var(--muted-foreground)); font-size:11px; }
+@media(max-width:760px) { .security-session-list,.security-event-list { grid-template-columns:1fr; } }
 
 /* Compact opportunity dialog */
 .modal-wide > header { padding: 12px 18px; }

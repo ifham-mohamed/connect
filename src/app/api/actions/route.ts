@@ -4,14 +4,11 @@ import { authorizeWrite } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { monitorSchema, sourceSchema } from "@/lib/validation";
 import { rebuildMatchesForMonitor, syncSources } from "@/lib/sync";
+import { readJsonBody, RequestBodyError } from "@/lib/request-body";
+import { recordSecurityEvent } from "@/lib/security";
 export const maxDuration = 300;
 export async function POST(request: Request) {
   try {
-    if (Number(request.headers.get("content-length") || 0) > 20000)
-      return NextResponse.json(
-        { error: "Request is too large." },
-        { status: 413 },
-      );
     const body = z
       .object({
         action: z.enum([
@@ -28,7 +25,7 @@ export async function POST(request: Request) {
         id: z.string().uuid().optional(),
         data: z.unknown().optional(),
       })
-      .parse(await request.json());
+      .parse(await readJsonBody(request, 20_000));
     const ownerAction = ["source-add", "source-toggle", "sync"].includes(
       body.action,
     );
@@ -51,7 +48,16 @@ export async function POST(request: Request) {
           )`,
         [user.id, jobId, user.role],
       );
-      if (!access.rowCount) throw new Error("JOB_NOT_FOUND");
+      if (!access.rowCount) {
+        await recordSecurityEvent({
+          request,
+          eventType: "authorization.job_access_denied",
+          severity: "critical",
+          userId: user.id,
+          metadata: { action: body.action, jobId },
+        });
+        throw new Error("JOB_NOT_FOUND");
+      }
     }
     if (body.action === "sync") return NextResponse.json(await syncSources());
     if (body.action === "source-add") {
@@ -172,6 +178,11 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ ok: true });
   } catch (error) {
+    if (error instanceof RequestBodyError)
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
     if (error instanceof ZodError)
       return NextResponse.json(
         { error: error.issues[0]?.message || "Invalid input" },

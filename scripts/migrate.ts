@@ -40,6 +40,7 @@ try {
     "025_job_cv_reviews",
     "026_private_image_context",
     "027_itpro_category_sources",
+    "028_security_audit",
   ];
   for (const name of migrations) {
     const applied = await client.query(

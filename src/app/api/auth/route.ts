@@ -13,6 +13,11 @@ import {
 } from "@/lib/auth";
 import { connectDatabase, db } from "@/lib/db";
 import { databaseError } from "@/lib/database-error";
+import { recordSecurityEvent, requestSecurityContext } from "@/lib/security";
+import { readJsonBody, RequestBodyError } from "@/lib/request-body";
+
+const dummyPasswordHash =
+  "scrypt$00000000000000000000000000000000$6aecd6ad6c94ef43ca3435acbc08bf9a2eb0c9502ef46fae86340b2cb3f7bf42e438f1312ec09d7c3a62647beaa6d42a4f9772e8c0875f28074022c3f5c70605";
 
 const credentialsSchema = z.discriminatedUnion("mode", [
   z.object({
@@ -34,31 +39,48 @@ const credentialsSchema = z.discriminatedUnion("mode", [
 ]);
 
 export async function POST(request: Request) {
-  if (Number(request.headers.get("content-length") || 0) > 4096)
-    return NextResponse.json(
-      { error: "Request is too large." },
-      { status: 413 },
-    );
-  if (!originAllowed(request))
+  if (!originAllowed(request)) {
+    await recordSecurityEvent({
+      request,
+      eventType: "authentication.origin_denied",
+      severity: "warning",
+    });
     return NextResponse.json(
       { error: "Request origin is not allowed." },
       { status: 403 },
     );
+  }
   if (!process.env.DATABASE_URL)
     return NextResponse.json(
       { error: "Configure the workspace database first." },
       { status: 503 },
     );
-  const parsed = credentialsSchema.safeParse(
-    await request.json().catch(() => null),
-  );
-  if (!parsed.success)
+  let body: unknown;
+  try {
+    body = await readJsonBody(request, 4096);
+  } catch (error) {
+    if (error instanceof RequestBodyError)
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
+    throw error;
+  }
+  const parsed = credentialsSchema.safeParse(body);
+  if (!parsed.success) {
+    await recordSecurityEvent({
+      request,
+      eventType: "authentication.invalid_input",
+      severity: "warning",
+      metadata: { mode: "unknown" },
+    });
     return NextResponse.json(
       {
         error: parsed.error.issues[0]?.message || "Check your account details.",
       },
       { status: 400 },
     );
+  }
   const client = await connectDatabase().catch((error) => {
     console.error("Authentication connection failed", databaseError(error));
     return null;
@@ -70,6 +92,7 @@ export async function POST(request: Request) {
     );
   try {
     const { email, password } = parsed.data;
+    const securityContext = requestSecurityContext(request);
     const bucket = `account:${hashSessionToken(email).slice(0, 32)}`;
     const attempt = await client.query<{ attempts: number }>(
       `INSERT INTO auth_attempts(bucket,attempts,reset_at) VALUES($1,1,now()+interval '5 minutes')
@@ -77,11 +100,29 @@ export async function POST(request: Request) {
        reset_at=CASE WHEN auth_attempts.reset_at<now() THEN now()+interval '5 minutes' ELSE auth_attempts.reset_at END RETURNING attempts`,
       [bucket],
     );
-    if ((attempt.rows[0]?.attempts || 0) > 10)
+    let networkAttempts = 0;
+    if (securityContext.ipHash) {
+      const networkAttempt = await client.query<{ attempts: number }>(
+        `INSERT INTO auth_attempts(bucket,attempts,reset_at) VALUES($1,1,now()+interval '5 minutes')
+         ON CONFLICT(bucket) DO UPDATE SET attempts=CASE WHEN auth_attempts.reset_at<now() THEN 1 ELSE auth_attempts.attempts+1 END,
+         reset_at=CASE WHEN auth_attempts.reset_at<now() THEN now()+interval '5 minutes' ELSE auth_attempts.reset_at END RETURNING attempts`,
+        [`network:${securityContext.ipHash}`],
+      );
+      networkAttempts = networkAttempt.rows[0]?.attempts || 0;
+    }
+    if ((attempt.rows[0]?.attempts || 0) > 10 || networkAttempts > 40) {
+      await recordSecurityEvent({
+        request,
+        eventType: "authentication.rate_limited",
+        severity: "critical",
+        metadata: { mode: parsed.data.mode },
+        queryable: client,
+      });
       return NextResponse.json(
         { error: "Too many attempts. Try again in five minutes." },
         { status: 429 },
       );
+    }
 
     let user: {
       id: string;
@@ -100,8 +141,14 @@ export async function POST(request: Request) {
       );
       if (existing.rowCount) {
         await client.query("ROLLBACK");
+        await recordSecurityEvent({
+          request,
+          eventType: "authentication.signup_rejected",
+          severity: "warning",
+          queryable: client,
+        });
         return NextResponse.json(
-          { error: "An account with this email already exists." },
+          { error: "An account could not be created with these details." },
           { status: 409 },
         );
       }
@@ -116,9 +163,10 @@ export async function POST(request: Request) {
       );
       user = created.rows[0];
       if (role === "owner")
-        await client.query("UPDATE monitors SET user_id=$1 WHERE user_id IS NULL", [
-          user.id,
-        ]);
+        await client.query(
+          "UPDATE monitors SET user_id=$1 WHERE user_id IS NULL",
+          [user.id],
+        );
     } else {
       const found = await client.query<typeof user & { passwordHash: string }>(
         `SELECT id,name,email,role,password_hash AS "passwordHash",
@@ -127,11 +175,18 @@ export async function POST(request: Request) {
         [email],
       );
       const candidate = found.rows[0];
-      if (
-        !candidate ||
-        !(await verifyPassword(password, candidate.passwordHash))
-      ) {
+      const passwordMatches = await verifyPassword(
+        password,
+        candidate?.passwordHash || dummyPasswordHash,
+      );
+      if (!candidate || !passwordMatches) {
         await client.query("ROLLBACK");
+        await recordSecurityEvent({
+          request,
+          eventType: "authentication.login_failed",
+          severity: "warning",
+          queryable: client,
+        });
         return NextResponse.json(
           { error: "Email or password is incorrect." },
           { status: 401 },
@@ -141,11 +196,36 @@ export async function POST(request: Request) {
     }
     const token = createSessionToken();
     await client.query(
-      `INSERT INTO user_sessions(user_id,token_hash,expires_at) VALUES($1,$2,now()+($3 * interval '1 second'))`,
-      [user.id, hashSessionToken(token), sessionMaxAge],
+      `INSERT INTO user_sessions(user_id,token_hash,expires_at,ip_hash,user_agent_hash)
+       VALUES($1,$2,now()+($3 * interval '1 second'),$4,$5)`,
+      [
+        user.id,
+        hashSessionToken(token),
+        sessionMaxAge,
+        securityContext.ipHash,
+        securityContext.userAgentHash,
+      ],
     );
     await client.query("DELETE FROM auth_attempts WHERE bucket=$1", [bucket]);
+    if (securityContext.ipHash)
+      await client.query("DELETE FROM auth_attempts WHERE bucket=$1", [
+        `network:${securityContext.ipHash}`,
+      ]);
     await client.query("DELETE FROM user_sessions WHERE expires_at<=now()");
+    await client.query(
+      "DELETE FROM security_events WHERE created_at<now()-interval '90 days'",
+    );
+    await recordSecurityEvent({
+      request,
+      eventType:
+        parsed.data.mode === "sign-up"
+          ? "authentication.signup_succeeded"
+          : "authentication.login_succeeded",
+      severity: "info",
+      userId: user.id,
+      metadata: { role: user.role },
+      queryable: client,
+    });
     await client.query("COMMIT");
     await setSessionCookie(token);
     return NextResponse.json({ ok: true, user });
@@ -168,12 +248,28 @@ export async function DELETE(request: Request) {
       { status: 403 },
     );
   const token = await currentSessionToken();
-  if (token && process.env.DATABASE_URL)
+  if (token && process.env.DATABASE_URL) {
+    const user = await db()
+      .query<{ userId: string; sessionId: string }>(
+        `SELECT user_id AS "userId",id AS "sessionId" FROM user_sessions WHERE token_hash=$1`,
+        [hashSessionToken(token)],
+      )
+      .then((result) => result.rows[0])
+      .catch(() => null);
+    if (user)
+      await recordSecurityEvent({
+        request,
+        eventType: "authentication.logout",
+        severity: "info",
+        userId: user.userId,
+        sessionId: user.sessionId,
+      });
     await db()
       .query("DELETE FROM user_sessions WHERE token_hash=$1", [
         hashSessionToken(token),
       ])
       .catch((error) => console.error("Session cleanup failed", error));
+  }
   await clearSessionCookie();
   return NextResponse.json({ ok: true });
 }

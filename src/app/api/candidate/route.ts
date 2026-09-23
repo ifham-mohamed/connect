@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 import { authorizeWrite, currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { readJsonBody, RequestBodyError } from "@/lib/request-body";
 
 export const dynamic = "force-dynamic";
 
@@ -96,7 +97,7 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     const user = await authorizeWrite(request);
-    const input = profileInput.parse(await request.json());
+    const input = profileInput.parse(await readJsonBody(request, 12_000));
     await db().query(
       `INSERT INTO candidate_profiles(user_id,skills,evidence_summary,consented_at)
        VALUES($1,$2,$3,now())
@@ -123,6 +124,11 @@ export async function DELETE(request: Request) {
 }
 
 function candidateError(error: unknown) {
+  if (error instanceof RequestBodyError)
+    return NextResponse.json(
+      { error: error.message },
+      { status: error.status },
+    );
   if (error instanceof ZodError)
     return NextResponse.json(
       { error: error.issues[0]?.message || "Invalid profile." },

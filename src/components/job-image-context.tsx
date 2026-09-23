@@ -13,6 +13,7 @@ import {
   Upload,
 } from "lucide-react";
 import { normalizeAdvertText, validAdvertImage } from "@/lib/ocr/advert-text";
+import { safeUrl } from "@/lib/matching";
 
 type Phase = "idle" | "reading" | "review" | "saving" | "saved";
 
@@ -190,20 +191,22 @@ export default function JobImageContext({
           <ShieldCheck size={13} /> Private
         </span>
       </div>
-      <div
-        className={`image-context-layout${imageUrl ? "" : " no-preview"}`}
-      >
-        {imageUrl && (
+      <div className={`image-context-layout${imageUrl ? "" : " no-preview"}`}>
+        {safeUrl(imageUrl || "") && (
           <div className="image-context-preview">
             {/* The remote image is displayed only; pixel processing starts after a user action. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={imageUrl}
+              src={safeUrl(imageUrl || "")}
               alt="Original TopJobs vacancy advert"
               loading="lazy"
               referrerPolicy="no-referrer"
             />
-            <a href={imageUrl} target="_blank" rel="noopener noreferrer">
+            <a
+              href={safeUrl(imageUrl || "")}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Open original image <ExternalLink size={13} />
             </a>
           </div>

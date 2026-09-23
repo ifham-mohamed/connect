@@ -49,7 +49,12 @@ import type {
   Monitor,
   SourceKind,
 } from "@/lib/types";
-import { containsKeyword, matchesMonitor, plainText } from "@/lib/matching";
+import {
+  containsKeyword,
+  matchesMonitor,
+  plainText,
+  safeUrl,
+} from "@/lib/matching";
 import type { CvProfile } from "@/lib/cv/profile";
 import { cvSkillTerms } from "@/lib/cv/profile";
 import CvWorkspace from "@/components/cv-workspace";
@@ -69,6 +74,7 @@ import { DashboardSkeleton } from "@/components/dashboard-skeleton";
 import IntelligenceControls from "@/components/intelligence-controls";
 import JobCvReview from "@/components/job-cv-review";
 import JobImageContext from "@/components/job-image-context";
+import SecurityActivity from "@/components/security-activity";
 
 type View =
   | "overview"
@@ -395,7 +401,8 @@ export default function Dashboard({
     const job = data.jobs.find((item) => item.id === jobId);
     if (!job) return;
     deepLinkJobRef.current = true;
-    setModalState({ type: "job", job });
+    const timer = setTimeout(() => setModalState({ type: "job", job }), 0);
+    return () => clearTimeout(timer);
   }, [data]);
   useEffect(() => {
     if (!toast) return;
@@ -3308,6 +3315,7 @@ export default function Dashboard({
                   </a>
                 )}
               </section>
+              {data.mode === "live" && <SecurityActivity />}
             </div>
           )}
           {view === "intelligence" && isOwner && data.mode === "live" && (
@@ -4102,19 +4110,17 @@ function JobDetail({
           )}
         </div>
         <div className="detail-toolbar">
-          <span
-            className={`status-badge status-${job.status} detail-status`}
-          >
+          <span className={`status-badge status-${job.status} detail-status`}>
             {job.status === "applied" && <Check size={12} />}
             {job.status === "saved" && <Bookmark size={12} />}
             {job.status === "archived" && <Trash2 size={12} />}
             {job.status === "new" ? "New" : job.status}
           </span>
           <div className="detail-actions">
-            {!demo && (
+            {!demo && safeUrl(job.url) && (
               <a
                 className="btn primary detail-source-action"
-                href={job.url}
+                href={safeUrl(job.url)}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -4148,8 +4154,7 @@ function JobDetail({
           Illustrative sample — this is not a verified job opening.
         </div>
       )}
-      {!demo &&
-        (job.sourceImageUrl || /topjobs/i.test(job.sourceName)) && (
+      {!demo && (job.sourceImageUrl || /topjobs/i.test(job.sourceName)) && (
         <JobImageContext
           key={`${job.id}-${job.extractedAt || "new"}`}
           jobId={job.id}
@@ -4163,7 +4168,7 @@ function JobDetail({
             setReviewRevision((current) => current + 1);
           }}
         />
-        )}
+      )}
       {!demo && (
         <JobCvReview key={`${job.id}-${reviewRevision}`} jobId={job.id} />
       )}

@@ -5,9 +5,10 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 import { promisify } from "node:util";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import type { Pool, PoolClient } from "pg";
 import { db } from "./db";
+import { recordSecurityEvent, requestSecurityContext } from "./security";
 import type { UserPreferences } from "./types";
 
 const scrypt = promisify(scryptCallback);
@@ -60,10 +61,13 @@ export function hashSessionToken(token: string) {
 export async function setSessionCookie(token: string) {
   (await cookies()).set(sessionCookie, token, {
     httpOnly: true,
-    secure: process.env.APP_URL?.startsWith("https://") ?? false,
-    sameSite: "lax",
+    secure:
+      process.env.NODE_ENV === "production" ||
+      (process.env.APP_URL?.startsWith("https://") ?? false),
+    sameSite: "strict",
     path: "/",
     maxAge: sessionMaxAge,
+    priority: "high",
   });
 }
 export async function clearSessionCookie() {
@@ -74,18 +78,81 @@ export async function currentSessionToken() {
 }
 export async function currentUser(
   queryable?: Queryable,
+  request?: Request,
 ): Promise<AuthUser | null> {
   const token = await currentSessionToken();
   if (!token) return null;
-  const result = await (queryable || db()).query<AuthUser>(
-    `SELECT u.id, u.name, u.email, u.role,
+  const connection = queryable || db();
+  const result = await connection.query<
+    AuthUser & {
+      sessionId: string;
+      ipHash: string | null;
+      userAgentHash: string | null;
+    }
+  >(
+    `SELECT u.id, u.name, u.email, u.role,s.id AS "sessionId",
+            s.ip_hash AS "ipHash",s.user_agent_hash AS "userAgentHash",
             (u.onboarding_completed_at IS NOT NULL) AS "onboardingCompleted",
             u.preferences
        FROM user_sessions s JOIN users u ON u.id=s.user_id
-      WHERE s.token_hash=$1 AND s.expires_at>now() LIMIT 1`,
+      WHERE s.token_hash=$1 AND s.expires_at>now() AND s.revoked_at IS NULL LIMIT 1`,
     [hashSessionToken(token)],
   );
-  return result.rows[0] || null;
+  const user = result.rows[0];
+  if (!user) return null;
+  let securityRequest = request;
+  if (!securityRequest) {
+    const incoming = await headers();
+    securityRequest = new Request(process.env.APP_URL || "http://localhost", {
+      headers: incoming,
+    });
+  }
+  if (securityRequest) {
+    const context = requestSecurityContext(securityRequest);
+    if (
+      user.userAgentHash &&
+      context.userAgentHash &&
+      user.userAgentHash !== context.userAgentHash
+    ) {
+      await connection.query(
+        "UPDATE user_sessions SET revoked_at=now() WHERE id=$1",
+        [user.sessionId],
+      );
+      await recordSecurityEvent({
+        request: securityRequest,
+        eventType: "session.device_mismatch",
+        severity: "critical",
+        userId: user.id,
+        sessionId: user.sessionId,
+        queryable: connection,
+      });
+      return null;
+    }
+    if (user.ipHash && context.ipHash && user.ipHash !== context.ipHash) {
+      await recordSecurityEvent({
+        request: securityRequest,
+        eventType: "session.network_changed",
+        severity: "warning",
+        userId: user.id,
+        sessionId: user.sessionId,
+        queryable: connection,
+      });
+    }
+    await connection.query(
+      `UPDATE user_sessions SET last_seen_at=now(),
+              ip_hash=COALESCE($2,ip_hash),user_agent_hash=COALESCE($3,user_agent_hash)
+        WHERE id=$1`,
+      [user.sessionId, context.ipHash, context.userAgentHash],
+    );
+  }
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    onboardingCompleted: user.onboardingCompleted,
+    preferences: user.preferences,
+  };
 }
 
 export function originAllowed(request: Request) {
@@ -98,10 +165,32 @@ export async function authorizeWrite(
   request: Request,
   requiredRole: UserRole = "member",
 ) {
-  if (!originAllowed(request)) throw new Error("FORBIDDEN");
-  const user = await currentUser();
-  if (!user) throw new Error("UNAUTHORIZED");
-  if (requiredRole === "owner" && user.role !== "owner")
+  if (!originAllowed(request)) {
+    await recordSecurityEvent({
+      request,
+      eventType: "authorization.origin_denied",
+      severity: "warning",
+    });
+    throw new Error("FORBIDDEN");
+  }
+  const user = await currentUser(undefined, request);
+  if (!user) {
+    await recordSecurityEvent({
+      request,
+      eventType: "authorization.authentication_required",
+      severity: "warning",
+    });
+    throw new Error("UNAUTHORIZED");
+  }
+  if (requiredRole === "owner" && user.role !== "owner") {
+    await recordSecurityEvent({
+      request,
+      eventType: "authorization.role_denied",
+      severity: "critical",
+      userId: user.id,
+      metadata: { requiredRole },
+    });
     throw new Error("OWNER_REQUIRED");
+  }
   return user;
 }
