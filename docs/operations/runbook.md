@@ -8,8 +8,8 @@
 | `DATABASE_WEB_URL`       | Optional split endpoint           | Web transaction-pool URL; falls back to `DATABASE_URL`.                                                       |
 | `DATABASE_WORKER_URL`    | Optional split endpoint           | Direct/scheduled-worker URL; falls back to `DATABASE_URL`.                                                    |
 | `DATABASE_POOL_MAX`      | Optional                          | Web connection-pool limit; keep low for hosted PostgreSQL.                                                    |
-| `DATABASE_CA_CERT_PATH`  | Hosted database with a CA file    | Path to the provider CA certificate. The current Aiven connection uses this option.                           |
-| `DATABASE_CA_CERT`       | Hosted database with an inline CA | Inline PEM alternative to `DATABASE_CA_CERT_PATH`; normally leave blank when the path is configured.          |
+| `DATABASE_CA_CERT_PATH`  | Hosted database with a CA file    | Optional path only when the certificate file exists at runtime. Do not use a Windows path in Vercel.          |
+| `DATABASE_CA_CERT`       | Hosted database with an inline CA | Preferred hosted/Vercel setting: paste the complete PEM; escaped `\\n` line breaks are normalized.            |
 | `POSTGRES_PASSWORD`      | Compose-managed PostgreSQL only   | Password for the local `db` container; it does not replace credentials inside an external `DATABASE_URL`.     |
 | `APP_URL`                | Always                            | Exact browser origin, for example `https://jobs.example.com`; controls same-origin writes and secure cookies. |
 | `CRON_SECRET`            | `/api/cron` collection is enabled | Separate scheduler Bearer secret; use at least 24 random characters.                                          |

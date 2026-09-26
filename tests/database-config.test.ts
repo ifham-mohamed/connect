@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { databaseConfig } from "../src/lib/database-config";
+import {
+  databaseCaCertificate,
+  databaseConfig,
+} from "../src/lib/database-config";
 import {
   connectDatabase,
   databaseConfigured,
@@ -43,6 +46,25 @@ describe("database connection configuration", () => {
         DATABASE_URL: "postgres://jobradar:jobradar@localhost/db",
       }).ssl,
     ).toBeUndefined();
+  });
+  it("prefers inline PEM and accepts escaped newlines in deployment variables", () => {
+    expect(
+      databaseCaCertificate({
+        DATABASE_CA_CERT:
+          "  -----BEGIN CERTIFICATE-----\\nCERT\\n-----END CERTIFICATE-----  ",
+        DATABASE_CA_CERT_PATH: "C:/missing/ca.pem",
+      }),
+    ).toBe("-----BEGIN CERTIFICATE-----\nCERT\n-----END CERTIFICATE-----");
+    expect(
+      databaseCaCertificate({
+        DATABASE_CA_CERT_PATH: "-----BEGIN CERTIFICATE-----\\nCERT",
+      }),
+    ).toBe("-----BEGIN CERTIFICATE-----\nCERT");
+  });
+  it("explains that a missing hosted path should be replaced with inline PEM", () => {
+    expect(() =>
+      databaseCaCertificate({ DATABASE_CA_CERT_PATH: "C:/missing/ca.pem" }),
+    ).toThrow("Set DATABASE_CA_CERT to the PEM contents");
   });
   it("allows concurrent browser requests while keeping the pool bounded", () => {
     expect(

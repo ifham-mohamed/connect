@@ -1,6 +1,26 @@
 import { readFileSync } from "node:fs";
 import type { PoolConfig } from "pg";
 
+export function databaseCaCertificate(
+  env: Record<string, string | undefined> = process.env,
+) {
+  const normalize = (value: string) =>
+    value.replaceAll("\\n", "\n").replaceAll("\\r", "\r");
+  const inline = env.DATABASE_CA_CERT?.trim();
+  if (inline) return normalize(inline);
+  const configuredPath = env.DATABASE_CA_CERT_PATH?.trim();
+  if (!configuredPath) return undefined;
+  if (configuredPath.includes("-----BEGIN")) return normalize(configuredPath);
+  try {
+    return readFileSync(configuredPath, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT")
+      throw new Error(
+        "Database CA certificate is unavailable. Set DATABASE_CA_CERT to the PEM contents in Vercel (preferred), or set DATABASE_CA_CERT_PATH only to a file available at runtime.",
+      );
+    throw error;
+  }
+}
 export function databaseConfig(
   env: Record<string, string | undefined> = process.env,
   role: "web" | "worker" = "web",
@@ -50,11 +70,7 @@ export function databaseConfig(
     ])
       url.searchParams.delete(key);
   }
-  const ca =
-    env.DATABASE_CA_CERT?.replace(/\\n/g, "\n") ||
-    (env.DATABASE_CA_CERT_PATH
-      ? readFileSync(env.DATABASE_CA_CERT_PATH, "utf8")
-      : undefined);
+  const ca = databaseCaCertificate(env);
   return {
     connectionString: url.toString(),
     ...(tls

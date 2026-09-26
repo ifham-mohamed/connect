@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "base_commit": "33e34a1c367d061b64f309171a09ec6db3758bfd",
+  "base_commit": "b8c8102c7d0a0a4dbaa07a38f56be8d51ae303ee",
   "sources": [
     {
       "path": ".agent/capabilities.json",
@@ -570,7 +570,7 @@
     {
       "path": "docs/operations/runbook.md",
       "subsystem": "docs/operations",
-      "sha256": "c2070a9593ee2c5f8ab3f9130d63d85b79bcb2a6f70412cae76dec875ae26f5b"
+      "sha256": "57c38b25917fe1d6e157fa705a00959ea27804b9da82e80ce70591bf9a0c047f"
     },
     {
       "path": "docs/security/security-audit.md",
@@ -1205,7 +1205,7 @@
     {
       "path": "src/lib/database-config.ts",
       "subsystem": "src/lib",
-      "sha256": "9dc324c5f1403a00e81cca6f8c0c047cc8ebd6691292c3acc102170f555f1ccc"
+      "sha256": "bb66c3922082830d3ea6fe607a5856ad79a50609a47f5b4f16c0f1b905e41619"
     },
     {
       "path": "src/lib/database-error.ts",
@@ -1420,7 +1420,7 @@
     {
       "path": "tests/database-config.test.ts",
       "subsystem": "tests/database-config.test.ts",
-      "sha256": "9e11aece6fc847ceb94cf96f2f891b6b507ce8c9eb6bb5d622b4c639d5c184c4"
+      "sha256": "50301fe2c7f4e235b122c3bea7347ba887bfd94b692ba5749e2638e09a6702ba"
     },
     {
       "path": "tests/database.test.ts",

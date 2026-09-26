@@ -95,7 +95,7 @@ The named PostgreSQL volume persists after `docker compose down`. Do not use `do
 
 The local `.env` is prepared with the supplied Aiven connection URL and a placeholder password. Replace that password with the real service password, URL-encoding special characters, and confirm the hostname in the Aiven console. User passwords are hashed in PostgreSQL and session cookies contain only random opaque tokens.
 
-Remote database connections verify TLS certificates. If the service uses an Aiven private CA, download its CA certificate from the service console and set `DATABASE_CA_CERT_PATH` to its local path, or provide the PEM in `DATABASE_CA_CERT`. For containers, use the PEM environment variable, because a Windows certificate path is not available inside the container.
+Remote database connections verify TLS certificates. If the service uses an Aiven private CA, paste the complete PEM certificate into `DATABASE_CA_CERT` in Vercel (literal newlines or escaped `\\n` are accepted). Use `DATABASE_CA_CERT_PATH` only when the file exists in the deployed runtime; a Windows path from the development machine is not available in Vercel.
 
 ```sh
 npm run db:check

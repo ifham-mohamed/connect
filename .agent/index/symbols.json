@@ -1,8 +1,8 @@
 {
   "provenance": {
     "schema_version": 1,
-    "base_commit": "33e34a1c367d061b64f309171a09ec6db3758bfd",
-    "source_hash": "3c5534934064ddc9094cc14436b144eebaf62cf4a3a17fcc5641a9621fbcbec1",
+    "base_commit": "b8c8102c7d0a0a4dbaa07a38f56be8d51ae303ee",
+    "source_hash": "ae04ea03f8b5d8de632c0a22f0d99e01936759b022d2d1c39f485f4fed0b22d3",
     "generator": ".agent/scripts/update-index.mjs"
   },
   "scope": "Top-level named exports; inspect source for re-exports and anonymous defaults",
@@ -803,8 +803,13 @@
     { "path": "src/lib/cv/schema.ts", "name": "approvedCvSchema", "line": 47 },
     {
       "path": "src/lib/database-config.ts",
-      "name": "databaseConfig",
+      "name": "databaseCaCertificate",
       "line": 4
+    },
+    {
+      "path": "src/lib/database-config.ts",
+      "name": "databaseConfig",
+      "line": 24
     },
     { "path": "src/lib/database-error.ts", "name": "databaseError", "line": 1 },
     { "path": "src/lib/db.ts", "name": "databaseConfigured", "line": 7 },
