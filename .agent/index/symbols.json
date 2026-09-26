@@ -1,8 +1,8 @@
 {
   "provenance": {
     "schema_version": 1,
-    "base_commit": "c9deca7584f2f79fcbd47e276958b965be435402",
-    "source_hash": "187c114502868327e4984edc51e79c37c23af55324e5a89adb135428bbe72c08",
+    "base_commit": "33e34a1c367d061b64f309171a09ec6db3758bfd",
+    "source_hash": "3c5534934064ddc9094cc14436b144eebaf62cf4a3a17fcc5641a9621fbcbec1",
     "generator": ".agent/scripts/update-index.mjs"
   },
   "scope": "Top-level named exports; inspect source for re-exports and anonymous defaults",
@@ -807,11 +807,12 @@
       "line": 4
     },
     { "path": "src/lib/database-error.ts", "name": "databaseError", "line": 1 },
-    { "path": "src/lib/db.ts", "name": "db", "line": 23 },
-    { "path": "src/lib/db.ts", "name": "workerDb", "line": 26 },
-    { "path": "src/lib/db.ts", "name": "transientConnectionError", "line": 32 },
-    { "path": "src/lib/db.ts", "name": "withDatabaseRetry", "line": 41 },
-    { "path": "src/lib/db.ts", "name": "connectDatabase", "line": 69 },
+    { "path": "src/lib/db.ts", "name": "databaseConfigured", "line": 7 },
+    { "path": "src/lib/db.ts", "name": "db", "line": 25 },
+    { "path": "src/lib/db.ts", "name": "workerDb", "line": 28 },
+    { "path": "src/lib/db.ts", "name": "transientConnectionError", "line": 34 },
+    { "path": "src/lib/db.ts", "name": "withDatabaseRetry", "line": 43 },
+    { "path": "src/lib/db.ts", "name": "connectDatabase", "line": 71 },
     { "path": "src/lib/demo.ts", "name": "demoData", "line": 4 },
     {
       "path": "src/lib/focused-repository.ts",

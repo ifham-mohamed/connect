@@ -1,8 +1,21 @@
 import { describe, it, expect, vi } from "vitest";
 import { databaseConfig } from "../src/lib/database-config";
-import { connectDatabase, withDatabaseRetry } from "../src/lib/db";
+import {
+  connectDatabase,
+  databaseConfigured,
+  withDatabaseRetry,
+} from "../src/lib/db";
 import type { PoolClient } from "pg";
 describe("database connection configuration", () => {
+  it("recognizes split web and worker connection variables", () => {
+    expect(databaseConfigured({ DATABASE_WEB_URL: "postgres://web/db" })).toBe(
+      true,
+    );
+    expect(
+      databaseConfigured({ DATABASE_WORKER_URL: "postgres://worker/db" }),
+    ).toBe(true);
+    expect(databaseConfigured({})).toBe(false);
+  });
   it("rejects placeholders before connecting", () => {
     expect(() =>
       databaseConfig({

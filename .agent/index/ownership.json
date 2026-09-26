@@ -1,8 +1,8 @@
 {
   "provenance": {
     "schema_version": 1,
-    "base_commit": "c9deca7584f2f79fcbd47e276958b965be435402",
-    "source_hash": "187c114502868327e4984edc51e79c37c23af55324e5a89adb135428bbe72c08",
+    "base_commit": "33e34a1c367d061b64f309171a09ec6db3758bfd",
+    "source_hash": "3c5534934064ddc9094cc14436b144eebaf62cf4a3a17fcc5641a9621fbcbec1",
     "generator": ".agent/scripts/update-index.mjs"
   },
   "meaning": "Module responsibility, not people or CODEOWNERS authorization",

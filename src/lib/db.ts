@@ -4,13 +4,15 @@ const globalDb = globalThis as unknown as {
   jobradarPool?: Pool;
   jobradarWorkerPool?: Pool;
 };
+export function databaseConfigured(
+  env: Record<string, string | undefined> = process.env,
+) {
+  return Boolean(
+    env.DATABASE_WEB_URL || env.DATABASE_URL || env.DATABASE_WORKER_URL,
+  );
+}
 function pool(role: "web" | "worker") {
-  if (
-    !process.env.DATABASE_URL &&
-    !process.env.DATABASE_WEB_URL &&
-    !process.env.DATABASE_WORKER_URL
-  )
-    throw new Error("DATABASE_URL is not configured");
+  if (!databaseConfigured()) throw new Error("DATABASE_URL is not configured");
   const key = role === "worker" ? "jobradarWorkerPool" : "jobradarPool";
   if (!globalDb[key]) {
     globalDb[key] = new Pool(databaseConfig(process.env, role));

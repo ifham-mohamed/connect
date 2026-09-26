@@ -11,7 +11,7 @@ import {
   setSessionCookie,
   verifyPassword,
 } from "@/lib/auth";
-import { connectDatabase, db } from "@/lib/db";
+import { connectDatabase, databaseConfigured, db } from "@/lib/db";
 import { databaseError } from "@/lib/database-error";
 import { recordSecurityEvent, requestSecurityContext } from "@/lib/security";
 import { readJsonBody, RequestBodyError } from "@/lib/request-body";
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   }
-  if (!process.env.DATABASE_URL)
+  if (!databaseConfigured())
     return NextResponse.json(
       { error: "Configure the workspace database first." },
       { status: 503 },

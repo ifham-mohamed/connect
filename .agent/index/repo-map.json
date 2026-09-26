@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "base_commit": "c9deca7584f2f79fcbd47e276958b965be435402",
+  "base_commit": "33e34a1c367d061b64f309171a09ec6db3758bfd",
   "sources": [
     {
       "path": ".agent/capabilities.json",
@@ -695,7 +695,7 @@
     {
       "path": "src/app/api/auth/route.ts",
       "subsystem": "src/app",
-      "sha256": "2289526fadd127acfa1b8160c95df2002681a7613cd36a355802b42bd6526f77"
+      "sha256": "ce249144d4a0f65c8766d4db5e3b31c0ee79fa07648c6ed64991e8b4c6cc6f54"
     },
     {
       "path": "src/app/api/candidate/cv/route.ts",
@@ -720,7 +720,7 @@
     {
       "path": "src/app/api/health/route.ts",
       "subsystem": "src/app",
-      "sha256": "f6967dea28db8d285e6e5fda48d6157a5c2a9b7ad1f9fcec68a292c79d5629c6"
+      "sha256": "c5c8ee5706157dc87084e0e50cfc7b6d5b4d29cfb8d9e2fb4653d3c66e771985"
     },
     {
       "path": "src/app/api/intelligence/route.ts",
@@ -1215,7 +1215,7 @@
     {
       "path": "src/lib/db.ts",
       "subsystem": "src/lib",
-      "sha256": "c27176d827031067bff1274f8ddcdc1629d149211c259aec040982833f610955"
+      "sha256": "b7404eed4905d4f79a7c14f1d1bc7a6653c45a981d1877c95f0cba2abb4fce51"
     },
     {
       "path": "src/lib/demo.ts",
@@ -1420,7 +1420,7 @@
     {
       "path": "tests/database-config.test.ts",
       "subsystem": "tests/database-config.test.ts",
-      "sha256": "e9380e836cfa27dc62abe3a1f307565a0abf81e57b41eb2278e391c5eab086eb"
+      "sha256": "9e11aece6fc847ceb94cf96f2f891b6b507ce8c9eb6bb5d622b4c639d5c184c4"
     },
     {
       "path": "tests/database.test.ts",
