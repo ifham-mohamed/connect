@@ -1,8 +1,8 @@
 {
   "provenance": {
     "schema_version": 1,
-    "base_commit": "41a238573b38d1aba26aaafbaaf4076237af45c9",
-    "source_hash": "f4ae87b2e186adb356dcbe2b142041ad8bc203cbb700f1d1e85dcf9b8a0bb8da",
+    "base_commit": "c9deca7584f2f79fcbd47e276958b965be435402",
+    "source_hash": "187c114502868327e4984edc51e79c37c23af55324e5a89adb135428bbe72c08",
     "generator": ".agent/scripts/update-index.mjs"
   },
   "scope": "Top-level named exports; inspect source for re-exports and anonymous defaults",

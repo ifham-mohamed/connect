@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "base_commit": "41a238573b38d1aba26aaafbaaf4076237af45c9",
+  "base_commit": "c9deca7584f2f79fcbd47e276958b965be435402",
   "sources": [
     {
       "path": ".agent/capabilities.json",
@@ -35,7 +35,7 @@
     {
       "path": ".agent/context/project.md",
       "subsystem": ".agent/context",
-      "sha256": "e3979b12e658ad369929bfa352e74a016140ee837ae7e066530cb2bb4a309fd3"
+      "sha256": "5035446f4de472960aacb7046d011978a76e4cfed71b892408231305216d7751"
     },
     {
       "path": ".agent/context/security.md",
@@ -220,7 +220,7 @@
     {
       "path": ".claude/README.md",
       "subsystem": ".claude/README.md",
-      "sha256": "b34cd464869819a4c529bbbcbc3aa6bc33eaae6310175c6f1f0f5b78d34e97ac"
+      "sha256": "46d3abb2fed9e8142b02cf9ad37eb5892c62ddeea94020ec429a35ada4cdb375"
     },
     {
       "path": ".claude/settings.json",
@@ -270,7 +270,7 @@
     {
       "path": ".codex/README.md",
       "subsystem": ".codex/README.md",
-      "sha256": "d729762c63b21100e9755572e096a73498db5e3ffe95df3cb2a9c8d25a5f1e9f"
+      "sha256": "e2ca6046ad3c8fb863f846371d4fb7ecc040f2388bc18cd4aa969d4fa4c54f12"
     },
     {
       "path": ".codex/config.toml",
@@ -535,7 +535,7 @@
     {
       "path": "docs/operations/agent-workflow.md",
       "subsystem": "docs/operations",
-      "sha256": "ce073ef10b1d6dfdc20f39d53eb0d1b3ac623078bd7e490250c0fe32edec4cf4"
+      "sha256": "61a8e4a6f9290777144a236a16706786c802ac753030ecc16419a4f332dd0645"
     },
     {
       "path": "docs/operations/cost-and-capacity.md",

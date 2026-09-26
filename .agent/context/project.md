@@ -19,6 +19,11 @@ Entry points: src/app (pages and HTTP), src/components (presentation), src/lib
 Keep developer orchestration in .agent; it does not run inside the application.
 
 No schema or deployment changes are required for the orchestration upgrade.
-Existing skills/ files are reference assets, not generated agent skills.
+The three skill directories have different ownership: `.agent/skills` is the
+single maintained source; `.agents/skills` is the Codex discovery adapter; and
+`.claude/skills` is the Claude discovery adapter. The latter two are generated
+byte-for-byte copies, so edit only the canonical directory and run
+`npm run agent:sync-skills -- --write`. Existing `skills/` files elsewhere are
+reference assets, not generated agent skills.
 
 Start with the whole-platform architecture before JEV-specific documents. The core is accounts, onboarding, collection, deterministic matching, scoped reads and personal tracking; JEV is an optional extension. Development-agent orchestration is separate from both.

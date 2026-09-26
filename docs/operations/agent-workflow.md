@@ -48,7 +48,16 @@ Verification writes current machine evidence under ignored artifacts/agent/verif
 
 ## Tool adapters
 
-Canonical skills live under .agent/skills. Generated .agents/skills and .claude/skills enable project discovery using each tool's supported directories. The guides use repository-root paths, so copied instructions do not depend on their installation depth. See [Codex skills](https://developers.openai.com/codex/skills/) and [Claude skills](https://code.claude.com/docs/en/skills).
+Canonical skills live under .agent/skills. The same eight files appear under
+.agents/skills for Codex discovery and .claude/skills for Claude discovery;
+these are adapters required by each tool's supported search path, not three
+independent skill libraries. Edit only .agent/skills, then run
+`npm run agent:sync-skills -- --write` after reviewing the source change. The
+check command compares both adapters byte-for-byte and reports unknown folders
+without deleting them. The guides use repository-root paths, so copied
+instructions do not depend on their installation depth. See [Codex
+skills](https://developers.openai.com/codex/skills/) and [Claude
+skills](https://code.claude.com/docs/en/skills).
 
 The native .codex/config.toml and .mcp.json configure the local read-only MCP server as the implementer role. Start clients from the repository root; project trust/restart may be required for native configuration changes. The checked-in Claude settings connect session, edit and compaction events to the shared lifecycle script. Git hooks use the same verification command after explicit local installation. Project adapters contain no credentials and do not change application JEV providers. See the [Codex MCP configuration](https://developers.openai.com/codex/mcp/) and [Claude hooks contract](https://code.claude.com/docs/en/hooks).
 
