@@ -45,7 +45,7 @@ approved locally in the member's browser before JEV analysis is enabled.
 | Scheduled Node/Cloudflare runner | Hourly collection runs independently of browser traffic and claims one source through a PostgreSQL lease.                                                               |
 | Vitest + PGlite                  | Fast unit tests and SQL integration tests using PostgreSQL compiled to WebAssembly. The production database remains regular PostgreSQL.                                 |
 
-The implementation deliberately starts as a **modular monolith with a separate collector process**. Redis, Kubernetes, Elasticsearch, and microservices add operational work that this release does not need. See [architecture and scaling](docs/architecture.md) for the expansion path and current limits.
+The implementation deliberately starts as a **modular monolith with a separate collector process**. Redis, Kubernetes, Elasticsearch, and microservices add operational work that this release does not need. See [architecture and scaling](docs/architecture/system.md) for the expansion path and current limits.
 
 ## Run the interactive preview
 
@@ -165,12 +165,20 @@ The optional `npx tsx scripts/check-sources.ts` makes real requests to the three
 
 ## Reading guide
 
-- [System architecture and scaling](docs/architecture.md)
-- [Source references and integration decisions](docs/sources.md)
-- [Operations and deployment checklist](docs/operations.md)
-- [Cost and capacity guide](docs/COST_AND_CAPACITY.md)
-- [Security controls, findings, and residual risks](docs/SECURITY_AUDIT.md)
+Documentation is organized by subject under five folders. Each document has one
+canonical location; historical status reports describe their recorded stage, not
+the current verification result.
+
+- [System architecture and scaling](docs/architecture/system.md)
+- [Platform API and source integrations](docs/api/source-integrations.md)
+- [Operations and deployment checklist](docs/operations/runbook.md)
+- [Cost and capacity guide](docs/operations/cost-and-capacity.md)
+- [Security controls, findings, and residual risks](docs/security/security-audit.md)
+- [JEV architecture, decisions, and document directory](docs/architecture/jev-overview.md)
+- [JEV decision API contract](docs/api/jev-decision-contract.md)
+- [Platform data model and JEV extension](docs/database/jev-data-model.md)
+- [Shared development workflow](docs/operations/agent-workflow.md)
 
 ## Current boundaries
 
-Job reads return 20 summaries by default and never more than 50. Each response also returns the total for the active database filters, while cursor pagination loads further records without sending descriptions. This keeps overview, relevant, collected, shortlist, applied, archived, range, and page counts accurate without downloading the full dataset. Descriptions and personal reviews load on demand. The application is designed for roughly 100 near-term users on the documented free-tier capacity. It has no MFA/passkey or password-reset flow, email/push alerts, organization workspaces, historical job-version snapshots, or automatic closure verification. Review the security audit and [cost and capacity guide](docs/COST_AND_CAPACITY.md) before public deployment.
+Job reads return 20 summaries by default and never more than 50. Each response also returns the total for the active database filters, while cursor pagination loads further records without sending descriptions. This keeps overview, relevant, collected, shortlist, applied, archived, range, and page counts accurate without downloading the full dataset. Descriptions and personal reviews load on demand. The application is designed for roughly 100 near-term users on the documented free-tier capacity. It has no MFA/passkey or password-reset flow, email/push alerts, organization workspaces, historical job-version snapshots, or automatic closure verification. Review the security audit and [cost and capacity guide](docs/operations/cost-and-capacity.md) before public deployment.

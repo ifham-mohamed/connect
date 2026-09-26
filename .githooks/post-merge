@@ -1,0 +1,2 @@
+#!/bin/sh
+exec node .agent/scripts/lifecycle.mjs file_changed

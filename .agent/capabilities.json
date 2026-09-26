@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "official_docs": {
+    "enabled": true,
+    "mode": "read-only"
+  },
+  "github": {
+    "enabled": true,
+    "repository": "ifham-mohamed/connect",
+    "mode": "read-only",
+    "credential_env": "GITHUB_TOKEN"
+  },
+  "roles": {
+    "planner": ["read_official_docs", "repository_summary", "read_issue"],
+    "implementer": ["read_official_docs"],
+    "reviewer": ["read_official_docs", "repository_summary", "read_issue"],
+    "verifier": ["read_official_docs"],
+    "release": ["read_official_docs", "repository_summary"]
+  }
+}

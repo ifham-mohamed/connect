@@ -7,7 +7,7 @@ if (!process.argv.includes("--confirm"))
 
 // This script is deliberately independent of the running application's mode.
 process.env.JEV_MODE = "off";
-const { rebuildMatches } = await import("../src/lib/sync");
+const { rebuildMatches } = await import("../src/lib/matching-repository");
 const pool = db();
 const client = await pool.connect();
 try {

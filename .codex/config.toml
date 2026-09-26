@@ -1,0 +1,6 @@
+[mcp_servers.jobradar_readonly]
+command = "node"
+args = [".agent/scripts/mcp-server.mjs", "implementer"]
+enabled_tools = ["read_official_docs"]
+startup_timeout_sec = 15
+tool_timeout_sec = 15

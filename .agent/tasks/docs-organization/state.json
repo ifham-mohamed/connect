@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "task_id": "docs-organization",
+  "goal": "Organize existing documentation into five subject folders and repair repository references without duplicate docs",
+  "owner": "codex",
+  "status": "complete",
+  "base_commit": "41a238573b38d1aba26aaafbaaf4076237af45c9",
+  "baseline_changes": [
+    "M AGENTS.md",
+    " M docs/architecture.md",
+    " M docs/operations.md",
+    " M eslint.config.mjs",
+    " M package.json",
+    " M scripts/rematch-deterministic.ts",
+    " M src/app/api/actions/route.ts",
+    " M src/app/api/intelligence/route.ts",
+    " M src/app/api/onboarding/route.ts",
+    " M src/components/dashboard.tsx",
+    " M src/components/workspace-page.tsx",
+    " M src/lib/intelligence/worker.ts",
+    " M src/lib/sync.ts",
+    " M tests/database.test.ts",
+    " M tsconfig.json",
+    "?? .agent/",
+    "?? .agents/",
+    "?? .claude/",
+    "?? .codex/",
+    "?? docs/agent-workflow.md",
+    "?? docs/codex_claude_unified_orchestration_blueprint.md",
+    "?? src/components/dashboard/",
+    "?? src/lib/actions/",
+    "?? src/lib/matching-repository.ts",
+    "?? tests/actions.test.ts",
+    "?? tests/agent-index.test.ts",
+    "?? tests/agent-workflow.test.ts",
+    "?? tests/architecture.test.ts",
+    "?? tests/dashboard-views.test.ts",
+    "?? tests/matching-repository.test.ts"
+  ],
+  "intended_files": [
+    "docs",
+    "README.md",
+    "AGENTS.md",
+    ".agent",
+    ".agents",
+    ".claude",
+    ".codex",
+    "tests/agent-index.test.ts"
+  ],
+  "completed": [
+    "Moved all 18 documents into five subject folders without duplicates",
+    "Updated relative links, README, shared guidance, canonical skills and subsystem references",
+    "Regenerated skill copies and source indices",
+    "Added nested documentation link regression check",
+    "Full verification passed"
+  ],
+  "remaining": [],
+  "verification": [
+    "npm run agent:verify: exit 0; context, format, architecture, lint, types and 139 tests passed",
+    "All 18 documents preserved; blueprint SHA256 unchanged",
+    "Build/browser skipped: documentation and development checks only"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "number",
+      "const": 1
+    },
+    "base_commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "source_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "generator": {
+      "type": "string",
+      "const": ".agent/scripts/update-index.mjs"
+    }
+  },
+  "required": ["schema_version", "base_commit", "source_hash", "generator"],
+  "additionalProperties": false
+}

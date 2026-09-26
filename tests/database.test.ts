@@ -14,7 +14,7 @@ const {
   rebuildMatchesForJobs,
   rebuildMatchesForMonitor,
   rebuildMatchesForUser,
-} = await import("../src/lib/sync");
+} = await import("../src/lib/matching-repository");
 const { getDashboard, getJobDetail, jobSelect, sourceSelect } =
   await import("../src/lib/repository");
 const { decodeCursor, listJobs, workspaceSummary } =

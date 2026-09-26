@@ -1,9 +1,17 @@
+import { addSource, toggleSource } from "@/lib/actions/sources";
+import {
+  setJobStatus,
+  setJobNote,
+  markJobReviewed,
+  canAccessJob,
+} from "@/lib/actions/job-state";
+import { updateProfile } from "@/lib/actions/profile";
+import { changeMonitor } from "@/lib/actions/monitors";
 import { NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 import { authorizeWrite } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { monitorSchema, sourceSchema } from "@/lib/validation";
-import { rebuildMatchesForMonitor, syncSources } from "@/lib/sync";
+import { syncSources } from "@/lib/sync";
 import { readJsonBody, RequestBodyError } from "@/lib/request-body";
 import { recordSecurityEvent } from "@/lib/security";
 import {
@@ -50,20 +58,7 @@ export async function POST(request: Request) {
     }
     if (["job-status", "job-reviewed", "job-note"].includes(body.action)) {
       const jobId = z.string().uuid().parse(body.id);
-      const access = await db().query(
-        `SELECT 1 FROM jobs j
-          WHERE j.id=$2 AND (
-            $3::text='owner'
-            OR EXISTS (SELECT 1 FROM job_user_states state WHERE state.job_id=j.id AND state.user_id=$1)
-            OR EXISTS (
-              SELECT 1 FROM monitor_matches match
-              JOIN monitors monitor ON monitor.id=match.monitor_id
-              WHERE match.job_id=j.id AND monitor.user_id=$1 AND monitor.enabled
-            )
-          )`,
-        [user.id, jobId, user.role],
-      );
-      if (!access.rowCount) {
+      if (!(await canAccessJob(user.id, jobId, user.role))) {
         await recordSecurityEvent({
           request,
           eventType: "authorization.job_access_denied",
@@ -75,122 +70,18 @@ export async function POST(request: Request) {
       }
     }
     if (body.action === "sync") return NextResponse.json(await syncSources());
-    if (body.action === "source-add") {
-      const value = sourceSchema.parse(body.data);
-      await db().query(
-        "INSERT INTO sources(name,kind,board,interval_minutes) VALUES($1,$2,$3,$4)",
-        [
-          value.name,
-          value.kind,
-          value.board,
-          ["remotive", "arbeitnow", "jobeka", "jobster"].includes(value.kind)
-            ? 360
-            : 60,
-        ],
-      );
-    } else if (body.action === "source-toggle") {
-      const id = z.string().uuid().parse(body.id);
-      const enabled = z.boolean().parse(body.data);
-      await db().query("UPDATE sources SET enabled=$2 WHERE id=$1", [
-        id,
-        enabled,
-      ]);
-    } else if (body.action === "job-status") {
-      const id = z.string().uuid().parse(body.id);
-      const status = z
-        .enum(["new", "saved", "applied", "archived"])
-        .parse(body.data);
-      await db().query(
-        `INSERT INTO job_user_states(user_id,job_id,status,reviewed_at,applied_at)
-         VALUES($1,$2,$3,now(),CASE WHEN $3='applied' THEN now() ELSE NULL END)
-         ON CONFLICT(user_id,job_id) DO UPDATE
-         SET status=excluded.status,reviewed_at=COALESCE(job_user_states.reviewed_at,now()),
-             applied_at=CASE WHEN excluded.status='applied' THEN COALESCE(job_user_states.applied_at,now()) ELSE job_user_states.applied_at END,
-             updated_at=now()`,
-        [user.id, id, status],
-      );
-    } else if (body.action === "job-note") {
-      const id = z.string().uuid().parse(body.id);
-      const note = z.string().trim().max(2000).parse(body.data);
-      await db().query(
-        `INSERT INTO job_user_states(user_id,job_id,application_note) VALUES($1,$2,$3)
-         ON CONFLICT(user_id,job_id) DO UPDATE SET application_note=excluded.application_note,updated_at=now()`,
-        [user.id, id, note],
-      );
-    } else if (body.action === "job-reviewed") {
-      const id = z.string().uuid().parse(body.id);
-      await db().query(
-        `INSERT INTO job_user_states(user_id,job_id,status,reviewed_at)
-         VALUES($1,$2,'new',now())
-         ON CONFLICT(user_id,job_id) DO UPDATE SET reviewed_at=now(),updated_at=now()`,
-        [user.id, id],
-      );
-    } else if (body.action === "profile-update") {
-      const value = z
-        .object({ name: z.string().trim().min(2).max(80) })
-        .parse(body.data);
-      await db().query("UPDATE users SET name=$2 WHERE id=$1", [
-        user.id,
-        value.name,
-      ]);
-    } else {
-      const client = await db().connect();
-      try {
-        await client.query("BEGIN");
-        await client.query("SELECT pg_advisory_xact_lock(741210)");
-        if (body.action === "monitor-delete")
-          await client.query(
-            "DELETE FROM monitors WHERE id=$1 AND user_id=$2",
-            [z.string().uuid().parse(body.id), user.id],
-          );
-        else {
-          const v = monitorSchema.parse(body.data);
-          let monitorId: string;
-          if (body.id) {
-            const updated = await client.query<{ id: string }>(
-              "UPDATE monitors SET name=$3,keywords=$4,excluded_keywords=$5,location=$6,remote_only=$7,work_modes=$8,enabled=$9 WHERE id=$1 AND user_id=$2 RETURNING id",
-              [
-                body.id,
-                user.id,
-                v.name,
-                v.keywords,
-                v.excludedKeywords,
-                v.location,
-                v.remoteOnly,
-                v.workModes ||
-                  (v.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
-                v.enabled,
-              ],
-            );
-            if (!updated.rows[0]) throw new Error("MONITOR_NOT_FOUND");
-            monitorId = updated.rows[0].id;
-          } else {
-            const inserted = await client.query<{ id: string }>(
-              "INSERT INTO monitors(user_id,name,keywords,excluded_keywords,location,remote_only,work_modes,enabled) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id",
-              [
-                user.id,
-                v.name,
-                v.keywords,
-                v.excludedKeywords,
-                v.location,
-                v.remoteOnly,
-                v.workModes ||
-                  (v.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
-                v.enabled,
-              ],
-            );
-            monitorId = inserted.rows[0].id;
-          }
-          await rebuildMatchesForMonitor(client, monitorId);
-        }
-        await client.query("COMMIT");
-      } catch (error) {
-        await client.query("ROLLBACK");
-        throw error;
-      } finally {
-        client.release();
-      }
-    }
+    if (body.action === "source-add") await addSource(body.data);
+    else if (body.action === "source-toggle")
+      await toggleSource(body.id, body.data);
+    else if (body.action === "job-status")
+      await setJobStatus(user.id, body.id, body.data);
+    else if (body.action === "job-note")
+      await setJobNote(user.id, body.id, body.data);
+    else if (body.action === "job-reviewed")
+      await markJobReviewed(user.id, body.id);
+    else if (body.action === "profile-update")
+      await updateProfile(user.id, body.data);
+    else await changeMonitor(user.id, body.action, body.id, body.data);
     return NextResponse.json({ ok: true });
   } catch (error) {
     const limited = rateLimitResponse(error);

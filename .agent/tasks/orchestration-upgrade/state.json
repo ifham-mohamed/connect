@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "task_id": "orchestration-upgrade",
+  "goal": "Shared workflows and behavior-preserving application refactoring",
+  "owner": "codex",
+  "status": "complete",
+  "base_commit": "41a238573b38d1aba26aaafbaaf4076237af45c9",
+  "baseline_changes": [
+    "?? docs/codex_claude_unified_orchestration_blueprint.md"
+  ],
+  "intended_files": [
+    "AGENTS.md",
+    ".agent",
+    "package.json",
+    "eslint.config.mjs",
+    "src",
+    "scripts/rematch-deterministic.ts",
+    "tests",
+    "docs/architecture.md",
+    "docs/operations.md",
+    "tsconfig.json"
+  ],
+  "completed": [
+    "Shared guidance and context checks",
+    "Matching persistence extraction",
+    "Actions extraction and HTTP/transaction regression tests",
+    "Typed dashboard views, forms, and shared presentation",
+    "Desktop and 390px mobile demo browser checks",
+    "Baseline production build passed",
+    "Final application verification: context, formatting, lint, types, 132 tests, production build passed",
+    "Reviewed extracted component bodies and API/SQL preservation",
+    "Recorded browser scope and limitations"
+  ],
+  "remaining": [],
+  "verification": [
+    "Baseline: lint, typecheck, 100 tests, and production build PASS",
+    "Final npm run agent:verify -- --application: PASS",
+    "Final Vitest: 20 files, 132 tests PASS",
+    "Desktop and 390px mobile local demo smoke checks performed",
+    "Blueprint SHA256 unchanged: 3a613d40928fc884bbc4ae85b37a89dce6b2f2042a0a60b3d92be940caa891ca"
+  ]
+}

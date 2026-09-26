@@ -3,7 +3,10 @@ import { z, ZodError } from "zod";
 import { authorizeWrite, currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getIntelligenceHealth } from "@/lib/intelligence/report";
-import { rebuildMatches, rebuildMatchesForJobs } from "@/lib/sync";
+import {
+  rebuildMatches,
+  rebuildMatchesForJobs,
+} from "@/lib/matching-repository";
 import { readJsonBody, RequestBodyError } from "@/lib/request-body";
 import { rateLimitResponse } from "@/lib/rate-limit";
 

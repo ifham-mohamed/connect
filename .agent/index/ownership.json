@@ -1,0 +1,31 @@
+{
+  "provenance": {
+    "schema_version": 1,
+    "base_commit": "41a238573b38d1aba26aaafbaaf4076237af45c9",
+    "source_hash": "f4ae87b2e186adb356dcbe2b142041ad8bc203cbb700f1d1e85dcf9b8a0bb8da",
+    "generator": ".agent/scripts/update-index.mjs"
+  },
+  "meaning": "Module responsibility, not people or CODEOWNERS authorization",
+  "boundaries": [
+    {
+      "path": "src/app/api",
+      "responsibility": "HTTP contracts and access control"
+    },
+    {
+      "path": "src/lib/actions",
+      "responsibility": "Application writes and operation transactions"
+    },
+    {
+      "path": "src/lib/matching-repository.ts",
+      "responsibility": "Matching SQL with caller-owned query client"
+    },
+    {
+      "path": "src/components/dashboard",
+      "responsibility": "Typed presentation and forms"
+    },
+    {
+      "path": ".agent",
+      "responsibility": "Development context and verification"
+    }
+  ]
+}

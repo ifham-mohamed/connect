@@ -6,16 +6,7 @@ import { workspaceSummary } from "@/lib/focused-repository";
 import { getRevisions } from "@/lib/revisions";
 import type { DashboardData } from "@/lib/types";
 
-type View =
-  | "overview"
-  | "jobs"
-  | "saved"
-  | "monitors"
-  | "sources"
-  | "activity"
-  | "cv"
-  | "intelligence"
-  | "settings";
+import type { View } from "@/components/dashboard/shared";
 
 export default async function WorkspacePage({ view }: { view: View }) {
   const client = await connectDatabase();

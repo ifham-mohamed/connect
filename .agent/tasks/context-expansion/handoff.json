@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "task_id": "context-expansion",
+  "goal": "Adapt fuller shared context and deterministic navigation workflows to Jobradar",
+  "constraints": [
+    "Preserve prior uncommitted application changes",
+    "No commits or live operations",
+    "Canonical application documents remain authoritative"
+  ],
+  "evidence": [".agent/tasks/context-expansion/verification.md"],
+  "changed_files": [
+    ".agent",
+    ".agents",
+    ".claude",
+    ".codex",
+    "AGENTS.md",
+    "package.json",
+    "docs/agent-workflow.md",
+    "tests/agent-index.test.ts"
+  ],
+  "verification": [
+    "npm run agent:verify: exit 0; context/format/lint/types/136 tests passed",
+    "Eight skill quick validations: exit 0",
+    "Build skipped: development scripts/documentation only in this expansion; earlier build is historical",
+    "Original blueprint hash unchanged"
+  ],
+  "remaining": []
+}

@@ -13,7 +13,7 @@ import { classifyJobWithJev } from "../jev/client";
 import type { JevConfig } from "../jev/config";
 import type { ValidatedJobClassification } from "../jev/contract";
 import { reviewShadowDecision } from "../jev/policy";
-import { rebuildMatchesForJobs } from "../sync";
+import { rebuildMatchesForJobs } from "../matching-repository";
 import {
   completeWorkspaceAiRequest,
   getWorkspaceAiBudget,

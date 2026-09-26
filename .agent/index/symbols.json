@@ -1,0 +1,1283 @@
+{
+  "provenance": {
+    "schema_version": 1,
+    "base_commit": "41a238573b38d1aba26aaafbaaf4076237af45c9",
+    "source_hash": "f4ae87b2e186adb356dcbe2b142041ad8bc203cbb700f1d1e85dcf9b8a0bb8da",
+    "generator": ".agent/scripts/update-index.mjs"
+  },
+  "scope": "Top-level named exports; inspect source for re-exports and anonymous defaults",
+  "symbols": [
+    {
+      "path": ".agent/plugins/repository-search/scripts/search.mjs",
+      "name": "searchDocuments",
+      "line": 7
+    },
+    {
+      "path": ".agent/scripts/architecture-check.mjs",
+      "name": "boundaryViolations",
+      "line": 6
+    },
+    {
+      "path": ".agent/scripts/capabilities.mjs",
+      "name": "capabilitySchema",
+      "line": 11
+    },
+    {
+      "path": ".agent/scripts/capabilities.mjs",
+      "name": "readCapabilities",
+      "line": 34
+    },
+    {
+      "path": ".agent/scripts/capabilities.mjs",
+      "name": "allowedTools",
+      "line": 54
+    },
+    {
+      "path": ".agent/scripts/capabilities.mjs",
+      "name": "callCapability",
+      "line": 77
+    },
+    {
+      "path": ".agent/scripts/changed-files.mjs",
+      "name": "parseStatus",
+      "line": 8
+    },
+    {
+      "path": ".agent/scripts/changed-files.mjs",
+      "name": "changedFiles",
+      "line": 21
+    },
+    {
+      "path": ".agent/scripts/changed-files.mjs",
+      "name": "recoveryAssessment",
+      "line": 34
+    },
+    { "path": ".agent/scripts/context-check.mjs", "name": "hash", "line": 20 },
+    {
+      "path": ".agent/scripts/context-check.mjs",
+      "name": "sourceHash",
+      "line": 21
+    },
+    { "path": ".agent/scripts/context-check.mjs", "name": "root", "line": 27 },
+    {
+      "path": ".agent/scripts/context-check.mjs",
+      "name": "safePath",
+      "line": 29
+    },
+    {
+      "path": ".agent/scripts/context-check.mjs",
+      "name": "ownershipConflicts",
+      "line": 37
+    },
+    {
+      "path": ".agent/scripts/context-check.mjs",
+      "name": "gitSnapshot",
+      "line": 69
+    },
+    {
+      "path": ".agent/scripts/context-check.mjs",
+      "name": "checkContext",
+      "line": 107
+    },
+    {
+      "path": ".agent/scripts/contracts.mjs",
+      "name": "provenanceSchema",
+      "line": 3
+    },
+    {
+      "path": ".agent/scripts/contracts.mjs",
+      "name": "taskSchema",
+      "line": 12
+    },
+    {
+      "path": ".agent/scripts/contracts.mjs",
+      "name": "handoffSchema",
+      "line": 42
+    },
+    { "path": ".agent/scripts/contracts.mjs", "name": "mapSchema", "line": 55 },
+    {
+      "path": ".agent/scripts/coordination.mjs",
+      "name": "changeClaims",
+      "line": 21
+    },
+    {
+      "path": ".agent/scripts/coordination.mjs",
+      "name": "coordinate",
+      "line": 37
+    },
+    {
+      "path": ".agent/scripts/evaluate.mjs",
+      "name": "evaluateRouting",
+      "line": 7
+    },
+    { "path": ".agent/scripts/evaluate.mjs", "name": "evaluate", "line": 24 },
+    {
+      "path": ".agent/scripts/impact-analysis.mjs",
+      "name": "impactedPaths",
+      "line": 9
+    },
+    {
+      "path": ".agent/scripts/impact-analysis.mjs",
+      "name": "impactReport",
+      "line": 23
+    },
+    {
+      "path": ".agent/scripts/lifecycle.mjs",
+      "name": "hookDecision",
+      "line": 12
+    },
+    { "path": ".agent/scripts/lifecycle.mjs", "name": "lifecycle", "line": 34 },
+    {
+      "path": ".agent/scripts/lifecycle.mjs",
+      "name": "recordActivity",
+      "line": 63
+    },
+    {
+      "path": ".agent/scripts/mcp-server.mjs",
+      "name": "createMcpHandler",
+      "line": 10
+    },
+    {
+      "path": ".agent/scripts/metrics.mjs",
+      "name": "summarizeEvents",
+      "line": 6
+    },
+    { "path": ".agent/scripts/route.mjs", "name": "routeTask", "line": 7 },
+    {
+      "path": ".agent/scripts/route.mjs",
+      "name": "contextMetrics",
+      "line": 77
+    },
+    {
+      "path": ".agent/scripts/search.mjs",
+      "name": "searchDocuments",
+      "line": 5
+    },
+    {
+      "path": ".agent/scripts/subsystems.mjs",
+      "name": "subsystems",
+      "line": 2
+    },
+    { "path": ".agent/scripts/subsystems.mjs", "name": "within", "line": 79 },
+    { "path": ".agent/scripts/symbols.mjs", "name": "findSymbol", "line": 6 },
+    {
+      "path": ".agent/scripts/sync-skills.mjs",
+      "name": "syncSkills",
+      "line": 12
+    },
+    {
+      "path": ".agent/scripts/update-index.mjs",
+      "name": "buildIndex",
+      "line": 10
+    },
+    {
+      "path": ".agent/scripts/update-index.mjs",
+      "name": "checkIndex",
+      "line": 165
+    },
+    { "path": ".agent/scripts/verify.mjs", "name": "runChecks", "line": 7 },
+    {
+      "path": ".agent/scripts/verify.mjs",
+      "name": "verificationEvents",
+      "line": 25
+    },
+    { "path": ".agent/scripts/verify.mjs", "name": "verify", "line": 43 },
+    { "path": "src/app/(marketing)/loading.tsx", "name": "Loading", "line": 3 },
+    { "path": "src/app/(marketing)/page.tsx", "name": "dynamic", "line": 4 },
+    { "path": "src/app/(marketing)/page.tsx", "name": "Home", "line": 6 },
+    { "path": "src/app/activity/loading.tsx", "name": "Loading", "line": 3 },
+    { "path": "src/app/activity/page.tsx", "name": "ActivityPage", "line": 3 },
+    {
+      "path": "src/app/api/actions/route.ts",
+      "name": "maxDuration",
+      "line": 22
+    },
+    { "path": "src/app/api/actions/route.ts", "name": "POST", "line": 23 },
+    { "path": "src/app/api/ai-usage/route.ts", "name": "dynamic", "line": 11 },
+    { "path": "src/app/api/ai-usage/route.ts", "name": "GET", "line": 13 },
+    { "path": "src/app/api/ai-usage/route.ts", "name": "PATCH", "line": 53 },
+    { "path": "src/app/api/auth/route.ts", "name": "POST", "line": 41 },
+    { "path": "src/app/api/auth/route.ts", "name": "DELETE", "line": 257 },
+    {
+      "path": "src/app/api/candidate/cv/route.ts",
+      "name": "dynamic",
+      "line": 9
+    },
+    { "path": "src/app/api/candidate/cv/route.ts", "name": "GET", "line": 11 },
+    { "path": "src/app/api/candidate/cv/route.ts", "name": "PUT", "line": 39 },
+    {
+      "path": "src/app/api/candidate/cv/route.ts",
+      "name": "DELETE",
+      "line": 69
+    },
+    { "path": "src/app/api/candidate/route.ts", "name": "dynamic", "line": 8 },
+    { "path": "src/app/api/candidate/route.ts", "name": "GET", "line": 24 },
+    { "path": "src/app/api/candidate/route.ts", "name": "PUT", "line": 98 },
+    { "path": "src/app/api/candidate/route.ts", "name": "DELETE", "line": 115 },
+    { "path": "src/app/api/cron/route.ts", "name": "maxDuration", "line": 4 },
+    { "path": "src/app/api/cron/route.ts", "name": "POST", "line": 5 },
+    { "path": "src/app/api/cron/route.ts", "name": "GET", "line": 21 },
+    { "path": "src/app/api/dashboard/route.ts", "name": "dynamic", "line": 5 },
+    { "path": "src/app/api/dashboard/route.ts", "name": "GET", "line": 6 },
+    { "path": "src/app/api/health/route.ts", "name": "dynamic", "line": 3 },
+    { "path": "src/app/api/health/route.ts", "name": "GET", "line": 4 },
+    {
+      "path": "src/app/api/intelligence/route.ts",
+      "name": "dynamic",
+      "line": 13
+    },
+    { "path": "src/app/api/intelligence/route.ts", "name": "GET", "line": 15 },
+    {
+      "path": "src/app/api/intelligence/route.ts",
+      "name": "POST",
+      "line": 140
+    },
+    {
+      "path": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "name": "dynamic",
+      "line": 28
+    },
+    {
+      "path": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "name": "GET",
+      "line": 56
+    },
+    {
+      "path": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "name": "POST",
+      "line": 136
+    },
+    {
+      "path": "src/app/api/jobs/[id]/image-context/route.ts",
+      "name": "dynamic",
+      "line": 8
+    },
+    {
+      "path": "src/app/api/jobs/[id]/image-context/route.ts",
+      "name": "POST",
+      "line": 32
+    },
+    {
+      "path": "src/app/api/jobs/[id]/image-context/route.ts",
+      "name": "DELETE",
+      "line": 74
+    },
+    { "path": "src/app/api/jobs/[id]/route.ts", "name": "dynamic", "line": 14 },
+    { "path": "src/app/api/jobs/[id]/route.ts", "name": "GET", "line": 16 },
+    { "path": "src/app/api/jobs/route.ts", "name": "dynamic", "line": 5 },
+    { "path": "src/app/api/jobs/route.ts", "name": "GET", "line": 30 },
+    {
+      "path": "src/app/api/maintenance/route.ts",
+      "name": "maxDuration",
+      "line": 5
+    },
+    { "path": "src/app/api/maintenance/route.ts", "name": "POST", "line": 7 },
+    { "path": "src/app/api/monitors/route.ts", "name": "dynamic", "line": 3 },
+    { "path": "src/app/api/monitors/route.ts", "name": "GET", "line": 4 },
+    { "path": "src/app/api/onboarding/route.ts", "name": "POST", "line": 10 },
+    {
+      "path": "src/app/api/performance/route.ts",
+      "name": "dynamic",
+      "line": 4
+    },
+    { "path": "src/app/api/performance/route.ts", "name": "GET", "line": 6 },
+    { "path": "src/app/api/revisions/route.ts", "name": "dynamic", "line": 4 },
+    { "path": "src/app/api/revisions/route.ts", "name": "GET", "line": 5 },
+    {
+      "path": "src/app/api/runs/[id]/jobs/route.ts",
+      "name": "dynamic",
+      "line": 6
+    },
+    {
+      "path": "src/app/api/runs/[id]/jobs/route.ts",
+      "name": "GET",
+      "line": 14
+    },
+    { "path": "src/app/api/runs/route.ts", "name": "dynamic", "line": 3 },
+    { "path": "src/app/api/runs/route.ts", "name": "GET", "line": 4 },
+    { "path": "src/app/api/security/route.ts", "name": "dynamic", "line": 14 },
+    { "path": "src/app/api/security/route.ts", "name": "GET", "line": 16 },
+    { "path": "src/app/api/security/route.ts", "name": "DELETE", "line": 73 },
+    { "path": "src/app/api/sources/route.ts", "name": "dynamic", "line": 3 },
+    { "path": "src/app/api/sources/route.ts", "name": "GET", "line": 4 },
+    {
+      "path": "src/app/api/workspace/summary/route.ts",
+      "name": "dynamic",
+      "line": 4
+    },
+    {
+      "path": "src/app/api/workspace/summary/route.ts",
+      "name": "GET",
+      "line": 5
+    },
+    {
+      "path": "src/app/app/activity/loading.tsx",
+      "name": "Loading",
+      "line": 3
+    },
+    {
+      "path": "src/app/app/activity/page.tsx",
+      "name": "ActivityPage",
+      "line": 3
+    },
+    {
+      "path": "src/app/app/dashboard/loading.tsx",
+      "name": "Loading",
+      "line": 3
+    },
+    {
+      "path": "src/app/app/dashboard/page.tsx",
+      "name": "DashboardPage",
+      "line": 3
+    },
+    {
+      "path": "src/app/app/intelligence/loading.tsx",
+      "name": "Loading",
+      "line": 3
+    },
+    {
+      "path": "src/app/app/intelligence/page.tsx",
+      "name": "IntelligencePage",
+      "line": 3
+    },
+    { "path": "src/app/app/jobs/loading.tsx", "name": "Loading", "line": 3 },
+    { "path": "src/app/app/jobs/page.tsx", "name": "JobsPage", "line": 3 },
+    { "path": "src/app/app/loading.tsx", "name": "Loading", "line": 3 },
+    {
+      "path": "src/app/app/monitors/loading.tsx",
+      "name": "Loading",
+      "line": 3
+    },
+    {
+      "path": "src/app/app/monitors/page.tsx",
+      "name": "MonitorsPage",
+      "line": 3
+    },
+    { "path": "src/app/app/page.tsx", "name": "WorkspacePage", "line": 3 },
+    {
+      "path": "src/app/app/profile/cv/loading.tsx",
+      "name": "Loading",
+      "line": 3
+    },
+    { "path": "src/app/app/profile/cv/page.tsx", "name": "CvPage", "line": 3 },
+    { "path": "src/app/app/saved/loading.tsx", "name": "Loading", "line": 3 },
+    { "path": "src/app/app/saved/page.tsx", "name": "SavedPage", "line": 3 },
+    {
+      "path": "src/app/app/settings/loading.tsx",
+      "name": "Loading",
+      "line": 3
+    },
+    {
+      "path": "src/app/app/settings/page.tsx",
+      "name": "SettingsPage",
+      "line": 3
+    },
+    { "path": "src/app/app/sources/loading.tsx", "name": "Loading", "line": 3 },
+    {
+      "path": "src/app/app/sources/page.tsx",
+      "name": "SourcesPage",
+      "line": 3
+    },
+    { "path": "src/app/auth/loading.tsx", "name": "Loading", "line": 3 },
+    { "path": "src/app/auth/page.tsx", "name": "WorkspaceAuthPage", "line": 5 },
+    { "path": "src/app/error.tsx", "name": "ErrorPage", "line": 2 },
+    { "path": "src/app/jobs/loading.tsx", "name": "Loading", "line": 3 },
+    { "path": "src/app/jobs/page.tsx", "name": "JobsPage", "line": 3 },
+    { "path": "src/app/layout.tsx", "name": "metadata", "line": 4 },
+    { "path": "src/app/layout.tsx", "name": "RootLayout", "line": 9 },
+    { "path": "src/app/monitors/loading.tsx", "name": "Loading", "line": 3 },
+    { "path": "src/app/monitors/page.tsx", "name": "MonitorsPage", "line": 3 },
+    { "path": "src/app/onboarding/loading.tsx", "name": "Loading", "line": 1 },
+    { "path": "src/app/onboarding/page.tsx", "name": "dynamic", "line": 8 },
+    {
+      "path": "src/app/onboarding/page.tsx",
+      "name": "OnboardingPage",
+      "line": 10
+    },
+    { "path": "src/app/saved/loading.tsx", "name": "Loading", "line": 3 },
+    { "path": "src/app/saved/page.tsx", "name": "SavedPage", "line": 3 },
+    { "path": "src/app/settings/loading.tsx", "name": "Loading", "line": 3 },
+    { "path": "src/app/settings/page.tsx", "name": "SettingsPage", "line": 3 },
+    { "path": "src/app/sources/loading.tsx", "name": "Loading", "line": 3 },
+    { "path": "src/app/sources/page.tsx", "name": "SourcesPage", "line": 3 },
+    {
+      "path": "src/components/ai-usage-controls.tsx",
+      "name": "AiUsageControls",
+      "line": 43
+    },
+    {
+      "path": "src/components/auth/auth-gate.tsx",
+      "name": "AuthGate",
+      "line": 22
+    },
+    {
+      "path": "src/components/auth/auth-page.tsx",
+      "name": "AuthPage",
+      "line": 6
+    },
+    {
+      "path": "src/components/auth/auth-skeleton.tsx",
+      "name": "AuthSkeleton",
+      "line": 1
+    },
+    {
+      "path": "src/components/auth/auth-visual.tsx",
+      "name": "AuthVisual",
+      "line": 9
+    },
+    {
+      "path": "src/components/cv-workspace.tsx",
+      "name": "CvWorkspace",
+      "line": 16
+    },
+    {
+      "path": "src/components/dashboard-skeleton.tsx",
+      "name": "DashboardSkeletonView",
+      "line": 3
+    },
+    {
+      "path": "src/components/dashboard-skeleton.tsx",
+      "name": "DashboardSkeleton",
+      "line": 101
+    },
+    { "path": "src/components/dashboard.tsx", "name": "Dashboard", "line": 74 },
+    {
+      "path": "src/components/dashboard/activity-view.tsx",
+      "name": "ActivityView",
+      "line": 34
+    },
+    {
+      "path": "src/components/dashboard/empty.tsx",
+      "name": "Empty",
+      "line": 3
+    },
+    {
+      "path": "src/components/dashboard/job-detail.tsx",
+      "name": "JobDetail",
+      "line": 22
+    },
+    {
+      "path": "src/components/dashboard/jobs-view.tsx",
+      "name": "JobsView",
+      "line": 89
+    },
+    {
+      "path": "src/components/dashboard/modal-dialog.tsx",
+      "name": "ModalDialog",
+      "line": 5
+    },
+    {
+      "path": "src/components/dashboard/monitor-form.tsx",
+      "name": "MonitorForm",
+      "line": 7
+    },
+    {
+      "path": "src/components/dashboard/monitors-view.tsx",
+      "name": "MonitorsView",
+      "line": 33
+    },
+    {
+      "path": "src/components/dashboard/overview-view.tsx",
+      "name": "OverviewView",
+      "line": 27
+    },
+    {
+      "path": "src/components/dashboard/settings-view.tsx",
+      "name": "SettingsView",
+      "line": 43
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "CvWorkspace",
+      "line": 18
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "IntelligenceControls",
+      "line": 22
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "JobCvReview",
+      "line": 27
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "JobImageContext",
+      "line": 29
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "SecurityActivity",
+      "line": 33
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "AiUsageControls",
+      "line": 38
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "PerformanceCostPanel",
+      "line": 45
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "Revisions",
+      "line": 50
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "View",
+      "line": 52
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "Modal",
+      "line": 63
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "Theme",
+      "line": 70
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "viewPaths",
+      "line": 72
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "pathViews",
+      "line": 84
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "navigation",
+      "line": 88
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "titles",
+      "line": 99
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "kindNames",
+      "line": 138
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "experienceNames",
+      "line": 152
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "timeAgo",
+      "line": 160
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "dateTime",
+      "line": 170
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "initials",
+      "line": 179
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "companyColor",
+      "line": 188
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "LinkedInMark",
+      "line": 194
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "name": "accountInitials",
+      "line": 202
+    },
+    {
+      "path": "src/components/dashboard/source-form.tsx",
+      "name": "SourceForm",
+      "line": 8
+    },
+    {
+      "path": "src/components/dashboard/sources-view.tsx",
+      "name": "SourcesView",
+      "line": 82
+    },
+    { "path": "src/components/dashboard/stat.tsx", "name": "Stat", "line": 4 },
+    {
+      "path": "src/components/intelligence-controls.tsx",
+      "name": "IntelligenceControls",
+      "line": 58
+    },
+    {
+      "path": "src/components/job-cv-review.tsx",
+      "name": "JobCvReview",
+      "line": 103
+    },
+    {
+      "path": "src/components/job-image-context.tsx",
+      "name": "JobImageContext",
+      "line": 20
+    },
+    {
+      "path": "src/components/landing/landing-page.tsx",
+      "name": "LandingPage",
+      "line": 46
+    },
+    {
+      "path": "src/components/landing/landing-skeleton.tsx",
+      "name": "LandingSkeleton",
+      "line": 1
+    },
+    {
+      "path": "src/components/onboarding/onboarding-flow.tsx",
+      "name": "OnboardingFlow",
+      "line": 143
+    },
+    {
+      "path": "src/components/performance-cost-panel.tsx",
+      "name": "PerformanceCostPanel",
+      "line": 30
+    },
+    {
+      "path": "src/components/security-activity.tsx",
+      "name": "SecurityActivity",
+      "line": 27
+    },
+    {
+      "path": "src/components/workspace-content-skeleton.tsx",
+      "name": "WorkspaceContentSkeleton",
+      "line": 18
+    },
+    {
+      "path": "src/components/workspace-content-skeleton.tsx",
+      "name": "SettingsCardSkeleton",
+      "line": 191
+    },
+    {
+      "path": "src/components/workspace-page.tsx",
+      "name": "WorkspacePage",
+      "line": 11
+    },
+    {
+      "path": "src/lib/actions/job-state.ts",
+      "name": "setJobStatus",
+      "line": 4
+    },
+    {
+      "path": "src/lib/actions/job-state.ts",
+      "name": "setJobNote",
+      "line": 22
+    },
+    {
+      "path": "src/lib/actions/job-state.ts",
+      "name": "markJobReviewed",
+      "line": 36
+    },
+    {
+      "path": "src/lib/actions/job-state.ts",
+      "name": "canAccessJob",
+      "line": 46
+    },
+    {
+      "path": "src/lib/actions/monitors.ts",
+      "name": "changeMonitor",
+      "line": 6
+    },
+    {
+      "path": "src/lib/actions/profile.ts",
+      "name": "updateProfile",
+      "line": 4
+    },
+    { "path": "src/lib/actions/sources.ts", "name": "addSource", "line": 5 },
+    {
+      "path": "src/lib/actions/sources.ts",
+      "name": "toggleSource",
+      "line": 19
+    },
+    { "path": "src/lib/ai-budget.ts", "name": "WorkspaceAiBudget", "line": 5 },
+    {
+      "path": "src/lib/ai-budget.ts",
+      "name": "getWorkspaceAiBudget",
+      "line": 19
+    },
+    {
+      "path": "src/lib/ai-budget.ts",
+      "name": "reserveWorkspaceAiRequest",
+      "line": 54
+    },
+    {
+      "path": "src/lib/ai-budget.ts",
+      "name": "completeWorkspaceAiRequest",
+      "line": 115
+    },
+    { "path": "src/lib/ai-budget.ts", "name": "pauseWorkspaceAi", "line": 140 },
+    { "path": "src/lib/ai-usage.ts", "name": "AiUsage", "line": 6 },
+    { "path": "src/lib/ai-usage.ts", "name": "getAiUsage", "line": 31 },
+    {
+      "path": "src/lib/ai-usage.ts",
+      "name": "reserveAiJobAnalysis",
+      "line": 77
+    },
+    {
+      "path": "src/lib/ai-usage.ts",
+      "name": "completeAiJobAnalysis",
+      "line": 115
+    },
+    {
+      "path": "src/lib/ai-usage.ts",
+      "name": "memberUsageSummary",
+      "line": 129
+    },
+    { "path": "src/lib/api-read.ts", "name": "authenticatedRead", "line": 8 },
+    { "path": "src/lib/auth.ts", "name": "sessionCookie", "line": 16 },
+    { "path": "src/lib/auth.ts", "name": "sessionMaxAge", "line": 17 },
+    { "path": "src/lib/auth.ts", "name": "UserRole", "line": 19 },
+    { "path": "src/lib/auth.ts", "name": "AuthUser", "line": 20 },
+    { "path": "src/lib/auth.ts", "name": "equalSecret", "line": 30 },
+    { "path": "src/lib/auth.ts", "name": "hashPassword", "line": 36 },
+    { "path": "src/lib/auth.ts", "name": "verifyPassword", "line": 42 },
+    { "path": "src/lib/auth.ts", "name": "createSessionToken", "line": 56 },
+    { "path": "src/lib/auth.ts", "name": "hashSessionToken", "line": 59 },
+    { "path": "src/lib/auth.ts", "name": "setSessionCookie", "line": 62 },
+    { "path": "src/lib/auth.ts", "name": "clearSessionCookie", "line": 74 },
+    { "path": "src/lib/auth.ts", "name": "currentSessionToken", "line": 77 },
+    { "path": "src/lib/auth.ts", "name": "currentUser", "line": 80 },
+    { "path": "src/lib/auth.ts", "name": "originAllowed", "line": 168 },
+    { "path": "src/lib/auth.ts", "name": "authorizeWrite", "line": 192 },
+    { "path": "src/lib/connectors.ts", "name": "IncomingJob", "line": 5 },
+    { "path": "src/lib/connectors.ts", "name": "CollectionResult", "line": 16 },
+    {
+      "path": "src/lib/connectors.ts",
+      "name": "itproCategoryBoards",
+      "line": 134
+    },
+    {
+      "path": "src/lib/connectors.ts",
+      "name": "parseItproJobDetail",
+      "line": 189
+    },
+    {
+      "path": "src/lib/connectors.ts",
+      "name": "parseTopJobsAdvertImageUrl",
+      "line": 221
+    },
+    {
+      "path": "src/lib/connectors.ts",
+      "name": "fetchTopJobsAdvertImageUrl",
+      "line": 244
+    },
+    {
+      "path": "src/lib/connectors.ts",
+      "name": "fetchItproJobDetail",
+      "line": 286
+    },
+    { "path": "src/lib/connectors.ts", "name": "sourceUrl", "line": 357 },
+    { "path": "src/lib/connectors.ts", "name": "normalize", "line": 387 },
+    { "path": "src/lib/connectors.ts", "name": "collect", "line": 673 },
+    {
+      "path": "src/lib/cv/extract-client.ts",
+      "name": "pdfItemsToLines",
+      "line": 6
+    },
+    {
+      "path": "src/lib/cv/extract-client.ts",
+      "name": "extractCvInBrowser",
+      "line": 39
+    },
+    { "path": "src/lib/cv/profile.ts", "name": "CvSkillGroup", "line": 1 },
+    { "path": "src/lib/cv/profile.ts", "name": "CvEntry", "line": 2 },
+    { "path": "src/lib/cv/profile.ts", "name": "CvSection", "line": 3 },
+    { "path": "src/lib/cv/profile.ts", "name": "CvProfile", "line": 4 },
+    { "path": "src/lib/cv/profile.ts", "name": "parseCvText", "line": 139 },
+    { "path": "src/lib/cv/profile.ts", "name": "cvSkillTerms", "line": 204 },
+    { "path": "src/lib/cv/schema.ts", "name": "cvProfileSchema", "line": 4 },
+    { "path": "src/lib/cv/schema.ts", "name": "approvedCvSchema", "line": 47 },
+    {
+      "path": "src/lib/database-config.ts",
+      "name": "databaseConfig",
+      "line": 4
+    },
+    { "path": "src/lib/database-error.ts", "name": "databaseError", "line": 1 },
+    { "path": "src/lib/db.ts", "name": "db", "line": 23 },
+    { "path": "src/lib/db.ts", "name": "workerDb", "line": 26 },
+    { "path": "src/lib/db.ts", "name": "transientConnectionError", "line": 32 },
+    { "path": "src/lib/db.ts", "name": "withDatabaseRetry", "line": 41 },
+    { "path": "src/lib/db.ts", "name": "connectDatabase", "line": 69 },
+    { "path": "src/lib/demo.ts", "name": "demoData", "line": 4 },
+    {
+      "path": "src/lib/focused-repository.ts",
+      "name": "encodeCursor",
+      "line": 5
+    },
+    {
+      "path": "src/lib/focused-repository.ts",
+      "name": "decodeCursor",
+      "line": 9
+    },
+    { "path": "src/lib/focused-repository.ts", "name": "listJobs", "line": 21 },
+    {
+      "path": "src/lib/focused-repository.ts",
+      "name": "workspaceSummary",
+      "line": 136
+    },
+    {
+      "path": "src/lib/focused-repository.ts",
+      "name": "listMonitors",
+      "line": 172
+    },
+    {
+      "path": "src/lib/focused-repository.ts",
+      "name": "listSources",
+      "line": 181
+    },
+    {
+      "path": "src/lib/focused-repository.ts",
+      "name": "listRuns",
+      "line": 185
+    },
+    {
+      "path": "src/lib/focused-repository.ts",
+      "name": "listRunJobs",
+      "line": 196
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "CV_FIT_RULE_VERSION",
+      "line": 4
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "RoleFamily",
+      "line": 6
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "FitLevel",
+      "line": 20
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "ExperienceEntry",
+      "line": 22
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "SkillFit",
+      "line": 32
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "detectRoleFamily",
+      "line": 187
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "roleCompatibility",
+      "line": 219
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "parseDateRange",
+      "line": 262
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "extractExperienceRequirement",
+      "line": 311
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "buildExperienceProfile",
+      "line": 341
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "compareSkills",
+      "line": 468
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "name": "buildDeterministicFit",
+      "line": 521
+    },
+    {
+      "path": "src/lib/intelligence/cv-review.ts",
+      "name": "CV_REVIEW_VERSION",
+      "line": 8
+    },
+    {
+      "path": "src/lib/intelligence/cv-review.ts",
+      "name": "cvReviewResultSchema",
+      "line": 22
+    },
+    {
+      "path": "src/lib/intelligence/cv-review.ts",
+      "name": "CvReviewResult",
+      "line": 94
+    },
+    {
+      "path": "src/lib/intelligence/cv-review.ts",
+      "name": "jobCvHash",
+      "line": 137
+    },
+    {
+      "path": "src/lib/intelligence/cv-review.ts",
+      "name": "buildCvReviewEvidence",
+      "line": 160
+    },
+    {
+      "path": "src/lib/intelligence/cv-review.ts",
+      "name": "reviewJobAgainstCv",
+      "line": 319
+    },
+    {
+      "path": "src/lib/intelligence/job-state.ts",
+      "name": "JOB_STATE_LIMITS",
+      "line": 10
+    },
+    {
+      "path": "src/lib/intelligence/job-state.ts",
+      "name": "JobDecisionState",
+      "line": 31
+    },
+    {
+      "path": "src/lib/intelligence/job-state.ts",
+      "name": "buildJobDecisionState",
+      "line": 37
+    },
+    {
+      "path": "src/lib/intelligence/job-state.ts",
+      "name": "jobDecisionStateHash",
+      "line": 76
+    },
+    {
+      "path": "src/lib/intelligence/job-state.ts",
+      "name": "jobDecisionStateSize",
+      "line": 80
+    },
+    {
+      "path": "src/lib/intelligence/queue.ts",
+      "name": "stateFromIntelligenceJob",
+      "line": 28
+    },
+    {
+      "path": "src/lib/intelligence/queue.ts",
+      "name": "loadIntelligenceJob",
+      "line": 32
+    },
+    {
+      "path": "src/lib/intelligence/queue.ts",
+      "name": "queueJobsForIntelligence",
+      "line": 41
+    },
+    {
+      "path": "src/lib/intelligence/queue.ts",
+      "name": "backfillJobIntelligence",
+      "line": 80
+    },
+    {
+      "path": "src/lib/intelligence/queue.ts",
+      "name": "ClaimedIntelligenceTask",
+      "line": 97
+    },
+    {
+      "path": "src/lib/intelligence/queue.ts",
+      "name": "claimIntelligenceTasks",
+      "line": 105
+    },
+    {
+      "path": "src/lib/intelligence/queue.ts",
+      "name": "markIntelligenceTaskStale",
+      "line": 141
+    },
+    {
+      "path": "src/lib/intelligence/queue.ts",
+      "name": "retryOrDeadLetterTask",
+      "line": 152
+    },
+    {
+      "path": "src/lib/intelligence/queue.ts",
+      "name": "currentTaskState",
+      "line": 174
+    },
+    {
+      "path": "src/lib/intelligence/report.ts",
+      "name": "getIntelligenceHealth",
+      "line": 5
+    },
+    {
+      "path": "src/lib/intelligence/requirements.ts",
+      "name": "REQUIREMENT_QUESTION_VERSION",
+      "line": 6
+    },
+    {
+      "path": "src/lib/intelligence/requirements.ts",
+      "name": "RequirementCandidate",
+      "line": 16
+    },
+    {
+      "path": "src/lib/intelligence/requirements.ts",
+      "name": "requirementText",
+      "line": 23
+    },
+    {
+      "path": "src/lib/intelligence/requirements.ts",
+      "name": "requirementDescriptionHash",
+      "line": 27
+    },
+    {
+      "path": "src/lib/intelligence/requirements.ts",
+      "name": "extractRequirementCandidates",
+      "line": 31
+    },
+    {
+      "path": "src/lib/intelligence/requirements.ts",
+      "name": "LabeledRequirement",
+      "line": 63
+    },
+    {
+      "path": "src/lib/intelligence/requirements.ts",
+      "name": "labelRequirementsWithJev",
+      "line": 69
+    },
+    {
+      "path": "src/lib/intelligence/worker.ts",
+      "name": "JevClassificationResponse",
+      "line": 32
+    },
+    {
+      "path": "src/lib/intelligence/worker.ts",
+      "name": "JevClassifier",
+      "line": 38
+    },
+    {
+      "path": "src/lib/intelligence/worker.ts",
+      "name": "classifierForClient",
+      "line": 42
+    },
+    {
+      "path": "src/lib/intelligence/worker.ts",
+      "name": "processIntelligenceBatch",
+      "line": 167
+    },
+    { "path": "src/lib/jev/client.ts", "name": "createJevClient", "line": 11 },
+    {
+      "path": "src/lib/jev/client.ts",
+      "name": "classifyJobWithJev",
+      "line": 29
+    },
+    {
+      "path": "src/lib/jev/client.ts",
+      "name": "jevConnectionMessage",
+      "line": 44
+    },
+    { "path": "src/lib/jev/config.ts", "name": "JevConfig", "line": 21 },
+    { "path": "src/lib/jev/config.ts", "name": "jevQueueEnabled", "line": 23 },
+    { "path": "src/lib/jev/config.ts", "name": "jevConfig", "line": 29 },
+    {
+      "path": "src/lib/jev/contract.ts",
+      "name": "jobClassificationResultSchema",
+      "line": 42
+    },
+    {
+      "path": "src/lib/jev/contract.ts",
+      "name": "ValidatedJobClassification",
+      "line": 98
+    },
+    {
+      "path": "src/lib/jev/contract.ts",
+      "name": "validateJobClassification",
+      "line": 102
+    },
+    {
+      "path": "src/lib/jev/evaluation.ts",
+      "name": "goldFixtureSchema",
+      "line": 21
+    },
+    { "path": "src/lib/jev/evaluation.ts", "name": "GoldFixture", "line": 55 },
+    { "path": "src/lib/jev/evaluation.ts", "name": "fixtureState", "line": 57 },
+    {
+      "path": "src/lib/jev/evaluation.ts",
+      "name": "deterministicFixtureResult",
+      "line": 70
+    },
+    {
+      "path": "src/lib/jev/evaluation.ts",
+      "name": "scoreLiveFixture",
+      "line": 87
+    },
+    { "path": "src/lib/jev/policy.ts", "name": "JevPolicyOutcome", "line": 4 },
+    {
+      "path": "src/lib/jev/policy.ts",
+      "name": "reviewShadowDecision",
+      "line": 8
+    },
+    {
+      "path": "src/lib/jev/questions/job-classification-v1.ts",
+      "name": "JOB_CLASSIFICATION_VERSION",
+      "line": 3
+    },
+    {
+      "path": "src/lib/jev/questions/job-classification-v1.ts",
+      "name": "jobClassificationQuestionsV1",
+      "line": 5
+    },
+    {
+      "path": "src/lib/jev/questions/job-classification-v1.ts",
+      "name": "JobClassificationQuestionsV1",
+      "line": 77
+    },
+    { "path": "src/lib/linkedin.ts", "name": "LinkedInWorkplace", "line": 6 },
+    { "path": "src/lib/linkedin.ts", "name": "LinkedInExperience", "line": 7 },
+    { "path": "src/lib/linkedin.ts", "name": "LinkedInJobType", "line": 14 },
+    { "path": "src/lib/linkedin.ts", "name": "LinkedInDatePosted", "line": 21 },
+    { "path": "src/lib/linkedin.ts", "name": "LinkedInSort", "line": 22 },
+    { "path": "src/lib/linkedin.ts", "name": "LinkedInDistance", "line": 23 },
+    {
+      "path": "src/lib/linkedin.ts",
+      "name": "LinkedInPostAudience",
+      "line": 24
+    },
+    {
+      "path": "src/lib/linkedin.ts",
+      "name": "linkedInSearchTerms",
+      "line": 66
+    },
+    {
+      "path": "src/lib/linkedin.ts",
+      "name": "linkedInJobsSearchUrl",
+      "line": 86
+    },
+    {
+      "path": "src/lib/linkedin.ts",
+      "name": "linkedInNetworkJobsSearchUrl",
+      "line": 145
+    },
+    {
+      "path": "src/lib/linkedin.ts",
+      "name": "linkedInJobPostsSearchUrl",
+      "line": 156
+    },
+    {
+      "path": "src/lib/matching-repository.ts",
+      "name": "rebuildMatches",
+      "line": 15
+    },
+    {
+      "path": "src/lib/matching-repository.ts",
+      "name": "rebuildMatchesForJobs",
+      "line": 23
+    },
+    {
+      "path": "src/lib/matching-repository.ts",
+      "name": "rebuildMatchesForMonitor",
+      "line": 41
+    },
+    {
+      "path": "src/lib/matching-repository.ts",
+      "name": "rebuildMatchesForUser",
+      "line": 57
+    },
+    {
+      "path": "src/lib/matching.ts",
+      "name": "normalizeMatchPhrase",
+      "line": 2
+    },
+    { "path": "src/lib/matching.ts", "name": "containsKeyword", "line": 12 },
+    { "path": "src/lib/matching.ts", "name": "matchesLocation", "line": 20 },
+    { "path": "src/lib/matching.ts", "name": "experienceSignals", "line": 31 },
+    {
+      "path": "src/lib/matching.ts",
+      "name": "experienceExclusions",
+      "line": 74
+    },
+    { "path": "src/lib/matching.ts", "name": "detectExperience", "line": 90 },
+    { "path": "src/lib/matching.ts", "name": "matchesWorkModes", "line": 124 },
+    { "path": "src/lib/matching.ts", "name": "detectWorkMode", "line": 132 },
+    {
+      "path": "src/lib/matching.ts",
+      "name": "detectExperienceSignals",
+      "line": 145
+    },
+    { "path": "src/lib/matching.ts", "name": "matchesExperience", "line": 154 },
+    { "path": "src/lib/matching.ts", "name": "matchesMonitor", "line": 163 },
+    { "path": "src/lib/matching.ts", "name": "safeUrl", "line": 180 },
+    { "path": "src/lib/matching.ts", "name": "plainText", "line": 188 },
+    { "path": "src/lib/matching.ts", "name": "techPattern", "line": 211 },
+    {
+      "path": "src/lib/ocr/advert-text.ts",
+      "name": "normalizeAdvertText",
+      "line": 1
+    },
+    {
+      "path": "src/lib/ocr/advert-text.ts",
+      "name": "validAdvertImage",
+      "line": 16
+    },
+    { "path": "src/lib/rate-limit.ts", "name": "RateLimitError", "line": 5 },
+    { "path": "src/lib/rate-limit.ts", "name": "RateLimitResult", "line": 14 },
+    { "path": "src/lib/rate-limit.ts", "name": "consumeRateLimit", "line": 21 },
+    {
+      "path": "src/lib/rate-limit.ts",
+      "name": "rateLimitResponse",
+      "line": 50
+    },
+    { "path": "src/lib/repository.ts", "name": "sourceSelect", "line": 5 },
+    { "path": "src/lib/repository.ts", "name": "monitorSelect", "line": 6 },
+    { "path": "src/lib/repository.ts", "name": "jobSelect", "line": 7 },
+    { "path": "src/lib/repository.ts", "name": "getDashboard", "line": 8 },
+    { "path": "src/lib/repository.ts", "name": "getJobDetail", "line": 76 },
+    {
+      "path": "src/lib/request-body.ts",
+      "name": "RequestBodyError",
+      "line": 1
+    },
+    { "path": "src/lib/request-body.ts", "name": "readJsonBody", "line": 10 },
+    { "path": "src/lib/revisions.ts", "name": "RevisionScope", "line": 4 },
+    { "path": "src/lib/revisions.ts", "name": "bumpRevision", "line": 7 },
+    { "path": "src/lib/revisions.ts", "name": "getRevisions", "line": 29 },
+    { "path": "src/lib/revisions.ts", "name": "incrementUsage", "line": 38 },
+    { "path": "src/lib/security.ts", "name": "SecuritySeverity", "line": 6 },
+    {
+      "path": "src/lib/security.ts",
+      "name": "requestSecurityContext",
+      "line": 26
+    },
+    {
+      "path": "src/lib/security.ts",
+      "name": "recordSecurityEvent",
+      "line": 51
+    },
+    { "path": "src/lib/sync.ts", "name": "syncNextSource", "line": 234 },
+    { "path": "src/lib/sync.ts", "name": "syncSources", "line": 258 },
+    { "path": "src/lib/types.ts", "name": "SourceKind", "line": 1 },
+    { "path": "src/lib/types.ts", "name": "JobStatus", "line": 13 },
+    { "path": "src/lib/types.ts", "name": "ExperienceLevel", "line": 14 },
+    { "path": "src/lib/types.ts", "name": "WorkMode", "line": 16 },
+    { "path": "src/lib/types.ts", "name": "UserPreferences", "line": 17 },
+    { "path": "src/lib/types.ts", "name": "Job", "line": 24 },
+    { "path": "src/lib/types.ts", "name": "Monitor", "line": 60 },
+    { "path": "src/lib/types.ts", "name": "Source", "line": 72 },
+    { "path": "src/lib/types.ts", "name": "Run", "line": 86 },
+    { "path": "src/lib/types.ts", "name": "DashboardData", "line": 98 },
+    { "path": "src/lib/validation.ts", "name": "monitorSchema", "line": 5 },
+    { "path": "src/lib/validation.ts", "name": "onboardingSchema", "line": 45 },
+    {
+      "path": "src/lib/validation.ts",
+      "name": "ownerOnboardingSchema",
+      "line": 55
+    },
+    { "path": "src/lib/validation.ts", "name": "sourceSchema", "line": 65 },
+    { "path": "src/proxy.ts", "name": "proxy", "line": 4 },
+    { "path": "src/proxy.ts", "name": "config", "line": 29 }
+  ]
+}

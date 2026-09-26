@@ -1,0 +1,3104 @@
+{
+  "provenance": {
+    "schema_version": 1,
+    "base_commit": "41a238573b38d1aba26aaafbaaf4076237af45c9",
+    "source_hash": "f4ae87b2e186adb356dcbe2b142041ad8bc203cbb700f1d1e85dcf9b8a0bb8da",
+    "generator": ".agent/scripts/update-index.mjs"
+  },
+  "packages": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@typesafe-ai/sdk": "0.6.0",
+    "clsx": "^2.1.1",
+    "fast-xml-parser": "^5.11.1",
+    "lucide-react": "^1.47.0",
+    "next": "^16.3.5",
+    "pdfjs-dist": "^6.3.289",
+    "pg": "^8.23.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^4.3.3",
+    "tesseract.js": "^6.0.1",
+    "zod": "^4.6.5",
+    "@electric-sql/pglite": "^0.5.8",
+    "@types/node": "^26.6.2",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.5",
+    "prettier": "^3.9.8",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
+  },
+  "imports": [
+    {
+      "from": ".agent/plugins/repository-search/scripts/search.mjs",
+      "specifier": "node:sqlite",
+      "to": null
+    },
+    {
+      "from": ".agent/plugins/repository-search/scripts/search.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/plugins/repository-search/scripts/search.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/plugins/repository-search/scripts/search.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/architecture-check.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/architecture-check.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/architecture-check.mjs",
+      "specifier": "./update-index.mjs",
+      "to": ".agent/scripts/update-index.mjs"
+    },
+    {
+      "from": ".agent/scripts/capabilities.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/capabilities.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/capabilities.mjs",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/capabilities.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/changed-files.mjs",
+      "specifier": "node:child_process",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/changed-files.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/changed-files.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/changed-files.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/changed-files.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/changed-files.mjs",
+      "specifier": "./contracts.mjs",
+      "to": ".agent/scripts/contracts.mjs"
+    },
+    {
+      "from": ".agent/scripts/context-check.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/context-check.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/context-check.mjs",
+      "specifier": "node:crypto",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/context-check.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/context-check.mjs",
+      "specifier": "node:child_process",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/context-check.mjs",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/context-check.mjs",
+      "specifier": "./contracts.mjs",
+      "to": ".agent/scripts/contracts.mjs"
+    },
+    {
+      "from": ".agent/scripts/context-health.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/context-health.mjs",
+      "specifier": "./update-index.mjs",
+      "to": ".agent/scripts/update-index.mjs"
+    },
+    {
+      "from": ".agent/scripts/context-health.mjs",
+      "specifier": "./sync-skills.mjs",
+      "to": ".agent/scripts/sync-skills.mjs"
+    },
+    {
+      "from": ".agent/scripts/context-health.mjs",
+      "specifier": "./capabilities.mjs",
+      "to": ".agent/scripts/capabilities.mjs"
+    },
+    { "from": ".agent/scripts/contracts.mjs", "specifier": "zod", "to": null },
+    {
+      "from": ".agent/scripts/coordination.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/coordination.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/coordination.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/coordination.mjs",
+      "specifier": "node:child_process",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/coordination.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/coordination.mjs",
+      "specifier": "./contracts.mjs",
+      "to": ".agent/scripts/contracts.mjs"
+    },
+    {
+      "from": ".agent/scripts/evaluate.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/evaluate.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/evaluate.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/evaluate.mjs",
+      "specifier": "./route.mjs",
+      "to": ".agent/scripts/route.mjs"
+    },
+    {
+      "from": ".agent/scripts/evaluate.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/impact-analysis.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/impact-analysis.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/impact-analysis.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/impact-analysis.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/impact-analysis.mjs",
+      "specifier": "./update-index.mjs",
+      "to": ".agent/scripts/update-index.mjs"
+    },
+    {
+      "from": ".agent/scripts/impact-analysis.mjs",
+      "specifier": "./changed-files.mjs",
+      "to": ".agent/scripts/changed-files.mjs"
+    },
+    {
+      "from": ".agent/scripts/impact-analysis.mjs",
+      "specifier": "./subsystems.mjs",
+      "to": ".agent/scripts/subsystems.mjs"
+    },
+    {
+      "from": ".agent/scripts/lifecycle.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/lifecycle.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/lifecycle.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/lifecycle.mjs",
+      "specifier": "node:child_process",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/lifecycle.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/mcp-server.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/mcp-server.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/mcp-server.mjs",
+      "specifier": "./capabilities.mjs",
+      "to": ".agent/scripts/capabilities.mjs"
+    },
+    {
+      "from": ".agent/scripts/mcp-server.mjs",
+      "specifier": "./lifecycle.mjs",
+      "to": ".agent/scripts/lifecycle.mjs"
+    },
+    {
+      "from": ".agent/scripts/metrics.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/metrics.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/metrics.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/metrics.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    { "from": ".agent/scripts/route.mjs", "specifier": "node:fs", "to": null },
+    {
+      "from": ".agent/scripts/route.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    { "from": ".agent/scripts/route.mjs", "specifier": "node:url", "to": null },
+    {
+      "from": ".agent/scripts/route.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/route.mjs",
+      "specifier": "./lifecycle.mjs",
+      "to": ".agent/scripts/lifecycle.mjs"
+    },
+    {
+      "from": ".agent/scripts/search.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/search.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/search.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/search.mjs",
+      "specifier": "../plugins/repository-search/scripts/search.mjs",
+      "to": ".agent/plugins/repository-search/scripts/search.mjs"
+    },
+    {
+      "from": ".agent/scripts/symbols.mjs",
+      "specifier": "typescript",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/symbols.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/symbols.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/symbols.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/sync-skills.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/sync-skills.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/sync-skills.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/sync-skills.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/update-index.mjs",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/update-index.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/update-index.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/update-index.mjs",
+      "specifier": "node:child_process",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/update-index.mjs",
+      "specifier": "typescript",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/update-index.mjs",
+      "specifier": "prettier",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/update-index.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": ".agent/scripts/update-index.mjs",
+      "specifier": "./subsystems.mjs",
+      "to": ".agent/scripts/subsystems.mjs"
+    },
+    { "from": ".agent/scripts/verify.mjs", "specifier": "node:fs", "to": null },
+    {
+      "from": ".agent/scripts/verify.mjs",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/verify.mjs",
+      "specifier": "node:url",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/verify.mjs",
+      "specifier": "node:child_process",
+      "to": null
+    },
+    {
+      "from": ".agent/scripts/verify.mjs",
+      "specifier": "./context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    { "from": "eslint.config.mjs", "specifier": "eslint/config", "to": null },
+    {
+      "from": "eslint.config.mjs",
+      "specifier": "eslint-config-next/core-web-vitals",
+      "to": null
+    },
+    {
+      "from": "eslint.config.mjs",
+      "specifier": "eslint-config-next/typescript",
+      "to": null
+    },
+    {
+      "from": "scripts/backfill-jev.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/backfill-jev.ts",
+      "specifier": "../src/lib/intelligence/queue",
+      "to": "src/lib/intelligence/queue.ts"
+    },
+    {
+      "from": "scripts/check-database.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/check-sources.ts",
+      "specifier": "../src/lib/connectors",
+      "to": "src/lib/connectors.ts"
+    },
+    {
+      "from": "scripts/check-sources.ts",
+      "specifier": "../src/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    { "from": "scripts/evaluate-jev.ts", "specifier": "node:fs", "to": null },
+    {
+      "from": "scripts/evaluate-jev.ts",
+      "specifier": "../src/lib/jev/config",
+      "to": "src/lib/jev/config.ts"
+    },
+    {
+      "from": "scripts/evaluate-jev.ts",
+      "specifier": "../src/lib/jev/client",
+      "to": "src/lib/jev/client.ts"
+    },
+    {
+      "from": "scripts/evaluate-jev.ts",
+      "specifier": "../src/lib/jev/evaluation",
+      "to": "src/lib/jev/evaluation.ts"
+    },
+    {
+      "from": "scripts/evaluate-jev.ts",
+      "specifier": "../src/lib/intelligence/job-state",
+      "to": "src/lib/intelligence/job-state.ts"
+    },
+    {
+      "from": "scripts/evaluate-requirements.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/evaluate-requirements.ts",
+      "specifier": "../src/lib/jev/client",
+      "to": "src/lib/jev/client.ts"
+    },
+    {
+      "from": "scripts/evaluate-requirements.ts",
+      "specifier": "../src/lib/jev/config",
+      "to": "src/lib/jev/config.ts"
+    },
+    {
+      "from": "scripts/evaluate-requirements.ts",
+      "specifier": "../src/lib/intelligence/requirements",
+      "to": "src/lib/intelligence/requirements.ts"
+    },
+    {
+      "from": "scripts/intelligence-worker.ts",
+      "specifier": "node:crypto",
+      "to": null
+    },
+    {
+      "from": "scripts/intelligence-worker.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/intelligence-worker.ts",
+      "specifier": "../src/lib/jev/client",
+      "to": "src/lib/jev/client.ts"
+    },
+    {
+      "from": "scripts/intelligence-worker.ts",
+      "specifier": "../src/lib/jev/config",
+      "to": "src/lib/jev/config.ts"
+    },
+    {
+      "from": "scripts/intelligence-worker.ts",
+      "specifier": "../src/lib/intelligence/worker",
+      "to": "src/lib/intelligence/worker.ts"
+    },
+    {
+      "from": "scripts/load-sim.ts",
+      "specifier": "node:perf_hooks",
+      "to": null
+    },
+    { "from": "scripts/load-sim.ts", "specifier": "pg", "to": null },
+    {
+      "from": "scripts/load-sim.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/load-sim.ts",
+      "specifier": "../src/lib/focused-repository",
+      "to": "src/lib/focused-repository.ts"
+    },
+    {
+      "from": "scripts/load-sim.ts",
+      "specifier": "../src/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "scripts/migrate.ts",
+      "specifier": "node:fs/promises",
+      "to": null
+    },
+    {
+      "from": "scripts/migrate.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/migrate.ts",
+      "specifier": "../src/lib/database-error",
+      "to": "src/lib/database-error.ts"
+    },
+    { "from": "scripts/migrate.ts", "specifier": "pg", "to": null },
+    {
+      "from": "scripts/refresh-itpro.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/refresh-itpro.ts",
+      "specifier": "../src/lib/sync",
+      "to": "src/lib/sync.ts"
+    },
+    {
+      "from": "scripts/refresh-itpro.ts",
+      "specifier": "../src/lib/connectors",
+      "to": "src/lib/connectors.ts"
+    },
+    {
+      "from": "scripts/refresh-itpro.ts",
+      "specifier": "../src/lib/jev/config",
+      "to": "src/lib/jev/config.ts"
+    },
+    {
+      "from": "scripts/refresh-itpro.ts",
+      "specifier": "../src/lib/intelligence/queue",
+      "to": "src/lib/intelligence/queue.ts"
+    },
+    {
+      "from": "scripts/refresh-source.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/refresh-source.ts",
+      "specifier": "../src/lib/sync",
+      "to": "src/lib/sync.ts"
+    },
+    {
+      "from": "scripts/refresh-source.ts",
+      "specifier": "../src/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "scripts/refresh-topjobs.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/refresh-topjobs.ts",
+      "specifier": "../src/lib/sync",
+      "to": "src/lib/sync.ts"
+    },
+    {
+      "from": "scripts/rematch-deterministic.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/rematch-deterministic.ts",
+      "specifier": "../src/lib/matching-repository",
+      "to": "src/lib/matching-repository.ts"
+    },
+    {
+      "from": "scripts/report-jev.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "scripts/report-jev.ts",
+      "specifier": "../src/lib/intelligence/report",
+      "to": "src/lib/intelligence/report.ts"
+    },
+    {
+      "from": "scripts/worker.ts",
+      "specifier": "../src/lib/sync",
+      "to": "src/lib/sync.ts"
+    },
+    {
+      "from": "scripts/worker.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/(marketing)/loading.tsx",
+      "specifier": "@/components/landing/landing-skeleton",
+      "to": "src/components/landing/landing-skeleton.tsx"
+    },
+    {
+      "from": "src/app/(marketing)/page.tsx",
+      "specifier": "@/components/landing/landing-page",
+      "to": "src/components/landing/landing-page.tsx"
+    },
+    {
+      "from": "src/app/(marketing)/page.tsx",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/activity/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/activity/page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "@/lib/actions/sources",
+      "to": "src/lib/actions/sources.ts"
+    },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "@/lib/actions/job-state",
+      "to": "src/lib/actions/job-state.ts"
+    },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "@/lib/actions/profile",
+      "to": "src/lib/actions/profile.ts"
+    },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "@/lib/actions/monitors",
+      "to": "src/lib/actions/monitors.ts"
+    },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    { "from": "src/app/api/actions/route.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "@/lib/sync",
+      "to": "src/lib/sync.ts"
+    },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "@/lib/request-body",
+      "to": "src/lib/request-body.ts"
+    },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "@/lib/security",
+      "to": "src/lib/security.ts"
+    },
+    {
+      "from": "src/app/api/actions/route.ts",
+      "specifier": "@/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "src/app/api/ai-usage/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    { "from": "src/app/api/ai-usage/route.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/app/api/ai-usage/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/ai-usage/route.ts",
+      "specifier": "@/lib/ai-usage",
+      "to": "src/lib/ai-usage.ts"
+    },
+    {
+      "from": "src/app/api/ai-usage/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/ai-usage/route.ts",
+      "specifier": "@/lib/request-body",
+      "to": "src/lib/request-body.ts"
+    },
+    {
+      "from": "src/app/api/ai-usage/route.ts",
+      "specifier": "@/lib/security",
+      "to": "src/lib/security.ts"
+    },
+    {
+      "from": "src/app/api/ai-usage/route.ts",
+      "specifier": "@/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "src/app/api/ai-usage/route.ts",
+      "specifier": "@/lib/ai-budget",
+      "to": "src/lib/ai-budget.ts"
+    },
+    {
+      "from": "src/app/api/auth/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    { "from": "src/app/api/auth/route.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/app/api/auth/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/auth/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/auth/route.ts",
+      "specifier": "@/lib/database-error",
+      "to": "src/lib/database-error.ts"
+    },
+    {
+      "from": "src/app/api/auth/route.ts",
+      "specifier": "@/lib/security",
+      "to": "src/lib/security.ts"
+    },
+    {
+      "from": "src/app/api/auth/route.ts",
+      "specifier": "@/lib/request-body",
+      "to": "src/lib/request-body.ts"
+    },
+    {
+      "from": "src/app/api/candidate/cv/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/candidate/cv/route.ts",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": "src/app/api/candidate/cv/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/candidate/cv/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/candidate/cv/route.ts",
+      "specifier": "@/lib/cv/schema",
+      "to": "src/lib/cv/schema.ts"
+    },
+    {
+      "from": "src/app/api/candidate/cv/route.ts",
+      "specifier": "@/lib/request-body",
+      "to": "src/lib/request-body.ts"
+    },
+    {
+      "from": "src/app/api/candidate/cv/route.ts",
+      "specifier": "@/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "src/app/api/candidate/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/candidate/route.ts",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": "src/app/api/candidate/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/candidate/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/candidate/route.ts",
+      "specifier": "@/lib/request-body",
+      "to": "src/lib/request-body.ts"
+    },
+    {
+      "from": "src/app/api/candidate/route.ts",
+      "specifier": "@/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "src/app/api/cron/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/cron/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/cron/route.ts",
+      "specifier": "@/lib/sync",
+      "to": "src/lib/sync.ts"
+    },
+    {
+      "from": "src/app/api/dashboard/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/dashboard/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/dashboard/route.ts",
+      "specifier": "@/lib/repository",
+      "to": "src/lib/repository.ts"
+    },
+    {
+      "from": "src/app/api/dashboard/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/health/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/health/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/intelligence/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/intelligence/route.ts",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": "src/app/api/intelligence/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/intelligence/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/intelligence/route.ts",
+      "specifier": "@/lib/intelligence/report",
+      "to": "src/lib/intelligence/report.ts"
+    },
+    {
+      "from": "src/app/api/intelligence/route.ts",
+      "specifier": "@/lib/matching-repository",
+      "to": "src/lib/matching-repository.ts"
+    },
+    {
+      "from": "src/app/api/intelligence/route.ts",
+      "specifier": "@/lib/request-body",
+      "to": "src/lib/request-body.ts"
+    },
+    {
+      "from": "src/app/api/intelligence/route.ts",
+      "specifier": "@/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "pg",
+      "to": null
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "@/lib/cv/schema",
+      "to": "src/lib/cv/schema.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "@/lib/repository",
+      "to": "src/lib/repository.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "@/lib/jev/client",
+      "to": "src/lib/jev/client.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "@/lib/jev/config",
+      "to": "src/lib/jev/config.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "@/lib/intelligence/cv-review",
+      "to": "src/lib/intelligence/cv-review.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "@/lib/ai-usage",
+      "to": "src/lib/ai-usage.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "@/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "specifier": "@/lib/ai-budget",
+      "to": "src/lib/ai-budget.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/image-context/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/jobs/[id]/image-context/route.ts",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": "src/app/api/jobs/[id]/image-context/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/image-context/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/image-context/route.ts",
+      "specifier": "@/lib/request-body",
+      "to": "src/lib/request-body.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/image-context/route.ts",
+      "specifier": "@/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/jobs/[id]/route.ts",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": "src/app/api/jobs/[id]/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/route.ts",
+      "specifier": "@/lib/repository",
+      "to": "src/lib/repository.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/route.ts",
+      "specifier": "@/lib/matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/route.ts",
+      "specifier": "@/lib/connectors",
+      "to": "src/lib/connectors.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/route.ts",
+      "specifier": "@/lib/security",
+      "to": "src/lib/security.ts"
+    },
+    {
+      "from": "src/app/api/jobs/[id]/route.ts",
+      "specifier": "@/lib/intelligence/requirements",
+      "to": "src/lib/intelligence/requirements.ts"
+    },
+    {
+      "from": "src/app/api/jobs/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    { "from": "src/app/api/jobs/route.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/app/api/jobs/route.ts",
+      "specifier": "@/lib/api-read",
+      "to": "src/lib/api-read.ts"
+    },
+    {
+      "from": "src/app/api/jobs/route.ts",
+      "specifier": "@/lib/focused-repository",
+      "to": "src/lib/focused-repository.ts"
+    },
+    {
+      "from": "src/app/api/maintenance/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/maintenance/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/maintenance/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/monitors/route.ts",
+      "specifier": "@/lib/api-read",
+      "to": "src/lib/api-read.ts"
+    },
+    {
+      "from": "src/app/api/monitors/route.ts",
+      "specifier": "@/lib/focused-repository",
+      "to": "src/lib/focused-repository.ts"
+    },
+    {
+      "from": "src/app/api/onboarding/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/onboarding/route.ts",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": "src/app/api/onboarding/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/onboarding/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/onboarding/route.ts",
+      "specifier": "@/lib/matching-repository",
+      "to": "src/lib/matching-repository.ts"
+    },
+    {
+      "from": "src/app/api/onboarding/route.ts",
+      "specifier": "@/lib/validation",
+      "to": "src/lib/validation.ts"
+    },
+    {
+      "from": "src/app/api/onboarding/route.ts",
+      "specifier": "@/lib/request-body",
+      "to": "src/lib/request-body.ts"
+    },
+    {
+      "from": "src/app/api/onboarding/route.ts",
+      "specifier": "@/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "src/app/api/performance/route.ts",
+      "specifier": "@/lib/api-read",
+      "to": "src/lib/api-read.ts"
+    },
+    {
+      "from": "src/app/api/performance/route.ts",
+      "specifier": "@/lib/ai-budget",
+      "to": "src/lib/ai-budget.ts"
+    },
+    {
+      "from": "src/app/api/revisions/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/revisions/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/revisions/route.ts",
+      "specifier": "@/lib/revisions",
+      "to": "src/lib/revisions.ts"
+    },
+    {
+      "from": "src/app/api/runs/[id]/jobs/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    {
+      "from": "src/app/api/runs/[id]/jobs/route.ts",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": "src/app/api/runs/[id]/jobs/route.ts",
+      "specifier": "@/lib/api-read",
+      "to": "src/lib/api-read.ts"
+    },
+    {
+      "from": "src/app/api/runs/[id]/jobs/route.ts",
+      "specifier": "@/lib/focused-repository",
+      "to": "src/lib/focused-repository.ts"
+    },
+    {
+      "from": "src/app/api/runs/route.ts",
+      "specifier": "@/lib/api-read",
+      "to": "src/lib/api-read.ts"
+    },
+    {
+      "from": "src/app/api/runs/route.ts",
+      "specifier": "@/lib/focused-repository",
+      "to": "src/lib/focused-repository.ts"
+    },
+    {
+      "from": "src/app/api/security/route.ts",
+      "specifier": "next/server",
+      "to": null
+    },
+    { "from": "src/app/api/security/route.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/app/api/security/route.ts",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/api/security/route.ts",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/api/security/route.ts",
+      "specifier": "@/lib/security",
+      "to": "src/lib/security.ts"
+    },
+    {
+      "from": "src/app/api/security/route.ts",
+      "specifier": "@/lib/request-body",
+      "to": "src/lib/request-body.ts"
+    },
+    {
+      "from": "src/app/api/security/route.ts",
+      "specifier": "@/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "src/app/api/sources/route.ts",
+      "specifier": "@/lib/api-read",
+      "to": "src/lib/api-read.ts"
+    },
+    {
+      "from": "src/app/api/sources/route.ts",
+      "specifier": "@/lib/focused-repository",
+      "to": "src/lib/focused-repository.ts"
+    },
+    {
+      "from": "src/app/api/workspace/summary/route.ts",
+      "specifier": "@/lib/api-read",
+      "to": "src/lib/api-read.ts"
+    },
+    {
+      "from": "src/app/api/workspace/summary/route.ts",
+      "specifier": "@/lib/focused-repository",
+      "to": "src/lib/focused-repository.ts"
+    },
+    {
+      "from": "src/app/api/workspace/summary/route.ts",
+      "specifier": "@/lib/revisions",
+      "to": "src/lib/revisions.ts"
+    },
+    {
+      "from": "src/app/app/activity/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/app/activity/page.tsx",
+      "specifier": "@/components/workspace-page",
+      "to": "src/components/workspace-page.tsx"
+    },
+    {
+      "from": "src/app/app/dashboard/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/app/dashboard/page.tsx",
+      "specifier": "@/components/workspace-page",
+      "to": "src/components/workspace-page.tsx"
+    },
+    {
+      "from": "src/app/app/intelligence/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/app/intelligence/page.tsx",
+      "specifier": "@/components/workspace-page",
+      "to": "src/components/workspace-page.tsx"
+    },
+    {
+      "from": "src/app/app/jobs/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/app/jobs/page.tsx",
+      "specifier": "@/components/workspace-page",
+      "to": "src/components/workspace-page.tsx"
+    },
+    {
+      "from": "src/app/app/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/app/monitors/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/app/monitors/page.tsx",
+      "specifier": "@/components/workspace-page",
+      "to": "src/components/workspace-page.tsx"
+    },
+    {
+      "from": "src/app/app/page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/app/app/profile/cv/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/app/profile/cv/page.tsx",
+      "specifier": "@/components/workspace-page",
+      "to": "src/components/workspace-page.tsx"
+    },
+    {
+      "from": "src/app/app/saved/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/app/saved/page.tsx",
+      "specifier": "@/components/workspace-page",
+      "to": "src/components/workspace-page.tsx"
+    },
+    {
+      "from": "src/app/app/settings/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/app/settings/page.tsx",
+      "specifier": "@/components/workspace-page",
+      "to": "src/components/workspace-page.tsx"
+    },
+    {
+      "from": "src/app/app/sources/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/app/sources/page.tsx",
+      "specifier": "@/components/workspace-page",
+      "to": "src/components/workspace-page.tsx"
+    },
+    {
+      "from": "src/app/auth/loading.tsx",
+      "specifier": "@/components/auth/auth-skeleton",
+      "to": "src/components/auth/auth-skeleton.tsx"
+    },
+    {
+      "from": "src/app/auth/page.tsx",
+      "specifier": "@/components/auth/auth-page",
+      "to": "src/components/auth/auth-page.tsx"
+    },
+    {
+      "from": "src/app/auth/page.tsx",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/auth/page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/app/jobs/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/jobs/page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    { "from": "src/app/layout.tsx", "specifier": "next", "to": null },
+    { "from": "src/app/layout.tsx", "specifier": "next/headers", "to": null },
+    { "from": "src/app/layout.tsx", "specifier": "./globals.css", "to": null },
+    {
+      "from": "src/app/monitors/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/monitors/page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/app/onboarding/page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/app/onboarding/page.tsx",
+      "specifier": "@/components/onboarding/onboarding-flow",
+      "to": "src/components/onboarding/onboarding-flow.tsx"
+    },
+    {
+      "from": "src/app/onboarding/page.tsx",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/app/onboarding/page.tsx",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/app/onboarding/page.tsx",
+      "specifier": "@/lib/repository",
+      "to": "src/lib/repository.ts"
+    },
+    {
+      "from": "src/app/onboarding/page.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/app/saved/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/saved/page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/app/settings/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/settings/page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/app/sources/loading.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/app/sources/page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/components/ai-usage-controls.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/ai-usage-controls.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/auth/auth-gate.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/auth/auth-gate.tsx",
+      "specifier": "next/link",
+      "to": null
+    },
+    {
+      "from": "src/components/auth/auth-gate.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/auth/auth-gate.tsx",
+      "specifier": "./auth-visual",
+      "to": "src/components/auth/auth-visual.tsx"
+    },
+    {
+      "from": "src/components/auth/auth-page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/components/auth/auth-page.tsx",
+      "specifier": "./auth-gate",
+      "to": "src/components/auth/auth-gate.tsx"
+    },
+    {
+      "from": "src/components/auth/auth-visual.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/cv-workspace.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/cv-workspace.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/cv-workspace.tsx",
+      "specifier": "@/lib/cv/profile",
+      "to": "src/lib/cv/profile.ts"
+    },
+    {
+      "from": "src/components/cv-workspace.tsx",
+      "specifier": "@/lib/cv/extract-client",
+      "to": "src/lib/cv/extract-client.ts"
+    },
+    {
+      "from": "src/components/dashboard-skeleton.tsx",
+      "specifier": "@/components/workspace-content-skeleton",
+      "to": "src/components/workspace-content-skeleton.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "@/components/dashboard-skeleton",
+      "to": "src/components/dashboard-skeleton.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "@/components/workspace-content-skeleton",
+      "to": "src/components/workspace-content-skeleton.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "@/lib/cv/profile",
+      "to": "src/lib/cv/profile.ts"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "@/lib/cv/profile",
+      "to": "src/lib/cv/profile.ts"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "@/lib/linkedin",
+      "to": "src/lib/linkedin.ts"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "@/lib/matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "next/link",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/activity-view",
+      "to": "src/components/dashboard/activity-view.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/job-detail",
+      "to": "src/components/dashboard/job-detail.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/jobs-view",
+      "to": "src/components/dashboard/jobs-view.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/modal-dialog",
+      "to": "src/components/dashboard/modal-dialog.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/monitor-form",
+      "to": "src/components/dashboard/monitor-form.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/monitors-view",
+      "to": "src/components/dashboard/monitors-view.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/overview-view",
+      "to": "src/components/dashboard/overview-view.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/settings-view",
+      "to": "src/components/dashboard/settings-view.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/shared",
+      "to": "src/components/dashboard/shared.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/source-form",
+      "to": "src/components/dashboard/source-form.tsx"
+    },
+    {
+      "from": "src/components/dashboard.tsx",
+      "specifier": "./dashboard/sources-view",
+      "to": "src/components/dashboard/sources-view.tsx"
+    },
+    {
+      "from": "src/components/dashboard/activity-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/activity-view.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/activity-view.tsx",
+      "specifier": "./empty",
+      "to": "src/components/dashboard/empty.tsx"
+    },
+    {
+      "from": "src/components/dashboard/activity-view.tsx",
+      "specifier": "./shared",
+      "to": "src/components/dashboard/shared.tsx"
+    },
+    {
+      "from": "src/components/dashboard/activity-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/activity-view.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/job-detail.tsx",
+      "specifier": "@/lib/matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "src/components/dashboard/job-detail.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/job-detail.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/job-detail.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/job-detail.tsx",
+      "specifier": "./shared",
+      "to": "src/components/dashboard/shared.tsx"
+    },
+    {
+      "from": "src/components/dashboard/jobs-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/jobs-view.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/jobs-view.tsx",
+      "specifier": "./empty",
+      "to": "src/components/dashboard/empty.tsx"
+    },
+    {
+      "from": "src/components/dashboard/jobs-view.tsx",
+      "specifier": "./shared",
+      "to": "src/components/dashboard/shared.tsx"
+    },
+    {
+      "from": "src/components/dashboard/jobs-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/jobs-view.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/modal-dialog.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/modal-dialog.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/monitor-form.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/monitor-form.tsx",
+      "specifier": "@/lib/validation",
+      "to": "src/lib/validation.ts"
+    },
+    {
+      "from": "src/components/dashboard/monitor-form.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/monitor-form.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/monitors-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/monitors-view.tsx",
+      "specifier": "@/lib/linkedin",
+      "to": "src/lib/linkedin.ts"
+    },
+    {
+      "from": "src/components/dashboard/monitors-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/monitors-view.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/monitors-view.tsx",
+      "specifier": "./empty",
+      "to": "src/components/dashboard/empty.tsx"
+    },
+    {
+      "from": "src/components/dashboard/monitors-view.tsx",
+      "specifier": "./shared",
+      "to": "src/components/dashboard/shared.tsx"
+    },
+    {
+      "from": "src/components/dashboard/monitors-view.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/overview-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/overview-view.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/overview-view.tsx",
+      "specifier": "./shared",
+      "to": "src/components/dashboard/shared.tsx"
+    },
+    {
+      "from": "src/components/dashboard/overview-view.tsx",
+      "specifier": "./stat",
+      "to": "src/components/dashboard/stat.tsx"
+    },
+    {
+      "from": "src/components/dashboard/overview-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/settings-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/settings-view.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/settings-view.tsx",
+      "specifier": "next/link",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/settings-view.tsx",
+      "specifier": "./shared",
+      "to": "src/components/dashboard/shared.tsx"
+    },
+    {
+      "from": "src/components/dashboard/settings-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/settings-view.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "@/components/workspace-content-skeleton",
+      "to": "src/components/workspace-content-skeleton.tsx"
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "next/dynamic",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "@/components/cv-workspace",
+      "to": "src/components/cv-workspace.tsx"
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "@/components/intelligence-controls",
+      "to": "src/components/intelligence-controls.tsx"
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "@/components/job-cv-review",
+      "to": "src/components/job-cv-review.tsx"
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "@/components/job-image-context",
+      "to": "src/components/job-image-context.tsx"
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "@/components/security-activity",
+      "to": "src/components/security-activity.tsx"
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "@/components/ai-usage-controls",
+      "to": "src/components/ai-usage-controls.tsx"
+    },
+    {
+      "from": "src/components/dashboard/shared.tsx",
+      "specifier": "@/components/performance-cost-panel",
+      "to": "src/components/performance-cost-panel.tsx"
+    },
+    {
+      "from": "src/components/dashboard/source-form.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/source-form.tsx",
+      "specifier": "@/lib/validation",
+      "to": "src/lib/validation.ts"
+    },
+    {
+      "from": "src/components/dashboard/source-form.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/source-form.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/source-form.tsx",
+      "specifier": "./shared",
+      "to": "src/components/dashboard/shared.tsx"
+    },
+    {
+      "from": "src/components/dashboard/sources-view.tsx",
+      "specifier": "@/lib/linkedin",
+      "to": "src/lib/linkedin.ts"
+    },
+    {
+      "from": "src/components/dashboard/sources-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/sources-view.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/sources-view.tsx",
+      "specifier": "./empty",
+      "to": "src/components/dashboard/empty.tsx"
+    },
+    {
+      "from": "src/components/dashboard/sources-view.tsx",
+      "specifier": "./shared",
+      "to": "src/components/dashboard/shared.tsx"
+    },
+    {
+      "from": "src/components/dashboard/sources-view.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/dashboard/sources-view.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/dashboard/stat.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/intelligence-controls.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/intelligence-controls.tsx",
+      "specifier": "next/link",
+      "to": null
+    },
+    {
+      "from": "src/components/intelligence-controls.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/job-cv-review.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/job-cv-review.tsx",
+      "specifier": "next/link",
+      "to": null
+    },
+    {
+      "from": "src/components/job-cv-review.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/job-cv-review.tsx",
+      "specifier": "@/lib/intelligence/cv-review",
+      "to": "src/lib/intelligence/cv-review.ts"
+    },
+    {
+      "from": "src/components/job-image-context.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/job-image-context.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/job-image-context.tsx",
+      "specifier": "@/lib/ocr/advert-text",
+      "to": "src/lib/ocr/advert-text.ts"
+    },
+    {
+      "from": "src/components/job-image-context.tsx",
+      "specifier": "@/lib/matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "src/components/job-image-context.tsx",
+      "specifier": "tesseract.js",
+      "to": null
+    },
+    {
+      "from": "src/components/job-image-context.tsx",
+      "specifier": "tesseract.js",
+      "to": null
+    },
+    {
+      "from": "src/components/landing/landing-page.tsx",
+      "specifier": "next/link",
+      "to": null
+    },
+    {
+      "from": "src/components/landing/landing-page.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/landing/landing-page.tsx",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/components/onboarding/onboarding-flow.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/onboarding/onboarding-flow.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/components/onboarding/onboarding-flow.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/onboarding/onboarding-flow.tsx",
+      "specifier": "@/lib/matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "src/components/onboarding/onboarding-flow.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/performance-cost-panel.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/performance-cost-panel.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/security-activity.tsx",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "src/components/security-activity.tsx",
+      "specifier": "lucide-react",
+      "to": null
+    },
+    {
+      "from": "src/components/workspace-page.tsx",
+      "specifier": "next/navigation",
+      "to": null
+    },
+    {
+      "from": "src/components/workspace-page.tsx",
+      "specifier": "@/components/dashboard",
+      "to": "src/components/dashboard.tsx"
+    },
+    {
+      "from": "src/components/workspace-page.tsx",
+      "specifier": "@/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/components/workspace-page.tsx",
+      "specifier": "@/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/components/workspace-page.tsx",
+      "specifier": "@/lib/focused-repository",
+      "to": "src/lib/focused-repository.ts"
+    },
+    {
+      "from": "src/components/workspace-page.tsx",
+      "specifier": "@/lib/revisions",
+      "to": "src/lib/revisions.ts"
+    },
+    {
+      "from": "src/components/workspace-page.tsx",
+      "specifier": "@/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/components/workspace-page.tsx",
+      "specifier": "@/components/dashboard/shared",
+      "to": "src/components/dashboard/shared.tsx"
+    },
+    { "from": "src/lib/actions/job-state.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/lib/actions/job-state.ts",
+      "specifier": "../db",
+      "to": "src/lib/db.ts"
+    },
+    { "from": "src/lib/actions/monitors.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/lib/actions/monitors.ts",
+      "specifier": "../db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/lib/actions/monitors.ts",
+      "specifier": "../validation",
+      "to": "src/lib/validation.ts"
+    },
+    {
+      "from": "src/lib/actions/monitors.ts",
+      "specifier": "../matching-repository",
+      "to": "src/lib/matching-repository.ts"
+    },
+    { "from": "src/lib/actions/profile.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/lib/actions/profile.ts",
+      "specifier": "../db",
+      "to": "src/lib/db.ts"
+    },
+    { "from": "src/lib/actions/sources.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/lib/actions/sources.ts",
+      "specifier": "../db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/lib/actions/sources.ts",
+      "specifier": "../validation",
+      "to": "src/lib/validation.ts"
+    },
+    { "from": "src/lib/ai-budget.ts", "specifier": "pg", "to": null },
+    { "from": "src/lib/ai-usage.ts", "specifier": "pg", "to": null },
+    {
+      "from": "src/lib/ai-usage.ts",
+      "specifier": "./auth",
+      "to": "src/lib/auth.ts"
+    },
+    { "from": "src/lib/api-read.ts", "specifier": "next/server", "to": null },
+    {
+      "from": "src/lib/api-read.ts",
+      "specifier": "./auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/lib/api-read.ts",
+      "specifier": "./db",
+      "to": "src/lib/db.ts"
+    },
+    { "from": "src/lib/api-read.ts", "specifier": "pg", "to": null },
+    {
+      "from": "src/lib/api-read.ts",
+      "specifier": "./auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/lib/api-read.ts",
+      "specifier": "./revisions",
+      "to": "src/lib/revisions.ts"
+    },
+    { "from": "src/lib/auth.ts", "specifier": "node:crypto", "to": null },
+    { "from": "src/lib/auth.ts", "specifier": "node:util", "to": null },
+    { "from": "src/lib/auth.ts", "specifier": "next/headers", "to": null },
+    { "from": "src/lib/auth.ts", "specifier": "pg", "to": null },
+    { "from": "src/lib/auth.ts", "specifier": "./db", "to": "src/lib/db.ts" },
+    {
+      "from": "src/lib/auth.ts",
+      "specifier": "./security",
+      "to": "src/lib/security.ts"
+    },
+    {
+      "from": "src/lib/auth.ts",
+      "specifier": "./rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "src/lib/auth.ts",
+      "specifier": "./types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/lib/connectors.ts",
+      "specifier": "fast-xml-parser",
+      "to": null
+    },
+    { "from": "src/lib/connectors.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/lib/connectors.ts",
+      "specifier": "./matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "src/lib/connectors.ts",
+      "specifier": "./types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/lib/cv/extract-client.ts",
+      "specifier": "./profile",
+      "to": "src/lib/cv/profile.ts"
+    },
+    {
+      "from": "src/lib/cv/extract-client.ts",
+      "specifier": "./profile",
+      "to": "src/lib/cv/profile.ts"
+    },
+    {
+      "from": "src/lib/cv/extract-client.ts",
+      "specifier": "pdfjs-dist/legacy/build/pdf.mjs",
+      "to": null
+    },
+    { "from": "src/lib/cv/schema.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/lib/database-config.ts",
+      "specifier": "node:fs",
+      "to": null
+    },
+    { "from": "src/lib/database-config.ts", "specifier": "pg", "to": null },
+    { "from": "src/lib/db.ts", "specifier": "pg", "to": null },
+    {
+      "from": "src/lib/db.ts",
+      "specifier": "./database-config",
+      "to": "src/lib/database-config.ts"
+    },
+    {
+      "from": "src/lib/demo.ts",
+      "specifier": "./types",
+      "to": "src/lib/types.ts"
+    },
+    { "from": "src/lib/focused-repository.ts", "specifier": "pg", "to": null },
+    {
+      "from": "src/lib/focused-repository.ts",
+      "specifier": "./auth",
+      "to": "src/lib/auth.ts"
+    },
+    {
+      "from": "src/lib/focused-repository.ts",
+      "specifier": "./repository",
+      "to": "src/lib/repository.ts"
+    },
+    {
+      "from": "src/lib/intelligence/cv-fit.ts",
+      "specifier": "../cv/profile",
+      "to": "src/lib/cv/profile.ts"
+    },
+    {
+      "from": "src/lib/intelligence/cv-fit.ts",
+      "specifier": "../matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "src/lib/intelligence/cv-review.ts",
+      "specifier": "node:crypto",
+      "to": null
+    },
+    {
+      "from": "src/lib/intelligence/cv-review.ts",
+      "specifier": "@typesafe-ai/sdk",
+      "to": null
+    },
+    {
+      "from": "src/lib/intelligence/cv-review.ts",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": "src/lib/intelligence/cv-review.ts",
+      "specifier": "../cv/profile",
+      "to": "src/lib/cv/profile.ts"
+    },
+    {
+      "from": "src/lib/intelligence/cv-review.ts",
+      "specifier": "../matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "src/lib/intelligence/cv-review.ts",
+      "specifier": "./cv-fit",
+      "to": "src/lib/intelligence/cv-fit.ts"
+    },
+    {
+      "from": "src/lib/intelligence/job-state.ts",
+      "specifier": "node:crypto",
+      "to": null
+    },
+    {
+      "from": "src/lib/intelligence/job-state.ts",
+      "specifier": "../types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/lib/intelligence/job-state.ts",
+      "specifier": "../matching",
+      "to": "src/lib/matching.ts"
+    },
+    { "from": "src/lib/intelligence/queue.ts", "specifier": "pg", "to": null },
+    {
+      "from": "src/lib/intelligence/queue.ts",
+      "specifier": "../types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/lib/intelligence/queue.ts",
+      "specifier": "./job-state",
+      "to": "src/lib/intelligence/job-state.ts"
+    },
+    {
+      "from": "src/lib/intelligence/queue.ts",
+      "specifier": "../jev/questions/job-classification-v1",
+      "to": "src/lib/jev/questions/job-classification-v1.ts"
+    },
+    { "from": "src/lib/intelligence/report.ts", "specifier": "pg", "to": null },
+    {
+      "from": "src/lib/intelligence/requirements.ts",
+      "specifier": "node:crypto",
+      "to": null
+    },
+    {
+      "from": "src/lib/intelligence/requirements.ts",
+      "specifier": "zod",
+      "to": null
+    },
+    {
+      "from": "src/lib/intelligence/requirements.ts",
+      "specifier": "@typesafe-ai/sdk",
+      "to": null
+    },
+    {
+      "from": "src/lib/intelligence/requirements.ts",
+      "specifier": "../matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "src/lib/intelligence/worker.ts",
+      "specifier": "@typesafe-ai/sdk",
+      "to": null
+    },
+    { "from": "src/lib/intelligence/worker.ts", "specifier": "pg", "to": null },
+    {
+      "from": "src/lib/intelligence/worker.ts",
+      "specifier": "../jev/client",
+      "to": "src/lib/jev/client.ts"
+    },
+    {
+      "from": "src/lib/intelligence/worker.ts",
+      "specifier": "../jev/config",
+      "to": "src/lib/jev/config.ts"
+    },
+    {
+      "from": "src/lib/intelligence/worker.ts",
+      "specifier": "../jev/contract",
+      "to": "src/lib/jev/contract.ts"
+    },
+    {
+      "from": "src/lib/intelligence/worker.ts",
+      "specifier": "../jev/policy",
+      "to": "src/lib/jev/policy.ts"
+    },
+    {
+      "from": "src/lib/intelligence/worker.ts",
+      "specifier": "../matching-repository",
+      "to": "src/lib/matching-repository.ts"
+    },
+    {
+      "from": "src/lib/intelligence/worker.ts",
+      "specifier": "../ai-budget",
+      "to": "src/lib/ai-budget.ts"
+    },
+    {
+      "from": "src/lib/intelligence/worker.ts",
+      "specifier": "./queue",
+      "to": "src/lib/intelligence/queue.ts"
+    },
+    {
+      "from": "src/lib/jev/client.ts",
+      "specifier": "@typesafe-ai/sdk",
+      "to": null
+    },
+    {
+      "from": "src/lib/jev/client.ts",
+      "specifier": "./config",
+      "to": "src/lib/jev/config.ts"
+    },
+    {
+      "from": "src/lib/jev/client.ts",
+      "specifier": "./contract",
+      "to": "src/lib/jev/contract.ts"
+    },
+    {
+      "from": "src/lib/jev/client.ts",
+      "specifier": "./questions/job-classification-v1",
+      "to": "src/lib/jev/questions/job-classification-v1.ts"
+    },
+    {
+      "from": "src/lib/jev/client.ts",
+      "specifier": "../intelligence/job-state",
+      "to": "src/lib/intelligence/job-state.ts"
+    },
+    { "from": "src/lib/jev/config.ts", "specifier": "zod", "to": null },
+    { "from": "src/lib/jev/contract.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/lib/jev/contract.ts",
+      "specifier": "./questions/job-classification-v1",
+      "to": "src/lib/jev/questions/job-classification-v1.ts"
+    },
+    { "from": "src/lib/jev/evaluation.ts", "specifier": "zod", "to": null },
+    {
+      "from": "src/lib/jev/evaluation.ts",
+      "specifier": "../matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "src/lib/jev/evaluation.ts",
+      "specifier": "../types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/lib/jev/evaluation.ts",
+      "specifier": "../intelligence/job-state",
+      "to": "src/lib/intelligence/job-state.ts"
+    },
+    {
+      "from": "src/lib/jev/evaluation.ts",
+      "specifier": "./contract",
+      "to": "src/lib/jev/contract.ts"
+    },
+    {
+      "from": "src/lib/jev/policy.ts",
+      "specifier": "../types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/lib/jev/policy.ts",
+      "specifier": "./contract",
+      "to": "src/lib/jev/contract.ts"
+    },
+    {
+      "from": "src/lib/jev/questions/job-classification-v1.ts",
+      "specifier": "@typesafe-ai/sdk",
+      "to": null
+    },
+    {
+      "from": "src/lib/linkedin.ts",
+      "specifier": "./types",
+      "to": "src/lib/types.ts"
+    },
+    { "from": "src/lib/matching-repository.ts", "specifier": "pg", "to": null },
+    {
+      "from": "src/lib/matching.ts",
+      "specifier": "./types",
+      "to": "src/lib/types.ts"
+    },
+    { "from": "src/lib/rate-limit.ts", "specifier": "pg", "to": null },
+    {
+      "from": "src/lib/repository.ts",
+      "specifier": "./db",
+      "to": "src/lib/db.ts"
+    },
+    {
+      "from": "src/lib/repository.ts",
+      "specifier": "./types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/lib/repository.ts",
+      "specifier": "./auth",
+      "to": "src/lib/auth.ts"
+    },
+    { "from": "src/lib/repository.ts", "specifier": "pg", "to": null },
+    { "from": "src/lib/revisions.ts", "specifier": "pg", "to": null },
+    { "from": "src/lib/security.ts", "specifier": "node:crypto", "to": null },
+    { "from": "src/lib/security.ts", "specifier": "pg", "to": null },
+    {
+      "from": "src/lib/security.ts",
+      "specifier": "./db",
+      "to": "src/lib/db.ts"
+    },
+    { "from": "src/lib/sync.ts", "specifier": "node:crypto", "to": null },
+    { "from": "src/lib/sync.ts", "specifier": "pg", "to": null },
+    { "from": "src/lib/sync.ts", "specifier": "./db", "to": "src/lib/db.ts" },
+    {
+      "from": "src/lib/sync.ts",
+      "specifier": "./connectors",
+      "to": "src/lib/connectors.ts"
+    },
+    {
+      "from": "src/lib/sync.ts",
+      "specifier": "./repository",
+      "to": "src/lib/repository.ts"
+    },
+    {
+      "from": "src/lib/sync.ts",
+      "specifier": "./types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "src/lib/sync.ts",
+      "specifier": "./jev/config",
+      "to": "src/lib/jev/config.ts"
+    },
+    {
+      "from": "src/lib/sync.ts",
+      "specifier": "./intelligence/queue",
+      "to": "src/lib/intelligence/queue.ts"
+    },
+    {
+      "from": "src/lib/sync.ts",
+      "specifier": "./matching-repository",
+      "to": "src/lib/matching-repository.ts"
+    },
+    { "from": "src/lib/validation.ts", "specifier": "zod", "to": null },
+    { "from": "src/proxy.ts", "specifier": "node:crypto", "to": null },
+    { "from": "src/proxy.ts", "specifier": "next/server", "to": null },
+    { "from": "tests/actions.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/actions.test.ts",
+      "specifier": "../src/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    {
+      "from": "tests/actions.test.ts",
+      "specifier": "../src/app/api/actions/route",
+      "to": "src/app/api/actions/route.ts"
+    },
+    { "from": "tests/advert-text.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/advert-text.test.ts",
+      "specifier": "../src/lib/ocr/advert-text",
+      "to": "src/lib/ocr/advert-text.ts"
+    },
+    { "from": "tests/agent-index.test.ts", "specifier": "vitest", "to": null },
+    { "from": "tests/agent-index.test.ts", "specifier": "node:fs", "to": null },
+    { "from": "tests/agent-index.test.ts", "specifier": "node:os", "to": null },
+    {
+      "from": "tests/agent-index.test.ts",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": "tests/agent-index.test.ts",
+      "specifier": "../.agent/scripts/changed-files.mjs",
+      "to": ".agent/scripts/changed-files.mjs"
+    },
+    {
+      "from": "tests/agent-index.test.ts",
+      "specifier": "../.agent/scripts/impact-analysis.mjs",
+      "to": ".agent/scripts/impact-analysis.mjs"
+    },
+    {
+      "from": "tests/agent-index.test.ts",
+      "specifier": "../.agent/scripts/update-index.mjs",
+      "to": ".agent/scripts/update-index.mjs"
+    },
+    {
+      "from": "tests/agent-index.test.ts",
+      "specifier": "../.agent/scripts/sync-skills.mjs",
+      "to": ".agent/scripts/sync-skills.mjs"
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "vitest",
+      "to": null
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "node:os",
+      "to": null
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "../.agent/scripts/route.mjs",
+      "to": ".agent/scripts/route.mjs"
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "../.agent/scripts/evaluate.mjs",
+      "to": ".agent/scripts/evaluate.mjs"
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "../.agent/scripts/metrics.mjs",
+      "to": ".agent/scripts/metrics.mjs"
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "../.agent/scripts/search.mjs",
+      "to": ".agent/scripts/search.mjs"
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "../.agent/scripts/symbols.mjs",
+      "to": ".agent/scripts/symbols.mjs"
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "../.agent/scripts/capabilities.mjs",
+      "to": ".agent/scripts/capabilities.mjs"
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "../.agent/scripts/mcp-server.mjs",
+      "to": ".agent/scripts/mcp-server.mjs"
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "../.agent/scripts/coordination.mjs",
+      "to": ".agent/scripts/coordination.mjs"
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "../.agent/scripts/lifecycle.mjs",
+      "to": ".agent/scripts/lifecycle.mjs"
+    },
+    {
+      "from": "tests/agent-platform.test.ts",
+      "specifier": "../.agent/scripts/context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": "tests/agent-workflow.test.ts",
+      "specifier": "vitest",
+      "to": null
+    },
+    {
+      "from": "tests/agent-workflow.test.ts",
+      "specifier": "node:fs",
+      "to": null
+    },
+    {
+      "from": "tests/agent-workflow.test.ts",
+      "specifier": "node:os",
+      "to": null
+    },
+    {
+      "from": "tests/agent-workflow.test.ts",
+      "specifier": "node:path",
+      "to": null
+    },
+    {
+      "from": "tests/agent-workflow.test.ts",
+      "specifier": "../.agent/scripts/context-check.mjs",
+      "to": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "from": "tests/agent-workflow.test.ts",
+      "specifier": "../.agent/scripts/verify.mjs",
+      "to": ".agent/scripts/verify.mjs"
+    },
+    { "from": "tests/ai-usage.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/ai-usage.test.ts",
+      "specifier": "@electric-sql/pglite",
+      "to": null
+    },
+    {
+      "from": "tests/ai-usage.test.ts",
+      "specifier": "node:fs/promises",
+      "to": null
+    },
+    { "from": "tests/ai-usage.test.ts", "specifier": "pg", "to": null },
+    {
+      "from": "tests/ai-usage.test.ts",
+      "specifier": "../src/lib/ai-usage",
+      "to": "src/lib/ai-usage.ts"
+    },
+    {
+      "from": "tests/ai-usage.test.ts",
+      "specifier": "../src/lib/ai-budget",
+      "to": "src/lib/ai-budget.ts"
+    },
+    { "from": "tests/architecture.test.ts", "specifier": "eslint", "to": null },
+    { "from": "tests/architecture.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/architecture.test.ts",
+      "specifier": "../.agent/scripts/architecture-check.mjs",
+      "to": ".agent/scripts/architecture-check.mjs"
+    },
+    { "from": "tests/auth.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/auth.test.ts",
+      "specifier": "../src/lib/auth",
+      "to": "src/lib/auth.ts"
+    },
+    { "from": "tests/core.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/core.test.ts",
+      "specifier": "../src/lib/matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "tests/core.test.ts",
+      "specifier": "../src/lib/connectors",
+      "to": "src/lib/connectors.ts"
+    },
+    {
+      "from": "tests/core.test.ts",
+      "specifier": "../src/lib/linkedin",
+      "to": "src/lib/linkedin.ts"
+    },
+    {
+      "from": "tests/core.test.ts",
+      "specifier": "../src/lib/validation",
+      "to": "src/lib/validation.ts"
+    },
+    {
+      "from": "tests/core.test.ts",
+      "specifier": "../src/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    { "from": "tests/cv-review.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/cv-review.test.ts",
+      "specifier": "@typesafe-ai/sdk",
+      "to": null
+    },
+    {
+      "from": "tests/cv-review.test.ts",
+      "specifier": "../src/lib/cv/profile",
+      "to": "src/lib/cv/profile.ts"
+    },
+    {
+      "from": "tests/cv-review.test.ts",
+      "specifier": "../src/lib/intelligence/cv-review",
+      "to": "src/lib/intelligence/cv-review.ts"
+    },
+    {
+      "from": "tests/cv-review.test.ts",
+      "specifier": "../src/lib/intelligence/cv-fit",
+      "to": "src/lib/intelligence/cv-fit.ts"
+    },
+    { "from": "tests/cv.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/cv.test.ts",
+      "specifier": "../src/lib/cv/extract-client",
+      "to": "src/lib/cv/extract-client.ts"
+    },
+    {
+      "from": "tests/cv.test.ts",
+      "specifier": "../src/lib/cv/profile",
+      "to": "src/lib/cv/profile.ts"
+    },
+    {
+      "from": "tests/cv.test.ts",
+      "specifier": "../src/lib/cv/schema",
+      "to": "src/lib/cv/schema.ts"
+    },
+    {
+      "from": "tests/dashboard-views.test.ts",
+      "specifier": "react",
+      "to": null
+    },
+    {
+      "from": "tests/dashboard-views.test.ts",
+      "specifier": "react-dom/server",
+      "to": null
+    },
+    {
+      "from": "tests/dashboard-views.test.ts",
+      "specifier": "vitest",
+      "to": null
+    },
+    {
+      "from": "tests/dashboard-views.test.ts",
+      "specifier": "../src/lib/demo",
+      "to": "src/lib/demo.ts"
+    },
+    {
+      "from": "tests/dashboard-views.test.ts",
+      "specifier": "../src/components/dashboard/job-detail",
+      "to": "src/components/dashboard/job-detail.tsx"
+    },
+    {
+      "from": "tests/dashboard-views.test.ts",
+      "specifier": "../src/components/dashboard/settings-view",
+      "to": "src/components/dashboard/settings-view.tsx"
+    },
+    {
+      "from": "tests/dashboard-views.test.ts",
+      "specifier": "../src/components/dashboard/overview-view",
+      "to": "src/components/dashboard/overview-view.tsx"
+    },
+    {
+      "from": "tests/dashboard-views.test.ts",
+      "specifier": "../src/components/dashboard/monitor-form",
+      "to": "src/components/dashboard/monitor-form.tsx"
+    },
+    {
+      "from": "tests/database-config.test.ts",
+      "specifier": "vitest",
+      "to": null
+    },
+    {
+      "from": "tests/database-config.test.ts",
+      "specifier": "../src/lib/database-config",
+      "to": "src/lib/database-config.ts"
+    },
+    {
+      "from": "tests/database-config.test.ts",
+      "specifier": "../src/lib/db",
+      "to": "src/lib/db.ts"
+    },
+    { "from": "tests/database-config.test.ts", "specifier": "pg", "to": null },
+    { "from": "tests/database.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/database.test.ts",
+      "specifier": "@electric-sql/pglite",
+      "to": null
+    },
+    {
+      "from": "tests/database.test.ts",
+      "specifier": "node:fs/promises",
+      "to": null
+    },
+    { "from": "tests/database.test.ts", "specifier": "pg", "to": null },
+    {
+      "from": "tests/database.test.ts",
+      "specifier": "../src/lib/matching-repository",
+      "to": "src/lib/matching-repository.ts"
+    },
+    {
+      "from": "tests/database.test.ts",
+      "specifier": "../src/lib/repository",
+      "to": "src/lib/repository.ts"
+    },
+    {
+      "from": "tests/database.test.ts",
+      "specifier": "../src/lib/focused-repository",
+      "to": "src/lib/focused-repository.ts"
+    },
+    {
+      "from": "tests/image-context-route.test.ts",
+      "specifier": "vitest",
+      "to": null
+    },
+    {
+      "from": "tests/image-context-route.test.ts",
+      "specifier": "../src/app/api/jobs/[id]/image-context/route",
+      "to": "src/app/api/jobs/[id]/image-context/route.ts"
+    },
+    {
+      "from": "tests/intelligence.test.ts",
+      "specifier": "@electric-sql/pglite",
+      "to": null
+    },
+    {
+      "from": "tests/intelligence.test.ts",
+      "specifier": "node:fs/promises",
+      "to": null
+    },
+    { "from": "tests/intelligence.test.ts", "specifier": "vitest", "to": null },
+    { "from": "tests/intelligence.test.ts", "specifier": "pg", "to": null },
+    {
+      "from": "tests/intelligence.test.ts",
+      "specifier": "../src/lib/jev/contract",
+      "to": "src/lib/jev/contract.ts"
+    },
+    {
+      "from": "tests/intelligence.test.ts",
+      "specifier": "../src/lib/intelligence/queue",
+      "to": "src/lib/intelligence/queue.ts"
+    },
+    {
+      "from": "tests/intelligence.test.ts",
+      "specifier": "../src/lib/intelligence/report",
+      "to": "src/lib/intelligence/report.ts"
+    },
+    {
+      "from": "tests/intelligence.test.ts",
+      "specifier": "../src/lib/intelligence/worker",
+      "to": "src/lib/intelligence/worker.ts"
+    },
+    { "from": "tests/jev.test.ts", "specifier": "node:fs", "to": null },
+    { "from": "tests/jev.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/jev.test.ts",
+      "specifier": "@typesafe-ai/sdk",
+      "to": null
+    },
+    {
+      "from": "tests/jev.test.ts",
+      "specifier": "../src/lib/jev/client",
+      "to": "src/lib/jev/client.ts"
+    },
+    {
+      "from": "tests/jev.test.ts",
+      "specifier": "../src/lib/jev/config",
+      "to": "src/lib/jev/config.ts"
+    },
+    {
+      "from": "tests/jev.test.ts",
+      "specifier": "../src/lib/jev/contract",
+      "to": "src/lib/jev/contract.ts"
+    },
+    {
+      "from": "tests/jev.test.ts",
+      "specifier": "../src/lib/jev/evaluation",
+      "to": "src/lib/jev/evaluation.ts"
+    },
+    {
+      "from": "tests/jev.test.ts",
+      "specifier": "../src/lib/jev/policy",
+      "to": "src/lib/jev/policy.ts"
+    },
+    {
+      "from": "tests/jev.test.ts",
+      "specifier": "../src/lib/jev/questions/job-classification-v1",
+      "to": "src/lib/jev/questions/job-classification-v1.ts"
+    },
+    {
+      "from": "tests/jev.test.ts",
+      "specifier": "../src/lib/intelligence/job-state",
+      "to": "src/lib/intelligence/job-state.ts"
+    },
+    {
+      "from": "tests/matching-repository.test.ts",
+      "specifier": "vitest",
+      "to": null
+    },
+    {
+      "from": "tests/matching-repository.test.ts",
+      "specifier": "../src/lib/matching-repository",
+      "to": "src/lib/matching-repository.ts"
+    },
+    { "from": "tests/rate-limit.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/rate-limit.test.ts",
+      "specifier": "@electric-sql/pglite",
+      "to": null
+    },
+    {
+      "from": "tests/rate-limit.test.ts",
+      "specifier": "node:fs/promises",
+      "to": null
+    },
+    { "from": "tests/rate-limit.test.ts", "specifier": "pg", "to": null },
+    {
+      "from": "tests/rate-limit.test.ts",
+      "specifier": "../src/lib/rate-limit",
+      "to": "src/lib/rate-limit.ts"
+    },
+    { "from": "tests/requirements.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/requirements.test.ts",
+      "specifier": "../src/lib/intelligence/requirements",
+      "to": "src/lib/intelligence/requirements.ts"
+    },
+    { "from": "tests/security.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/security.test.ts",
+      "specifier": "../src/lib/request-body",
+      "to": "src/lib/request-body.ts"
+    },
+    {
+      "from": "tests/security.test.ts",
+      "specifier": "../src/lib/matching",
+      "to": "src/lib/matching.ts"
+    },
+    {
+      "from": "tests/security.test.ts",
+      "specifier": "../src/lib/security",
+      "to": "src/lib/security.ts"
+    },
+    { "from": "tests/sync.test.ts", "specifier": "vitest", "to": null },
+    {
+      "from": "tests/sync.test.ts",
+      "specifier": "@electric-sql/pglite",
+      "to": null
+    },
+    {
+      "from": "tests/sync.test.ts",
+      "specifier": "node:fs/promises",
+      "to": null
+    },
+    {
+      "from": "tests/sync.test.ts",
+      "specifier": "../src/lib/types",
+      "to": "src/lib/types.ts"
+    },
+    {
+      "from": "tests/sync.test.ts",
+      "specifier": "../src/lib/connectors",
+      "to": "src/lib/connectors.ts"
+    },
+    {
+      "from": "tests/sync.test.ts",
+      "specifier": "../src/lib/sync",
+      "to": "src/lib/sync.ts"
+    }
+  ]
+}

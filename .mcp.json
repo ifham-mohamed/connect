@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "jobradar-readonly": {
+      "command": "node",
+      "args": [".agent/scripts/mcp-server.mjs", "implementer"]
+    }
+  }
+}

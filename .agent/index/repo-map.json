@@ -1,0 +1,1575 @@
+{
+  "schema_version": 1,
+  "base_commit": "41a238573b38d1aba26aaafbaaf4076237af45c9",
+  "sources": [
+    {
+      "path": ".agent/capabilities.json",
+      "subsystem": ".agent/capabilities.json",
+      "sha256": "46fd7044137e5f78d9f6b70b94a520952bd2c3b5ed419fca4d297eb6b42684f5"
+    },
+    {
+      "path": ".agent/context/architecture.md",
+      "subsystem": ".agent/context",
+      "sha256": "e49106ff2bd6f5cbe381f78203766a0f92e3fef6d1cc0ed7e21f398c6483e40b"
+    },
+    {
+      "path": ".agent/context/conventions.md",
+      "subsystem": ".agent/context",
+      "sha256": "99fa3f1b58266fa0a66075737de6ad4a04d973a3a066ddaf04c125149f725941"
+    },
+    {
+      "path": ".agent/context/dependencies.md",
+      "subsystem": ".agent/context",
+      "sha256": "088276822cc7090a268d1d4a1eabe2cfb6c8cad2ce38090ff7843b7aba9806b0"
+    },
+    {
+      "path": ".agent/context/glossary.md",
+      "subsystem": ".agent/context",
+      "sha256": "203521d2c9745103f754e6a0d5148b2bc510400d0139c342b206605e8db449a0"
+    },
+    {
+      "path": ".agent/context/navigation.md",
+      "subsystem": ".agent/context",
+      "sha256": "132fb408a3976ca281692702752b5288b56824c9ceeda6ba53e2455648466c80"
+    },
+    {
+      "path": ".agent/context/project.md",
+      "subsystem": ".agent/context",
+      "sha256": "e3979b12e658ad369929bfa352e74a016140ee837ae7e066530cb2bb4a309fd3"
+    },
+    {
+      "path": ".agent/context/security.md",
+      "subsystem": ".agent/context",
+      "sha256": "8df9c07af30d8b055293beab5def5d992d191c42ada7e39305fa067503fdc87d"
+    },
+    {
+      "path": ".agent/evals/routing.json",
+      "subsystem": ".agent/evals",
+      "sha256": "3ec5a923fb1d8b4c9679fff74bebbdca24d04db413cbb14b2184bcbb67d2a216"
+    },
+    {
+      "path": ".agent/plugins/repository-search/.codex-plugin/plugin.json",
+      "subsystem": ".agent/plugins",
+      "sha256": "afe3a6e140fb6b7829d69628438ae9bf3d8aa6d3a07aa381f4149687ce129627"
+    },
+    {
+      "path": ".agent/plugins/repository-search/scripts/search.mjs",
+      "subsystem": ".agent/plugins",
+      "sha256": "7c0ee8062262752f965e009c1ca743d1d09c3952a4642c5c248d807bd051cc75"
+    },
+    {
+      "path": ".agent/plugins/repository-search/skills/search-docs/SKILL.md",
+      "subsystem": ".agent/plugins",
+      "sha256": "1211f74e6668a41264d009304ea6b3305a713a648c9cd56cd7521008ffe4b45a"
+    },
+    {
+      "path": ".agent/schemas/handoff.schema.json",
+      "subsystem": ".agent/schemas",
+      "sha256": "f926227f98fd6e0d1c1d5dfb894413c15ec2646b3c0918dcbcc761c929686d5f"
+    },
+    {
+      "path": ".agent/schemas/provenance.schema.json",
+      "subsystem": ".agent/schemas",
+      "sha256": "5505c55aea94e37b9f93827c526ffef97790c6a9d8c588ba203b0323a0ac6b9c"
+    },
+    {
+      "path": ".agent/schemas/repo-index.schema.json",
+      "subsystem": ".agent/schemas",
+      "sha256": "5a2de0965f6ac323ea91a3498c4ce88d2df6822ff7240aa88c08cb550bd5d42b"
+    },
+    {
+      "path": ".agent/schemas/task-state.schema.json",
+      "subsystem": ".agent/schemas",
+      "sha256": "204cb801258717bc6aa860d51bb6e706407edb40d61ee60ccebbda335c2a3ec7"
+    },
+    {
+      "path": ".agent/scripts/architecture-check.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "59d67e371c3bc34b0de4333c524c8b9545f65c202edbe4825011e2269c438ef2"
+    },
+    {
+      "path": ".agent/scripts/capabilities.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "a92b49efa4cb794c64ebe47596b891c66542bce4f314d6b064c1df8654b4bbaf"
+    },
+    {
+      "path": ".agent/scripts/changed-files.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "8d4e10240fe1c00cd88bd3f764b9e085e7b31daf55b77893f32a55379252d7f1"
+    },
+    {
+      "path": ".agent/scripts/context-check.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "41dbbb1df13c824dd753276b9f0d43fd52c6599f905e3032d5c762e6072f584d"
+    },
+    {
+      "path": ".agent/scripts/context-health.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "d0de92635996d418bdc17b5980505809a1b5b93d6758682a6c4e96abc5507f51"
+    },
+    {
+      "path": ".agent/scripts/contracts.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "2c8f38dc14e94b3ff797a706802907013f9f505854fc2dd047489f5f981a89c5"
+    },
+    {
+      "path": ".agent/scripts/coordination.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "764d76c2ec8faabf84dd98ca8e0f96346245de85236acd98153a2a90be564d05"
+    },
+    {
+      "path": ".agent/scripts/evaluate.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "d4acc6dd078e7b012b763df081743e3f93fe7b0ad747fc1726a9a9266f43b20f"
+    },
+    {
+      "path": ".agent/scripts/impact-analysis.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "bb95d363fb39901bd430fd68f940391fb0ad540bf8f22d70da2028041de4f2fc"
+    },
+    {
+      "path": ".agent/scripts/lifecycle.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "8fb3ebe988c5f558967b28ff82445523c1d91e279bbf87dd9285afdb23978aff"
+    },
+    {
+      "path": ".agent/scripts/mcp-server.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "af0eda028cebbee51f01adff1a47a9c8fbecebd45d7ab3f6db91a7e4049208bc"
+    },
+    {
+      "path": ".agent/scripts/metrics.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "22cedf84f512174c805db250353e152aad0e8c69a5d258c98fcc666dfd0e2405"
+    },
+    {
+      "path": ".agent/scripts/route.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "7da25579428cbccb26a6cfb3428f73bf4a9fb8cde2ffcac533df378d5e36edb5"
+    },
+    {
+      "path": ".agent/scripts/search.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "d2fb64a220440c31f69b87fca17727f47b780e892f3a830f57e4089fc699ad5a"
+    },
+    {
+      "path": ".agent/scripts/subsystems.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "7d5545221d8069e73876a05f57fda5e00e12abf7d66296b3cd0c50d41d68693f"
+    },
+    {
+      "path": ".agent/scripts/symbols.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "30ee27a6eacfe3f6b59ef9e1da86fedaffb9c3bba178b70cd3fbce0bacfaefc4"
+    },
+    {
+      "path": ".agent/scripts/sync-skills.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "299c188e06d1664e30daede1f9bfdd7804a92cbba072c8783b77e20d0277e559"
+    },
+    {
+      "path": ".agent/scripts/update-index.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "78cc0fb6cf2cc642fb42120a2acd2a6fe8979423f5329501477746723f3bdb48"
+    },
+    {
+      "path": ".agent/scripts/verify.mjs",
+      "subsystem": ".agent/scripts",
+      "sha256": "49e1d6dfd5c1ea67f24c40583655526367d46536eb4e35ee6f304dd3454c4bfa"
+    },
+    {
+      "path": ".agent/skills/architecture-analysis/SKILL.md",
+      "subsystem": ".agent/skills",
+      "sha256": "ea0f04edb4e94ccdb8a264d40989b22b5441fee3117cf58b3913c41c5df21ee5"
+    },
+    {
+      "path": ".agent/skills/change-planning/SKILL.md",
+      "subsystem": ".agent/skills",
+      "sha256": "2e4395289eed43a25a6941af0a266d7cffb9e567283bb884462be8f8ff9793a5"
+    },
+    {
+      "path": ".agent/skills/code-review/SKILL.md",
+      "subsystem": ".agent/skills",
+      "sha256": "4e53f6537b102d5c6ef892fce0618737a6366a471eb65a54fde68104e4d37e73"
+    },
+    {
+      "path": ".agent/skills/implementation/SKILL.md",
+      "subsystem": ".agent/skills",
+      "sha256": "a2d773c94bce577fcdf0b0af51719f531dfe7f791c6721c4e1edcad2ec341f21"
+    },
+    {
+      "path": ".agent/skills/release/SKILL.md",
+      "subsystem": ".agent/skills",
+      "sha256": "9f47a5b19a79fc9295845f2d55ef06ad457d93d0cf1e55cd6d2b2aa3677c453e"
+    },
+    {
+      "path": ".agent/skills/repo-discovery/SKILL.md",
+      "subsystem": ".agent/skills",
+      "sha256": "18175ddb47ecd364d7bd15777f09f6b35d0caf98e3949366723178f62c845518"
+    },
+    {
+      "path": ".agent/skills/security-review/SKILL.md",
+      "subsystem": ".agent/skills",
+      "sha256": "cb33484c4b0fe8892d24f7b66f270d8d86a76165b1b4a3b06751514c95d80ba1"
+    },
+    {
+      "path": ".agent/skills/verification/SKILL.md",
+      "subsystem": ".agent/skills",
+      "sha256": "f3a436ef8b31a35b48e8bd1e641a50ae0a99429ca701b2674623db73eb71b435"
+    },
+    {
+      "path": ".claude/README.md",
+      "subsystem": ".claude/README.md",
+      "sha256": "b34cd464869819a4c529bbbcbc3aa6bc33eaae6310175c6f1f0f5b78d34e97ac"
+    },
+    {
+      "path": ".claude/settings.json",
+      "subsystem": ".claude/settings.json",
+      "sha256": "6db494b524e8cdf9acbb9b510b4ea13cfd61b556830cdbc74e282b8fdc6c0bd6"
+    },
+    {
+      "path": ".claude/skills/architecture-analysis/SKILL.md",
+      "subsystem": ".claude/skills",
+      "sha256": "ea0f04edb4e94ccdb8a264d40989b22b5441fee3117cf58b3913c41c5df21ee5"
+    },
+    {
+      "path": ".claude/skills/change-planning/SKILL.md",
+      "subsystem": ".claude/skills",
+      "sha256": "2e4395289eed43a25a6941af0a266d7cffb9e567283bb884462be8f8ff9793a5"
+    },
+    {
+      "path": ".claude/skills/code-review/SKILL.md",
+      "subsystem": ".claude/skills",
+      "sha256": "4e53f6537b102d5c6ef892fce0618737a6366a471eb65a54fde68104e4d37e73"
+    },
+    {
+      "path": ".claude/skills/implementation/SKILL.md",
+      "subsystem": ".claude/skills",
+      "sha256": "a2d773c94bce577fcdf0b0af51719f531dfe7f791c6721c4e1edcad2ec341f21"
+    },
+    {
+      "path": ".claude/skills/release/SKILL.md",
+      "subsystem": ".claude/skills",
+      "sha256": "9f47a5b19a79fc9295845f2d55ef06ad457d93d0cf1e55cd6d2b2aa3677c453e"
+    },
+    {
+      "path": ".claude/skills/repo-discovery/SKILL.md",
+      "subsystem": ".claude/skills",
+      "sha256": "18175ddb47ecd364d7bd15777f09f6b35d0caf98e3949366723178f62c845518"
+    },
+    {
+      "path": ".claude/skills/security-review/SKILL.md",
+      "subsystem": ".claude/skills",
+      "sha256": "cb33484c4b0fe8892d24f7b66f270d8d86a76165b1b4a3b06751514c95d80ba1"
+    },
+    {
+      "path": ".claude/skills/verification/SKILL.md",
+      "subsystem": ".claude/skills",
+      "sha256": "f3a436ef8b31a35b48e8bd1e641a50ae0a99429ca701b2674623db73eb71b435"
+    },
+    {
+      "path": ".codex/README.md",
+      "subsystem": ".codex/README.md",
+      "sha256": "d729762c63b21100e9755572e096a73498db5e3ffe95df3cb2a9c8d25a5f1e9f"
+    },
+    {
+      "path": ".codex/config.toml",
+      "subsystem": ".codex/config.toml",
+      "sha256": "a0bdb207dfeba90b5051e16e46e1d2847e9c7348c6563417afdd5a97b704f315"
+    },
+    {
+      "path": ".githooks/post-checkout",
+      "subsystem": ".githooks/post-checkout",
+      "sha256": "264c955c1ff472ad6d0cac084252e6237deea044b37bbe99c5a58e85642459bf"
+    },
+    {
+      "path": ".githooks/post-merge",
+      "subsystem": ".githooks/post-merge",
+      "sha256": "264c955c1ff472ad6d0cac084252e6237deea044b37bbe99c5a58e85642459bf"
+    },
+    {
+      "path": ".githooks/pre-commit",
+      "subsystem": ".githooks/pre-commit",
+      "sha256": "a8b72ebaa28fec3624f2508a4be7fc33bd105f7e5a6f4f4d62ec226e50d8b189"
+    },
+    {
+      "path": ".github/workflows/verify.yml",
+      "subsystem": ".github/workflows",
+      "sha256": "22aebe07bd0ddabb5ecbabaa30eddf57658973fe367ab2727c567bfe9d03562f"
+    },
+    {
+      "path": ".mcp.json",
+      "subsystem": ".mcp.json",
+      "sha256": "a937ea147000323bfd093fedbad47db0fd3619703e4b5d9f049a30111b33a801"
+    },
+    {
+      "path": "AGENTS.md",
+      "subsystem": "AGENTS.md",
+      "sha256": "760b1c5b8d5e1786a909abdc5a3238bd98b0e3e839c60d69be30ce799b02531a"
+    },
+    {
+      "path": "CLAUDE.md",
+      "subsystem": "CLAUDE.md",
+      "sha256": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49"
+    },
+    {
+      "path": "db/001_initial.sql",
+      "subsystem": "db/001_initial.sql",
+      "sha256": "a6d654c390e0518ebdb2bec16cb0a1caf8abfa59d1705a36673951fb7bc33c48"
+    },
+    {
+      "path": "db/002_source_kinds.sql",
+      "subsystem": "db/002_source_kinds.sql",
+      "sha256": "115227c6e5fb47118d4fcd63f66891d63584e3750498507f54baa1df3583a6a5"
+    },
+    {
+      "path": "db/003_role_monitors.sql",
+      "subsystem": "db/003_role_monitors.sql",
+      "sha256": "681d4354b69ddbba91ee545ab75900a9fdb2d22ab4b45eb75707ef2b358a9bc7"
+    },
+    {
+      "path": "db/004_sri_lanka_sources.sql",
+      "subsystem": "db/004_sri_lanka_sources.sql",
+      "sha256": "886cd687657540b09bc5dcf2b7d50c495159372f71d71e885b8279237f739456"
+    },
+    {
+      "path": "db/005_location_monitors.sql",
+      "subsystem": "db/005_location_monitors.sql",
+      "sha256": "589ec6650052d10a7d1b0a081e774fa3e373284b32c0cb32ad2a755245ed471e"
+    },
+    {
+      "path": "db/006_linkedin_search_monitors.sql",
+      "subsystem": "db/006_linkedin_search_monitors.sql",
+      "sha256": "e405e41f62ae75483d793da945dfb424c9a0d3325d7f744949381b0851717ce6"
+    },
+    {
+      "path": "db/007_user_auth.sql",
+      "subsystem": "db/007_user_auth.sql",
+      "sha256": "1fcfe8285eb94d29bf4948414ca5af44890f36928532dfa02f1a75cbcab4329e"
+    },
+    {
+      "path": "db/008_personal_onboarding.sql",
+      "subsystem": "db/008_personal_onboarding.sql",
+      "sha256": "cbf0ac90c0465c96d3cc7cb201a2ff7f81e8b142bddbec3c21cc42f4f9e76c56"
+    },
+    {
+      "path": "db/009_personal_job_states.sql",
+      "subsystem": "db/009_personal_job_states.sql",
+      "sha256": "c1c56b1698d8ef4143036f73abcad2a14ab1693c4e9495d3f8d15ec12c099c94"
+    },
+    {
+      "path": "db/010_run_job_results.sql",
+      "subsystem": "db/010_run_job_results.sql",
+      "sha256": "4551bf1fb3458627dc333fc73236f420584802704fa3e4b31f1ed29a351e6283"
+    },
+    {
+      "path": "db/011_run_result_backfill.sql",
+      "subsystem": "db/011_run_result_backfill.sql",
+      "sha256": "0770b702a7d885f54b3a31cbad46ccebf9cbc46cdaec8c94fd61cdc653a18063"
+    },
+    {
+      "path": "db/012_incremental_matching.sql",
+      "subsystem": "db/012_incremental_matching.sql",
+      "sha256": "fd1771cae343d32a43234a691b9f457e13adff462d33b12e34fe426b4bd53adc"
+    },
+    {
+      "path": "db/013_experience_matching.sql",
+      "subsystem": "db/013_experience_matching.sql",
+      "sha256": "4391de2c8ef33faaa7acc96d068d955a2ab5049a059a062ff16db6e8adcb10d2"
+    },
+    {
+      "path": "db/014_career_stages_and_remove_devjobs.sql",
+      "subsystem": "db/014_career_stages_and_remove_devjobs.sql",
+      "sha256": "8301c5e9e689e45074d1a5fb918e2187848a564263ec98323a8301ae2bf17bbf"
+    },
+    {
+      "path": "db/015_distinct_early_career_and_location_coverage.sql",
+      "subsystem": "db/015_distinct_early_career_and_location_coverage.sql",
+      "sha256": "ca135c4e62ecde3c49bacb879a32b52d56d369266e6847e63ff0a2776578f67a"
+    },
+    {
+      "path": "db/016_location_work_modes_and_numbered_levels.sql",
+      "subsystem": "db/016_location_work_modes_and_numbered_levels.sql",
+      "sha256": "d60b55b73c121b5f7a53bfab0ee3da260e3a2dce404ecbd8bb251adcec72c4bb"
+    },
+    {
+      "path": "db/017_worldwide_remote_matching.sql",
+      "subsystem": "db/017_worldwide_remote_matching.sql",
+      "sha256": "8aa33e480b8acc29308f1f8f766493d0f4adab5f6ba68ca0ee0c3f648f1f65a2"
+    },
+    {
+      "path": "db/018_job_intelligence.sql",
+      "subsystem": "db/018_job_intelligence.sql",
+      "sha256": "15811916ca3e2b494db2e6b7e86541f1b949dcacc5889384690367dbcbd4d03a"
+    },
+    {
+      "path": "db/019_assisted_matching.sql",
+      "subsystem": "db/019_assisted_matching.sql",
+      "sha256": "c1ff3cdcb1f2e584a2a59683baee1732ea288bca23a86e77ca708a8ad24ea8cb"
+    },
+    {
+      "path": "db/020_requirement_evidence.sql",
+      "subsystem": "db/020_requirement_evidence.sql",
+      "sha256": "d67b0322b4cf67178ffdb8b85bb20c34d121076bb9a572d92cab57738c4cc001"
+    },
+    {
+      "path": "db/021_candidate_workspace.sql",
+      "subsystem": "db/021_candidate_workspace.sql",
+      "sha256": "f4f93a92ea9847d01fd5c39256aac7afdcf22898b0406aa9e1b2996fb92f57c0"
+    },
+    {
+      "path": "db/022_assisted_corrections.sql",
+      "subsystem": "db/022_assisted_corrections.sql",
+      "sha256": "823f191eab02deb40d7f5c0394a680fed4f17d5de78b8879aa874fc6a3b7a86b"
+    },
+    {
+      "path": "db/023_assisted_rule_lookup.sql",
+      "subsystem": "db/023_assisted_rule_lookup.sql",
+      "sha256": "823f191eab02deb40d7f5c0394a680fed4f17d5de78b8879aa874fc6a3b7a86b"
+    },
+    {
+      "path": "db/024_candidate_cv.sql",
+      "subsystem": "db/024_candidate_cv.sql",
+      "sha256": "1a7f0d96e4d73b2aba0c64ffd9e5a81be68b3e217a09ca3feed7c5f939dd3f83"
+    },
+    {
+      "path": "db/025_job_cv_reviews.sql",
+      "subsystem": "db/025_job_cv_reviews.sql",
+      "sha256": "cb36aa8a7bcbb6e20c97f013c0a3926c9168f606264d1a4d7f5608bcbcfa7f46"
+    },
+    {
+      "path": "db/026_private_image_context.sql",
+      "subsystem": "db/026_private_image_context.sql",
+      "sha256": "688fd2835664c3201bebca9e336db91d128c1ea8dcb26f942e292bd26f8cc13c"
+    },
+    {
+      "path": "db/027_itpro_category_sources.sql",
+      "subsystem": "db/027_itpro_category_sources.sql",
+      "sha256": "540a4f7b6f6b1653d4ac0e2440a399cf6bc90d4caafee78e12f60f6a47b06bb0"
+    },
+    {
+      "path": "db/028_security_audit.sql",
+      "subsystem": "db/028_security_audit.sql",
+      "sha256": "9b7fffe789448b46ad098b3186f977d0180fbdad41c3b881652e69ac22374185"
+    },
+    {
+      "path": "db/029_ai_usage_limits.sql",
+      "subsystem": "db/029_ai_usage_limits.sql",
+      "sha256": "2854ee9a4f67d0c0748701886101ccea4f2911db70405ca478f192f9c0fe6d53"
+    },
+    {
+      "path": "db/030_request_rate_limits.sql",
+      "subsystem": "db/030_request_rate_limits.sql",
+      "sha256": "8cda414121ae16f828ad2132afc5bae3b4219672208bda0535720f73a2041e09"
+    },
+    {
+      "path": "db/031_scaling_foundation.sql",
+      "subsystem": "db/031_scaling_foundation.sql",
+      "sha256": "0ac8767fee02cde31ce1cba3e5351c1b94fe7bea2b5d3266667456b0730d6ffc"
+    },
+    {
+      "path": "db/032_cost_controls.sql",
+      "subsystem": "db/032_cost_controls.sql",
+      "sha256": "762c583f330013f8acafc1e0e52d10fe60beddf6751d2efcb1735b081d410924"
+    },
+    {
+      "path": "db/033_source_observability.sql",
+      "subsystem": "db/033_source_observability.sql",
+      "sha256": "00ee345e37f59cd8a4a8b8eb12a33377408274dcbc0ba51cdf6ea83ec178c511"
+    },
+    {
+      "path": "db/034_role_title_aliases.sql",
+      "subsystem": "db/034_role_title_aliases.sql",
+      "sha256": "5eef7c0718d9f07c525c1bcc6a1e9e862595059239a91e9ad7e98df641a4767b"
+    },
+    {
+      "path": "db/035_unspecified_stage_compatibility.sql",
+      "subsystem": "db/035_unspecified_stage_compatibility.sql",
+      "sha256": "e61b24a1ec32e4638bc97cfdb4088f578d8e2d4b146a8310ea2e9a01747d1ee2"
+    },
+    {
+      "path": "docs/api/jev-decision-contract.md",
+      "subsystem": "docs/api",
+      "sha256": "5de2ff6d84ed572004ffac801009057e97532f3dbb14e463773000f0b534a7fc"
+    },
+    {
+      "path": "docs/api/source-integrations.md",
+      "subsystem": "docs/api",
+      "sha256": "88c4b694ff57d3256e9cd24359f7505824b72c023df1922c09d93a2aba213bac"
+    },
+    {
+      "path": "docs/architecture/adr-001-jev-only-decision-layer.md",
+      "subsystem": "docs/architecture",
+      "sha256": "464bdc4b4fb8ccebd182017f408d813f5867d711c8eb3a129b82360a2ce4f679"
+    },
+    {
+      "path": "docs/architecture/codex_claude_unified_orchestration_blueprint.md",
+      "subsystem": "docs/architecture",
+      "sha256": "3a613d40928fc884bbc4ae85b37a89dce6b2f2042a0a60b3d92be940caa891ca"
+    },
+    {
+      "path": "docs/architecture/jev-integration-context.md",
+      "subsystem": "docs/architecture",
+      "sha256": "923a13f90ebcab12a7fc58d590303270775f61019e6a95dcfb72c5e4de41830c"
+    },
+    {
+      "path": "docs/architecture/jev-overview.md",
+      "subsystem": "docs/architecture",
+      "sha256": "7703e11cd1d9418ce7e6047a4a5a1ffd089b155b4100e4a4b807aeea354808db"
+    },
+    {
+      "path": "docs/architecture/jev.md",
+      "subsystem": "docs/architecture",
+      "sha256": "5b3aeb718ea922824681d9633a31b5185d167403924f4e8429944b030f6426ef"
+    },
+    {
+      "path": "docs/architecture/system.md",
+      "subsystem": "docs/architecture",
+      "sha256": "891b45e16aeee7a74579940da18ef10957d7d1a95da6f9dbc33e254c81bef135"
+    },
+    {
+      "path": "docs/database/jev-data-model.md",
+      "subsystem": "docs/database",
+      "sha256": "da67c70826cffa62239ac25a89a1d3b532831ba4d9d5182abeb39c389910d3ef"
+    },
+    {
+      "path": "docs/operations/agent-workflow.md",
+      "subsystem": "docs/operations",
+      "sha256": "ce073ef10b1d6dfdc20f39d53eb0d1b3ac623078bd7e490250c0fe32edec4cf4"
+    },
+    {
+      "path": "docs/operations/cost-and-capacity.md",
+      "subsystem": "docs/operations",
+      "sha256": "fae601b4e503bf07f96ad440c3958f7df539bd0a17197b0fe44343126e15360a"
+    },
+    {
+      "path": "docs/operations/jev-development-plan.md",
+      "subsystem": "docs/operations",
+      "sha256": "cdc4f6fa93a0fd7363dd5747b7bcd3ff90f97c9a97e8964e3d39271a0cf7181d"
+    },
+    {
+      "path": "docs/operations/jev-evaluation-and-rollout.md",
+      "subsystem": "docs/operations",
+      "sha256": "adaae30bba23cbce7713e9bcc16b25fca5c9dd7443d926555cbd0d13251fe1ef"
+    },
+    {
+      "path": "docs/operations/jev-stage-0-1-status.md",
+      "subsystem": "docs/operations",
+      "sha256": "f512796105073672ad1a0444c036d2e713ac2e91843ae308285e662ea5b1c314"
+    },
+    {
+      "path": "docs/operations/jev-stage-2-3-status.md",
+      "subsystem": "docs/operations",
+      "sha256": "45256da189d558a4b6658cee878d89d79ecc7c30e4917a9e4899c4023866c0cf"
+    },
+    {
+      "path": "docs/operations/jev-stages-4-6-implementation.md",
+      "subsystem": "docs/operations",
+      "sha256": "a3fedf1e40b9a1a4414af6dc0607b9893f0b8e87525e62a0abd2853edb78078e"
+    },
+    {
+      "path": "docs/operations/runbook.md",
+      "subsystem": "docs/operations",
+      "sha256": "c2070a9593ee2c5f8ab3f9130d63d85b79bcb2a6f70412cae76dec875ae26f5b"
+    },
+    {
+      "path": "docs/security/security-audit.md",
+      "subsystem": "docs/security",
+      "sha256": "c3baccb464469aa48f26cb47f86409d606d81d19433f5a42ae13ae517b78bbd2"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "subsystem": "eslint.config.mjs",
+      "sha256": "c2097b8a69a28a9896598ea0731e640017d9d112835c1b96e7e4731dabf8e914"
+    },
+    {
+      "path": "package-lock.json",
+      "subsystem": "package-lock.json",
+      "sha256": "84c403639591992308e1507244fc0547c0887c030d5fad7aaa79ec0269ac4a36"
+    },
+    {
+      "path": "package.json",
+      "subsystem": "package.json",
+      "sha256": "53da85a408ac6b5b883f88bf3ba314c95ed91719b5d3372c62666bbf3f37a25c"
+    },
+    {
+      "path": "scripts/backfill-jev.ts",
+      "subsystem": "scripts/backfill-jev.ts",
+      "sha256": "745abb1a92bd594dcb51e385eef13e070232c8c10a9167bcc018254e6be9024c"
+    },
+    {
+      "path": "scripts/check-database.ts",
+      "subsystem": "scripts/check-database.ts",
+      "sha256": "0dfcd55464181bc098a4835761b23fca36db97a8fdf808ed0b0410d765f06e3b"
+    },
+    {
+      "path": "scripts/check-sources.ts",
+      "subsystem": "scripts/check-sources.ts",
+      "sha256": "3792ecc4a99702c05ced4bdaa0b3de7e03679fed667dfa9a617d86860de7e076"
+    },
+    {
+      "path": "scripts/evaluate-jev.ts",
+      "subsystem": "scripts/evaluate-jev.ts",
+      "sha256": "88320c993116905103d23cd2e2d1c3750ea5f16e9494221d9c607a1250c182c8"
+    },
+    {
+      "path": "scripts/evaluate-requirements.ts",
+      "subsystem": "scripts/evaluate-requirements.ts",
+      "sha256": "c6f5f65ca344e5797d1eadbb2a95c9425a2fb6eafd9a0a541fc4bc85b881f1d1"
+    },
+    {
+      "path": "scripts/intelligence-worker.ts",
+      "subsystem": "scripts/intelligence-worker.ts",
+      "sha256": "2e4b311119ecec257091cc0d0e8a7597c8841d68ac3ce533e3934163b1ade2ec"
+    },
+    {
+      "path": "scripts/load-sim.ts",
+      "subsystem": "scripts/load-sim.ts",
+      "sha256": "2416ba4688cc69c5458e528642059cb3211eea9c658a57704295e46c8b4430dd"
+    },
+    {
+      "path": "scripts/migrate.ts",
+      "subsystem": "scripts/migrate.ts",
+      "sha256": "18f9fd56a95580e698c43ff315faa36bf225bdfcfdd8f2f9bcee450f022fe5ea"
+    },
+    {
+      "path": "scripts/refresh-itpro.ts",
+      "subsystem": "scripts/refresh-itpro.ts",
+      "sha256": "73504604e31f9a8943d250c9eec599539eacb07ad8d529412e9bb05f6875cdf4"
+    },
+    {
+      "path": "scripts/refresh-source.ts",
+      "subsystem": "scripts/refresh-source.ts",
+      "sha256": "faa05237a3bf60256bac2e99075997a3085d5f1c81732c4ef21a24c7d6318fd8"
+    },
+    {
+      "path": "scripts/refresh-topjobs.ts",
+      "subsystem": "scripts/refresh-topjobs.ts",
+      "sha256": "952fe14666c79e16bf7a1c88f1d93ba0e8561bf602967fb03c078497cff8c92d"
+    },
+    {
+      "path": "scripts/rematch-deterministic.ts",
+      "subsystem": "scripts/rematch-deterministic.ts",
+      "sha256": "55233fbb1a527cd9cb3588c85a74f24ea9838d21201c21d93f2bd43492cd9347"
+    },
+    {
+      "path": "scripts/report-jev.ts",
+      "subsystem": "scripts/report-jev.ts",
+      "sha256": "d6f8316b0249e6bb2e3ddac568c0029b961ea7ac6a41faa0ffffe106624692a1"
+    },
+    {
+      "path": "scripts/worker.ts",
+      "subsystem": "scripts/worker.ts",
+      "sha256": "f1357f5fb27ac7311a5949a22732ab424b993ead546ef985bbaa1257dd01b191"
+    },
+    {
+      "path": "src/app/(marketing)/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "754a21d8f70dca528477bb51c3bf8f693ecb3b5344910d0f44387f57a60902bd"
+    },
+    {
+      "path": "src/app/(marketing)/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "4ae1a2dbd10998f5aa02f0c3a18058746aca0e0187092987bce6094a972eeaeb"
+    },
+    {
+      "path": "src/app/activity/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "8688f99dd07dedad72421fd0f77d9a1190eca02d37d208359e6dd4c9d6147342"
+    },
+    {
+      "path": "src/app/activity/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "6b821eb286c698824e96598305be0f4f54e28a1ae2783df3cd9b851d2de7e3b8"
+    },
+    {
+      "path": "src/app/api/actions/route.ts",
+      "subsystem": "src/app",
+      "sha256": "85687ef9d56aefac5cc2040d93b862fdc16376d93c4b6c236722c71b1fe2c9fa"
+    },
+    {
+      "path": "src/app/api/ai-usage/route.ts",
+      "subsystem": "src/app",
+      "sha256": "3163c92de63bd2d129fb6805bac24118ea2dc0f65a53a5a20cf731fe62bee62d"
+    },
+    {
+      "path": "src/app/api/auth/route.ts",
+      "subsystem": "src/app",
+      "sha256": "2289526fadd127acfa1b8160c95df2002681a7613cd36a355802b42bd6526f77"
+    },
+    {
+      "path": "src/app/api/candidate/cv/route.ts",
+      "subsystem": "src/app",
+      "sha256": "c89c425c3382f696228c5a6644f06f4f9b5069ceb6a63b65322823ae922a73ec"
+    },
+    {
+      "path": "src/app/api/candidate/route.ts",
+      "subsystem": "src/app",
+      "sha256": "e9ceb3caf81d12414fbad872d4c0068b7bd15e91949bd749169126c7b56680bb"
+    },
+    {
+      "path": "src/app/api/cron/route.ts",
+      "subsystem": "src/app",
+      "sha256": "d18e98c6ae19ef8ab899680de48dedd69dd6bc4d215d4e6a46719ccdbe59aeba"
+    },
+    {
+      "path": "src/app/api/dashboard/route.ts",
+      "subsystem": "src/app",
+      "sha256": "aed71db7f796b054e49b62d3fd3a5f6578bf9f9c0254c211b1448f8f4d843b28"
+    },
+    {
+      "path": "src/app/api/health/route.ts",
+      "subsystem": "src/app",
+      "sha256": "f6967dea28db8d285e6e5fda48d6157a5c2a9b7ad1f9fcec68a292c79d5629c6"
+    },
+    {
+      "path": "src/app/api/intelligence/route.ts",
+      "subsystem": "src/app",
+      "sha256": "4160d285dd5336ed0df1c3c78853e298097c5d387e1f7323d0d3510bddd6e0f9"
+    },
+    {
+      "path": "src/app/api/jobs/[id]/cv-review/route.ts",
+      "subsystem": "src/app",
+      "sha256": "392d3ca7908388d84b298e1f62f1232bb38f9d6cbda099bab4b56bc51b28a30d"
+    },
+    {
+      "path": "src/app/api/jobs/[id]/image-context/route.ts",
+      "subsystem": "src/app",
+      "sha256": "c4d7086da3762da7594b669303ca2ca3b21052d0200ffd158ca4683bf906fb6e"
+    },
+    {
+      "path": "src/app/api/jobs/[id]/route.ts",
+      "subsystem": "src/app",
+      "sha256": "53538b8ef5d9533b61e9bc49128e16b4fc5615449178aaaf3e31f427e0205cd4"
+    },
+    {
+      "path": "src/app/api/jobs/route.ts",
+      "subsystem": "src/app",
+      "sha256": "d0a956038a02dae33c13b6f785710c1883e2fcd41779074d4407c8230605be9b"
+    },
+    {
+      "path": "src/app/api/maintenance/route.ts",
+      "subsystem": "src/app",
+      "sha256": "b09960d3520755c7360e0a96b86b8f7a19c57536730eacefff0364a9401b69c5"
+    },
+    {
+      "path": "src/app/api/monitors/route.ts",
+      "subsystem": "src/app",
+      "sha256": "3cb0c4815ba0332d368ccef859c39afacea874dec36600d032ded49880184cdc"
+    },
+    {
+      "path": "src/app/api/onboarding/route.ts",
+      "subsystem": "src/app",
+      "sha256": "18cd0948931dd59bade8b5a74cef1dcbf10256495b2b1668452236deaed681c2"
+    },
+    {
+      "path": "src/app/api/performance/route.ts",
+      "subsystem": "src/app",
+      "sha256": "50ad2e319cb612d3f3ea17959ae6cd8f9c07ac2d2f04ea4f264e7d35e29dc599"
+    },
+    {
+      "path": "src/app/api/revisions/route.ts",
+      "subsystem": "src/app",
+      "sha256": "357e833c696956b4d970bef1935a38e4dc75a1a7867a3aa4b4c58d3ed6451f39"
+    },
+    {
+      "path": "src/app/api/runs/[id]/jobs/route.ts",
+      "subsystem": "src/app",
+      "sha256": "4b6a9a0af09d0f7b3093620d0afc97e7ab1116adefd753cf47cb859c5ea3b744"
+    },
+    {
+      "path": "src/app/api/runs/route.ts",
+      "subsystem": "src/app",
+      "sha256": "ce117d65854af96999735e6fa8b6878fa9e59112bb2edeb95a8fba9307ee2109"
+    },
+    {
+      "path": "src/app/api/security/route.ts",
+      "subsystem": "src/app",
+      "sha256": "9c789f05d6cfb47d2c42d2dfc6b470c2f5555bd80bba347f813b5f999ffb95d0"
+    },
+    {
+      "path": "src/app/api/sources/route.ts",
+      "subsystem": "src/app",
+      "sha256": "3724174dcc76ea0c2cdeec6f13e3144d950a0b9153fa0c7058f3a8efd2ef4e94"
+    },
+    {
+      "path": "src/app/api/workspace/summary/route.ts",
+      "subsystem": "src/app",
+      "sha256": "fd0a2a4114f8a1064d844fb1050631e765a9eb1a6bae0d3bb8f3c8955ebe65e1"
+    },
+    {
+      "path": "src/app/app/activity/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "8688f99dd07dedad72421fd0f77d9a1190eca02d37d208359e6dd4c9d6147342"
+    },
+    {
+      "path": "src/app/app/activity/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "5387af72b18d813c4eb0d1c638b7d0efec572e9ca323d980138eb794ac7b3aec"
+    },
+    {
+      "path": "src/app/app/dashboard/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "459266a422d7af9dcf3abdda7921b38a17e99b4d5332e2e75d92603f6fff4e08"
+    },
+    {
+      "path": "src/app/app/dashboard/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "993089f94cb2d4171d57d1298726bf7ba7eca9057eea4c8d2246c2766933d63b"
+    },
+    {
+      "path": "src/app/app/intelligence/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "7b21a5371591d34238c984df32942458e8602256c596028d0a6d3bb4665b8dc9"
+    },
+    {
+      "path": "src/app/app/intelligence/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "7851514a36722e755296e9bfadcb5743372ce597ce7e864c72bc8c4749eb02c4"
+    },
+    {
+      "path": "src/app/app/jobs/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "92f4fc92a3a3c1a67a0fbe2ecc92b56d87e0bc6dce2b83d1341e7fbeae3e4c7c"
+    },
+    {
+      "path": "src/app/app/jobs/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "be3e876921d2e9e611229d665517d1225b76e6a9a552853f3c385f85b921eea6"
+    },
+    {
+      "path": "src/app/app/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "459266a422d7af9dcf3abdda7921b38a17e99b4d5332e2e75d92603f6fff4e08"
+    },
+    {
+      "path": "src/app/app/monitors/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "837fa071c40bcec5cd9c398963dc7eccb24fd702c18122c76f8c542936978e0b"
+    },
+    {
+      "path": "src/app/app/monitors/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "58ebe44507c96714dd48c0ed4d100f0dbd083610cc4f519d2bda04e1bae9d081"
+    },
+    {
+      "path": "src/app/app/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "1a26061818d36e7852767bdcd624e8951e5930404935523e90c368bc066ac7a4"
+    },
+    {
+      "path": "src/app/app/profile/cv/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "8eba04b6d779fb7457b3ed332a557df8645a0bf4f696c8a6685c15b7077e9f2c"
+    },
+    {
+      "path": "src/app/app/profile/cv/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "a098e9ea32fc257e4435b852995c7e6013b288d43f24c612b08421cf9bdeb802"
+    },
+    {
+      "path": "src/app/app/saved/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "b2f187c68958acb83d6114eb6fa4d579a1b033a7a1a7501ab47fa595e99a417a"
+    },
+    {
+      "path": "src/app/app/saved/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "c78709af1c49325012de20cab8e56bc102637a2b686820ac266aeee3f3f0cf46"
+    },
+    {
+      "path": "src/app/app/settings/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "c9e22e9594bd5b8fc3b6358604822113b096298cc61110a527cc2c45957e96e0"
+    },
+    {
+      "path": "src/app/app/settings/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "d1a93de78f48d24515b53bb3fe6ee0b283a01ad0d701baa603ca3a59f03be560"
+    },
+    {
+      "path": "src/app/app/sources/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "14821a20ea7d339743d1636107c0a31d6fc90070f9a6c60b684ce74d94832522"
+    },
+    {
+      "path": "src/app/app/sources/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "dfefd28dbfe0d4cef4cf61ee0be95debab92764af6b4cc4b90eeeb65eb72f10e"
+    },
+    {
+      "path": "src/app/auth/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "03d00ab5b3edaf0fc8806cf730c1a862a9ee3020b12d231e22c0d9bbed10e2dd"
+    },
+    {
+      "path": "src/app/auth/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "2cff29363705f97f7107cc357dfe65f3a058a5f457265908d752bede5457d168"
+    },
+    {
+      "path": "src/app/error.tsx",
+      "subsystem": "src/app",
+      "sha256": "a7dd6f7fc9bf9b02f3c36a4fc25b608413e8d5db4966e601f0c7f972349ac5f3"
+    },
+    {
+      "path": "src/app/globals.css",
+      "subsystem": "src/app",
+      "sha256": "42565a500ff3accf194b7688a5dc7f4fdf09d6626274fffc7098ae683c6f8890"
+    },
+    {
+      "path": "src/app/icon.svg",
+      "subsystem": "src/app",
+      "sha256": "0c1b1aa7d097190f9103ac68183f97156b612b3775f8d070245148fd22718b47"
+    },
+    {
+      "path": "src/app/jobs/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "92f4fc92a3a3c1a67a0fbe2ecc92b56d87e0bc6dce2b83d1341e7fbeae3e4c7c"
+    },
+    {
+      "path": "src/app/jobs/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "e26f6c1dc676a9b9c65b1faaa61780c7ca04b65048f88763a18107045d7a268c"
+    },
+    {
+      "path": "src/app/layout.tsx",
+      "subsystem": "src/app",
+      "sha256": "c60a1c63607607a540f5c898a701206ce4f47a26190e93c4c32bb2de95f72ac3"
+    },
+    {
+      "path": "src/app/monitors/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "837fa071c40bcec5cd9c398963dc7eccb24fd702c18122c76f8c542936978e0b"
+    },
+    {
+      "path": "src/app/monitors/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "08f62167184f740c6eb9e5aa1451efbb2161cfbcad10b46e31533a32ca9f7df7"
+    },
+    {
+      "path": "src/app/onboarding/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "212fc28d43df74a65e7d6705767fa32c3c7b3239607fd9adddca1464c8a27c19"
+    },
+    {
+      "path": "src/app/onboarding/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "ce5e37fe8c708b8042de3b2f149808622384dd261fb6dddd5c55327ed2b1e34f"
+    },
+    {
+      "path": "src/app/saved/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "b2f187c68958acb83d6114eb6fa4d579a1b033a7a1a7501ab47fa595e99a417a"
+    },
+    {
+      "path": "src/app/saved/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "660ab2ac67f37b2d5d810ca812c787b61e05c86e4ab5923d1ebbd8ab185aab11"
+    },
+    {
+      "path": "src/app/settings/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "c9e22e9594bd5b8fc3b6358604822113b096298cc61110a527cc2c45957e96e0"
+    },
+    {
+      "path": "src/app/settings/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "a8a41b3592d211b431c0583f71deb0289443f3f6a3f1f50a8e238c6d8581cf92"
+    },
+    {
+      "path": "src/app/sources/loading.tsx",
+      "subsystem": "src/app",
+      "sha256": "14821a20ea7d339743d1636107c0a31d6fc90070f9a6c60b684ce74d94832522"
+    },
+    {
+      "path": "src/app/sources/page.tsx",
+      "subsystem": "src/app",
+      "sha256": "a51977e33275d757e229253a02a73033ab3330cc2bb6f578e964cf60cbf3f6e1"
+    },
+    {
+      "path": "src/components/ai-usage-controls.tsx",
+      "subsystem": "src/components",
+      "sha256": "ee5d07dc7ac543a6ae50a33ab2a2dd69b67c2f8aea8603fae36cef3b336d146c"
+    },
+    {
+      "path": "src/components/auth/auth-gate.tsx",
+      "subsystem": "src/components",
+      "sha256": "f1ee6261a1d75e1e3b2475521e777483530d879e4c75cf8cc9e0f6d9b0d7297b"
+    },
+    {
+      "path": "src/components/auth/auth-page.tsx",
+      "subsystem": "src/components",
+      "sha256": "256d30794cccab4b706844e5e2520f06149fc8b693f9911050203226fee04501"
+    },
+    {
+      "path": "src/components/auth/auth-skeleton.tsx",
+      "subsystem": "src/components",
+      "sha256": "36d6f22e7c800421715c9999b6723efacf999b06a02c96dae77a59189d1743fb"
+    },
+    {
+      "path": "src/components/auth/auth-visual.tsx",
+      "subsystem": "src/components",
+      "sha256": "fb359abe0e2256c6c8786c031b853ebc5dd32384b4f62020e81893080cfa9b49"
+    },
+    {
+      "path": "src/components/cv-workspace.tsx",
+      "subsystem": "src/components",
+      "sha256": "fff6cf654220ba012a04c30588c5c1704b65ef82e855736c093b02442a3a443e"
+    },
+    {
+      "path": "src/components/dashboard-skeleton.tsx",
+      "subsystem": "src/components",
+      "sha256": "64c659b5f8564657dc0c9e4ddc45d06ad0ef5d94aadd00276655a09e59473e63"
+    },
+    {
+      "path": "src/components/dashboard.tsx",
+      "subsystem": "src/components",
+      "sha256": "87d29ac7410ad65d4704867c01e2727004e6af30eb50499fc2dc6ff27c9d294d"
+    },
+    {
+      "path": "src/components/dashboard/activity-view.tsx",
+      "subsystem": "src/components",
+      "sha256": "b2bbf6d61b4c2d592f6de69c866ecefdd29d11053fef71983fa7d9ca06f79f32"
+    },
+    {
+      "path": "src/components/dashboard/empty.tsx",
+      "subsystem": "src/components",
+      "sha256": "01ee4b0784874798c495361383553a508189250d5b370c4f847e264ad92885a3"
+    },
+    {
+      "path": "src/components/dashboard/job-detail.tsx",
+      "subsystem": "src/components",
+      "sha256": "3f651c3f900cb0ea4c37234ae303e15f4b6aef4b15d9a45d0ab4fa02d385af3f"
+    },
+    {
+      "path": "src/components/dashboard/jobs-view.tsx",
+      "subsystem": "src/components",
+      "sha256": "27eeacce69d790b81deb928055b3e4921be807084d5afe0c95e4650a677c0b7b"
+    },
+    {
+      "path": "src/components/dashboard/modal-dialog.tsx",
+      "subsystem": "src/components",
+      "sha256": "615c4a7fbddcd3a763f2ccac5590e04cfe19943a24b0c0f55629c8e0de66dd52"
+    },
+    {
+      "path": "src/components/dashboard/monitor-form.tsx",
+      "subsystem": "src/components",
+      "sha256": "c00b2a861ea81a9a56691b18beaf30913aa163e3bebd157a19aecb97a7694947"
+    },
+    {
+      "path": "src/components/dashboard/monitors-view.tsx",
+      "subsystem": "src/components",
+      "sha256": "e299394e1bc9f2697c1480b4c43921de50e6c1bbd77b80ad364decfbe7e70acf"
+    },
+    {
+      "path": "src/components/dashboard/overview-view.tsx",
+      "subsystem": "src/components",
+      "sha256": "023b37324c5483e8d89aeb4d8d5a74d6c2e5b4dde95470196d9b33961c563dde"
+    },
+    {
+      "path": "src/components/dashboard/settings-view.tsx",
+      "subsystem": "src/components",
+      "sha256": "ec0a7b2d184529740799562450aab3ae836b7984a6568bd8f52169b3483461a2"
+    },
+    {
+      "path": "src/components/dashboard/shared.tsx",
+      "subsystem": "src/components",
+      "sha256": "cafa50664900342706dd2551d5ce6fc558486dd577683e4c5e9f0a67a5554f19"
+    },
+    {
+      "path": "src/components/dashboard/source-form.tsx",
+      "subsystem": "src/components",
+      "sha256": "f49b9bea32096afca8552d89b4662ad1c66c1f54576e1f099d4ffdc0ada67348"
+    },
+    {
+      "path": "src/components/dashboard/sources-view.tsx",
+      "subsystem": "src/components",
+      "sha256": "c3c89ace9da9125e3a1db0ca5867a5b8eb10d12b1824542823c4503d1731d4b4"
+    },
+    {
+      "path": "src/components/dashboard/stat.tsx",
+      "subsystem": "src/components",
+      "sha256": "7bc8c7e0b03f30f60ff18c2d3f03553878299afd3d0c638c4b40d0d951fe7d53"
+    },
+    {
+      "path": "src/components/intelligence-controls.tsx",
+      "subsystem": "src/components",
+      "sha256": "37d81f207480d6ba2b75ecee6c4a301dd225572234da633137346787128e394b"
+    },
+    {
+      "path": "src/components/job-cv-review.tsx",
+      "subsystem": "src/components",
+      "sha256": "e579837b3c3ae744f2105e89281cdb56ccc37871708b1443f95fa53702548d7a"
+    },
+    {
+      "path": "src/components/job-image-context.tsx",
+      "subsystem": "src/components",
+      "sha256": "7af7fcaa033ae7378432775bdcb2924e3d39a9472bb547dfd263869f5040bffe"
+    },
+    {
+      "path": "src/components/landing/landing-page.tsx",
+      "subsystem": "src/components",
+      "sha256": "9d2e0204b1c32450e9e82469c511cbaae733886926fb5023b8760a484bbf48f5"
+    },
+    {
+      "path": "src/components/landing/landing-skeleton.tsx",
+      "subsystem": "src/components",
+      "sha256": "4749e52f15d8bfcaaaf4adc4d31edddca924cc29d75ef6c1e9a2acc8ae603eb9"
+    },
+    {
+      "path": "src/components/onboarding/onboarding-flow.tsx",
+      "subsystem": "src/components",
+      "sha256": "497b7209f40b776db1d86d397e019a023931ae8343b4801e107371d908b26c21"
+    },
+    {
+      "path": "src/components/performance-cost-panel.tsx",
+      "subsystem": "src/components",
+      "sha256": "b736ef346e8935392c1ed576bd06ac3abfd57041cc7270a1f7fab4c03a270e4a"
+    },
+    {
+      "path": "src/components/security-activity.tsx",
+      "subsystem": "src/components",
+      "sha256": "8977491a7b994dd003343f57ee22d1625ad381e533cc369d1ac52acf34bad3b4"
+    },
+    {
+      "path": "src/components/workspace-content-skeleton.tsx",
+      "subsystem": "src/components",
+      "sha256": "579a23e3d67847cad613ea3a12fe1acedfa99faf4096af8609db22630f146006"
+    },
+    {
+      "path": "src/components/workspace-page.tsx",
+      "subsystem": "src/components",
+      "sha256": "e9dd98be56186941473de2ccb5a45d161b7017268fdcf00d275231376f9e30a0"
+    },
+    {
+      "path": "src/lib/actions/job-state.ts",
+      "subsystem": "src/lib",
+      "sha256": "4b6450b49a170edf03e12784756344b6743c851cb71c4fad8893665e9d561b94"
+    },
+    {
+      "path": "src/lib/actions/monitors.ts",
+      "subsystem": "src/lib",
+      "sha256": "2f6f7b385cda972206e38ad21a931e68b6bb4bf19ba538a241106abb399777bd"
+    },
+    {
+      "path": "src/lib/actions/profile.ts",
+      "subsystem": "src/lib",
+      "sha256": "81712c6c4d523139ed27df1d38a323eafafa257df32547a513e94b6d9d400321"
+    },
+    {
+      "path": "src/lib/actions/sources.ts",
+      "subsystem": "src/lib",
+      "sha256": "aa418c61261ede678edd9e9f733c2df2f9ae7b04155be7e0ec5ab34cf32b7097"
+    },
+    {
+      "path": "src/lib/ai-budget.ts",
+      "subsystem": "src/lib",
+      "sha256": "0e9b5dfb834137bca49aa0af9dd8ce0ed0df6bd283096ec565db26364e9e4904"
+    },
+    {
+      "path": "src/lib/ai-usage.ts",
+      "subsystem": "src/lib",
+      "sha256": "1c68b5c3ba72379b5437f9e628a60462810b508dc736c1262662aa7998c25f51"
+    },
+    {
+      "path": "src/lib/api-read.ts",
+      "subsystem": "src/lib",
+      "sha256": "09d7508f81ffdc3376fc7162bba8715c722d8fab8795ec303bf6e44cc5f75f91"
+    },
+    {
+      "path": "src/lib/auth.ts",
+      "subsystem": "src/lib",
+      "sha256": "1a79b166b62f9d8cf5811f2971825421f7a051fbac7b351ea5b0967d133f9b67"
+    },
+    {
+      "path": "src/lib/connectors.ts",
+      "subsystem": "src/lib",
+      "sha256": "5dab182f7dc0b15076a24801360c0e785e6e6eb16140e1c80feac9263559937d"
+    },
+    {
+      "path": "src/lib/cv/extract-client.ts",
+      "subsystem": "src/lib",
+      "sha256": "e0204f4d0e31b919db26bb2250caf1c80a58effdae8105b9e76184626007a3af"
+    },
+    {
+      "path": "src/lib/cv/profile.ts",
+      "subsystem": "src/lib",
+      "sha256": "be1668fc09e6b93de57841e36832f74c31b18b317260871f55edb424a90f6b5c"
+    },
+    {
+      "path": "src/lib/cv/schema.ts",
+      "subsystem": "src/lib",
+      "sha256": "f763daea6f55c3e71f77632593263377341d46f6e7e597a248ca42aa35048c57"
+    },
+    {
+      "path": "src/lib/database-config.ts",
+      "subsystem": "src/lib",
+      "sha256": "9dc324c5f1403a00e81cca6f8c0c047cc8ebd6691292c3acc102170f555f1ccc"
+    },
+    {
+      "path": "src/lib/database-error.ts",
+      "subsystem": "src/lib",
+      "sha256": "f6a5ffc08675fb7a4c672f7349c950b33ffc5da81f7ea664ed48e251d73c1dd5"
+    },
+    {
+      "path": "src/lib/db.ts",
+      "subsystem": "src/lib",
+      "sha256": "c27176d827031067bff1274f8ddcdc1629d149211c259aec040982833f610955"
+    },
+    {
+      "path": "src/lib/demo.ts",
+      "subsystem": "src/lib",
+      "sha256": "701e45a4ee47d44b106ad93fbf064f2cf0223edaed6764fe19a20c6e79c3271b"
+    },
+    {
+      "path": "src/lib/focused-repository.ts",
+      "subsystem": "src/lib",
+      "sha256": "71045d766588acbea28fccb2273762fafa862f29ad054e019d7b3625fa7615d7"
+    },
+    {
+      "path": "src/lib/intelligence/cv-fit.ts",
+      "subsystem": "src/lib",
+      "sha256": "0711c5c077959103dfd2abf85a2f79694c4cf395e7263c01940e27cf7ceebf41"
+    },
+    {
+      "path": "src/lib/intelligence/cv-review.ts",
+      "subsystem": "src/lib",
+      "sha256": "c5dfa87ded4ec46451685fef27cb53e40d55c9503a875c8d03084c536e7f8aba"
+    },
+    {
+      "path": "src/lib/intelligence/job-state.ts",
+      "subsystem": "src/lib",
+      "sha256": "34316acd6e89dfe57e9bc222268c23c7a06e0abf3a5eb1c597355d8fe2e5dbcd"
+    },
+    {
+      "path": "src/lib/intelligence/queue.ts",
+      "subsystem": "src/lib",
+      "sha256": "f50e34492ec2f62fc63bd14e926258762337bc8a9edfea6fc111e15b44c61812"
+    },
+    {
+      "path": "src/lib/intelligence/report.ts",
+      "subsystem": "src/lib",
+      "sha256": "b304eb6c9408512e361de577b2597800d1c523894c575a8022bf536488a27c3e"
+    },
+    {
+      "path": "src/lib/intelligence/requirements.ts",
+      "subsystem": "src/lib",
+      "sha256": "6068b9ad2d264f1e146ff1bcd046536a8352a177ca8bac59a24d9cbbba196884"
+    },
+    {
+      "path": "src/lib/intelligence/worker.ts",
+      "subsystem": "src/lib",
+      "sha256": "799656ca184dc202e9c681c78b7efc44ca12536cd758d0bfec6e6fdc6743dca8"
+    },
+    {
+      "path": "src/lib/jev/client.ts",
+      "subsystem": "src/lib",
+      "sha256": "208de1308604017c0e0bb10a83aeb6170265e23b423d8de3cbd2e3261266c9a7"
+    },
+    {
+      "path": "src/lib/jev/config.ts",
+      "subsystem": "src/lib",
+      "sha256": "1a0aa9a1393ef29e633f4a46c921691258dcaf9650cafae6763687fbc92d07b2"
+    },
+    {
+      "path": "src/lib/jev/contract.ts",
+      "subsystem": "src/lib",
+      "sha256": "c7581412156b5b5505e5fe653cbbe3c72dcfacb69d942988eab02f26cde3f2e0"
+    },
+    {
+      "path": "src/lib/jev/evaluation.ts",
+      "subsystem": "src/lib",
+      "sha256": "626ed97ba4aff462ee4ff6167ecb6242f79953601b8c4b3abe5904962e122d6d"
+    },
+    {
+      "path": "src/lib/jev/policy.ts",
+      "subsystem": "src/lib",
+      "sha256": "163bffa3f90caa8420b393be2b9a4473643386c8db378a9580774750d64989dc"
+    },
+    {
+      "path": "src/lib/jev/questions/job-classification-v1.ts",
+      "subsystem": "src/lib",
+      "sha256": "227713f3f7da8a1e66cfdf7534f10a6001b63c73b446f99c8a9b31144c7ff38d"
+    },
+    {
+      "path": "src/lib/linkedin.ts",
+      "subsystem": "src/lib",
+      "sha256": "1e9dab02cac0fc6d9ecd2dfda509ebfb52b463ca05197ae9d10c6191d3847c44"
+    },
+    {
+      "path": "src/lib/matching-repository.ts",
+      "subsystem": "src/lib",
+      "sha256": "2d0b805480a3b764ef66045fea75bfbe5796538a57d7811e1c40ef23bc96c1d7"
+    },
+    {
+      "path": "src/lib/matching.ts",
+      "subsystem": "src/lib",
+      "sha256": "b4b923d0078dbd5da1a91b965a824a77ceb88dcd042ff381f3cf740d23c3db13"
+    },
+    {
+      "path": "src/lib/ocr/advert-text.ts",
+      "subsystem": "src/lib",
+      "sha256": "a0d79e752225d2be72e084fd0eb35dc1ec1fc4781e74b228f07fff44d8034f1d"
+    },
+    {
+      "path": "src/lib/rate-limit.ts",
+      "subsystem": "src/lib",
+      "sha256": "d486680f8cf8658230604e4b9cb911fa999c732bac3f40ecff7f63ea20a6e47f"
+    },
+    {
+      "path": "src/lib/repository.ts",
+      "subsystem": "src/lib",
+      "sha256": "a4829f9de6c898a8e09235273328fe1155ed03552c6f467bd0bab3088d0785aa"
+    },
+    {
+      "path": "src/lib/request-body.ts",
+      "subsystem": "src/lib",
+      "sha256": "6b7b3878366c71b94a3ecd0b6ba1a7adf62ca131cbda1b53aca5460fd2e98d40"
+    },
+    {
+      "path": "src/lib/revisions.ts",
+      "subsystem": "src/lib",
+      "sha256": "330657e91557af42355b3c989af27e3c4c6a9cf9a85a9b20f13317a36596d891"
+    },
+    {
+      "path": "src/lib/security.ts",
+      "subsystem": "src/lib",
+      "sha256": "8d056f205be36e2849d83faceea3e56d4d712967d786388299c1d6115871dbd5"
+    },
+    {
+      "path": "src/lib/sync.ts",
+      "subsystem": "src/lib",
+      "sha256": "dd0997f6d5b09ed829134eb08e85954da7f7cf83722066ac5df23c116e7c1a9e"
+    },
+    {
+      "path": "src/lib/types.ts",
+      "subsystem": "src/lib",
+      "sha256": "67eb9d5a8cca1f19a435bc021ed5382a8fdc8809e8318ed744ce2b752c08c915"
+    },
+    {
+      "path": "src/lib/validation.ts",
+      "subsystem": "src/lib",
+      "sha256": "5cbbf448fe822bbb44a139e0ef77540ae987c7c07b14a5cbf8998d266112a072"
+    },
+    {
+      "path": "src/proxy.ts",
+      "subsystem": "src/proxy.ts",
+      "sha256": "e6da109d4e2ac87f2afa4de5aac235370b59ee715e7bd198bc92062a3e8f3a9a"
+    },
+    {
+      "path": "tests/actions.test.ts",
+      "subsystem": "tests/actions.test.ts",
+      "sha256": "9c88902df969f4ccf324d9bc7d87b10fe6fc82d8f66b73b73ab05c8918e25fee"
+    },
+    {
+      "path": "tests/advert-text.test.ts",
+      "subsystem": "tests/advert-text.test.ts",
+      "sha256": "da803584c8669722a5f9a42bf2e05ce1733705dedcd83ba46dac39ea5a7ec935"
+    },
+    {
+      "path": "tests/agent-index.test.ts",
+      "subsystem": "tests/agent-index.test.ts",
+      "sha256": "d19204fc7c9d6f8f50574353159299092597ff26a97b0066a97074333cbc4c5d"
+    },
+    {
+      "path": "tests/agent-platform.test.ts",
+      "subsystem": "tests/agent-platform.test.ts",
+      "sha256": "c1c40ca232200ae1b2ed3ba9639044130e0344fbd692df8aa239cb9e3f03598a"
+    },
+    {
+      "path": "tests/agent-workflow.test.ts",
+      "subsystem": "tests/agent-workflow.test.ts",
+      "sha256": "cc49ad0be32b1382c8e7b02aec94347dfd8f5652f3ddfacf1d34614b6e831a24"
+    },
+    {
+      "path": "tests/ai-usage.test.ts",
+      "subsystem": "tests/ai-usage.test.ts",
+      "sha256": "3c0593774e5f1ca32f4fc18dab0a43e7642a2a402e66d90cdaa29df9e051737b"
+    },
+    {
+      "path": "tests/architecture.test.ts",
+      "subsystem": "tests/architecture.test.ts",
+      "sha256": "5e939881038787af53229e04e5a14b97fbde34d0bf06819558f55486904ec0da"
+    },
+    {
+      "path": "tests/auth.test.ts",
+      "subsystem": "tests/auth.test.ts",
+      "sha256": "a4043608dee48de7cb1072e519abad077d2e9574c483125eeffb9e793a95060a"
+    },
+    {
+      "path": "tests/core.test.ts",
+      "subsystem": "tests/core.test.ts",
+      "sha256": "0e400cb33bcf229321b206bad36bfdfa5ea7f7f319d90dbf091b8e4dc4e2c0ce"
+    },
+    {
+      "path": "tests/cv-review.test.ts",
+      "subsystem": "tests/cv-review.test.ts",
+      "sha256": "0931b808b619123c4d7d26502df72a0e229d2f08a86065a00fc4c607e72a1d81"
+    },
+    {
+      "path": "tests/cv.test.ts",
+      "subsystem": "tests/cv.test.ts",
+      "sha256": "c7821dcdeab532062ba2de49beaeacd13debb4fadddbbcd9192a3ea84cd73d3e"
+    },
+    {
+      "path": "tests/dashboard-views.test.ts",
+      "subsystem": "tests/dashboard-views.test.ts",
+      "sha256": "c071b37fd81e7a20074747113bd1adc73dd7dde274b248b49a9f080487524674"
+    },
+    {
+      "path": "tests/database-config.test.ts",
+      "subsystem": "tests/database-config.test.ts",
+      "sha256": "e9380e836cfa27dc62abe3a1f307565a0abf81e57b41eb2278e391c5eab086eb"
+    },
+    {
+      "path": "tests/database.test.ts",
+      "subsystem": "tests/database.test.ts",
+      "sha256": "2cb3bf7f98297e56e64e5b230fbecdd11c44dfea03e72e5b7bffa5dbbde71eb7"
+    },
+    {
+      "path": "tests/fixtures/jev-job-gold.json",
+      "subsystem": "tests/fixtures",
+      "sha256": "17341d899a583e6c94e36fa980d44abc54ba79f75a5167bba8e94c79194fd0b7"
+    },
+    {
+      "path": "tests/image-context-route.test.ts",
+      "subsystem": "tests/image-context-route.test.ts",
+      "sha256": "45debc88a450c552e94a372f8d222d286e5bae3b336fa4918dac25cc0de8e2bf"
+    },
+    {
+      "path": "tests/intelligence.test.ts",
+      "subsystem": "tests/intelligence.test.ts",
+      "sha256": "f2c536297887cb3e828111999d7fba03dc45e91973964a4e6684f7d9664630d2"
+    },
+    {
+      "path": "tests/jev.test.ts",
+      "subsystem": "tests/jev.test.ts",
+      "sha256": "54ae0a7606ce2829cb4510fc60f4c2cf46f5aee755cf2e3e76454ea90ffadc03"
+    },
+    {
+      "path": "tests/matching-repository.test.ts",
+      "subsystem": "tests/matching-repository.test.ts",
+      "sha256": "433fa45aaa0000d25822f174384e6d907058bdec837fca2a1096167c87aa69d9"
+    },
+    {
+      "path": "tests/rate-limit.test.ts",
+      "subsystem": "tests/rate-limit.test.ts",
+      "sha256": "794130f3d6597e2f50c701906d3f84c81ff05cdb4959bc28a0a46b7b463920ff"
+    },
+    {
+      "path": "tests/requirements.test.ts",
+      "subsystem": "tests/requirements.test.ts",
+      "sha256": "149c7ec478d1abac73cf859465b610b7fe077931f2f1fd2344f127cac5dadecc"
+    },
+    {
+      "path": "tests/security.test.ts",
+      "subsystem": "tests/security.test.ts",
+      "sha256": "d58fddc5bc113a161e4aa8e4db5fceb3ef45ba4a2d817d2bd41bcdfd3ac2db75"
+    },
+    {
+      "path": "tests/sync.test.ts",
+      "subsystem": "tests/sync.test.ts",
+      "sha256": "9031953791ce9a5c77b82c194b125d850eb55f2a4028e95c7d26976eb19521d9"
+    },
+    {
+      "path": "tsconfig.json",
+      "subsystem": "tsconfig.json",
+      "sha256": "3e079fb44c4c7e0eb5a61bc6f5d73d3b0867ec866e2797ce2534e7700d8b0954"
+    }
+  ],
+  "packages": {
+    "jobradar": {
+      "root": ".",
+      "entrypoints": ["src/app/layout.tsx", "src/components/dashboard.tsx"],
+      "tests": "tests"
+    }
+  },
+  "subsystems": {
+    "dashboard": {
+      "roots": ["src/components"],
+      "entrypoints": ["src/components/dashboard.tsx"],
+      "tests": ["tests/dashboard-views.test.ts"],
+      "docs": ["docs/architecture/system.md"],
+      "depends_on": ["actions"],
+      "review": [
+        "Navigation, client/server boundary, demo/live separation and accessibility"
+      ]
+    },
+    "actions": {
+      "roots": ["src/app/api/actions", "src/lib/actions"],
+      "entrypoints": ["src/app/api/actions/route.ts"],
+      "tests": ["tests/actions.test.ts"],
+      "docs": ["docs/security/security-audit.md"],
+      "depends_on": ["matching", "collection", "database"],
+      "review": [
+        "All action names, validation, status/body contracts, owner/member access and audit events"
+      ]
+    },
+    "matching": {
+      "roots": ["src/lib/matching.ts", "src/lib/matching-repository.ts"],
+      "entrypoints": ["src/lib/matching-repository.ts"],
+      "tests": ["tests/matching-repository.test.ts", "tests/database.test.ts"],
+      "docs": ["docs/architecture/system.md"],
+      "depends_on": ["database"],
+      "review": [
+        "Caller-owned transactions, deterministic/assisted modes, scoped SQL and empty inputs"
+      ]
+    },
+    "collection": {
+      "roots": ["src/lib/sync.ts", "src/lib/connectors.ts"],
+      "entrypoints": ["src/lib/sync.ts"],
+      "tests": ["tests/sync.test.ts"],
+      "docs": ["docs/api/source-integrations.md"],
+      "depends_on": ["matching", "database"],
+      "review": [
+        "Source leases, allowlisted connectors and rollback; never run collection as verification"
+      ]
+    },
+    "database": {
+      "roots": ["db", "src/lib/db.ts", "scripts/migrate.ts"],
+      "entrypoints": ["src/lib/db.ts", "scripts/migrate.ts"],
+      "tests": ["tests/database.test.ts", "tests/database-config.test.ts"],
+      "docs": ["docs/operations/runbook.md"],
+      "depends_on": [],
+      "review": [
+        "Explicit migration registration, shared schema compatibility and separate deployment review"
+      ]
+    },
+    "intelligence": {
+      "roots": [
+        "src/lib/jev",
+        "src/lib/intelligence",
+        "src/app/api/intelligence"
+      ],
+      "entrypoints": ["src/lib/intelligence/worker.ts"],
+      "tests": ["tests/jev.test.ts", "tests/intelligence.test.ts"],
+      "docs": ["docs/api/jev-decision-contract.md"],
+      "depends_on": ["matching", "database"],
+      "review": [
+        "JEV-only policy, judgment contracts and offline evaluation; no live calls"
+      ]
+    },
+    "workflow": {
+      "roots": [
+        ".agent",
+        ".agents",
+        ".claude",
+        ".codex",
+        "AGENTS.md",
+        "CLAUDE.md"
+      ],
+      "entrypoints": [".agent/scripts/verify.mjs"],
+      "tests": [
+        "tests/agent-index.test.ts",
+        "tests/agent-workflow.test.ts",
+        "tests/architecture.test.ts"
+      ],
+      "docs": ["docs/operations/agent-workflow.md"],
+      "depends_on": [],
+      "review": [
+        "Read-only checks, source-bound evidence and canonical skill adapters"
+      ]
+    }
+  }
+}

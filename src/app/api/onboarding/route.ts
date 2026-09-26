@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { authorizeWrite } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { rebuildMatchesForUser } from "@/lib/sync";
+import { rebuildMatchesForUser } from "@/lib/matching-repository";
 import { onboardingSchema, ownerOnboardingSchema } from "@/lib/validation";
 import { readJsonBody, RequestBodyError } from "@/lib/request-body";
 import { rateLimitResponse } from "@/lib/rate-limit";
@@ -11,9 +11,8 @@ export async function POST(request: Request) {
   try {
     const user = await authorizeWrite(request);
     const requestLimit = user.role === "owner" ? 512_000 : 60_000;
-    const preferences = (user.role === "owner"
-      ? ownerOnboardingSchema
-      : onboardingSchema
+    const preferences = (
+      user.role === "owner" ? ownerOnboardingSchema : onboardingSchema
     ).parse(await readJsonBody(request, requestLimit));
     const client = await db().connect();
     try {
@@ -31,7 +30,10 @@ export async function POST(request: Request) {
             monitor.excludedKeywords,
             monitor.location,
             monitor.remoteOnly,
-            monitor.workModes || (monitor.remoteOnly ? ["remote"] : ["onsite", "hybrid", "remote"]),
+            monitor.workModes ||
+              (monitor.remoteOnly
+                ? ["remote"]
+                : ["onsite", "hybrid", "remote"]),
             monitor.enabled,
           ],
         );

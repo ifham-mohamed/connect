@@ -1,0 +1,18 @@
+{
+  "name": "repository-search",
+  "version": "0.1.0",
+  "description": "Search local repository documentation using bounded, in-memory SQLite FTS5.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Repository Search",
+    "shortDescription": "Search local documentation with Node 24.",
+    "longDescription": "Dependency-free full-text search over docs and curated context. No network access or persistent index.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Help me use Repository Search."
+  }
+}

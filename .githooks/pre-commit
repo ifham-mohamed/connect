@@ -1,0 +1,3 @@
+#!/bin/sh
+# Explicit commits still require user authorization; this hook is a quality gate.
+exec node .agent/scripts/verify.mjs

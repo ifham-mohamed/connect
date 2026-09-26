@@ -1,0 +1,461 @@
+{
+  "schema_version": 1,
+  "base_commit": "41a238573b38d1aba26aaafbaaf4076237af45c9",
+  "meaning": "Current Git observation; does not attribute changes to an agent",
+  "changes": [
+    {
+      "status": " M",
+      "path": "AGENTS.md"
+    },
+    {
+      "status": " M",
+      "path": "docs/architecture.md"
+    },
+    {
+      "status": " M",
+      "path": "docs/operations.md"
+    },
+    {
+      "status": " M",
+      "path": "eslint.config.mjs"
+    },
+    {
+      "status": " M",
+      "path": "package.json"
+    },
+    {
+      "status": " M",
+      "path": "scripts/rematch-deterministic.ts"
+    },
+    {
+      "status": " M",
+      "path": "src/app/api/actions/route.ts"
+    },
+    {
+      "status": " M",
+      "path": "src/app/api/intelligence/route.ts"
+    },
+    {
+      "status": " M",
+      "path": "src/app/api/onboarding/route.ts"
+    },
+    {
+      "status": " M",
+      "path": "src/components/dashboard.tsx"
+    },
+    {
+      "status": " M",
+      "path": "src/components/workspace-page.tsx"
+    },
+    {
+      "status": " M",
+      "path": "src/lib/intelligence/worker.ts"
+    },
+    {
+      "status": " M",
+      "path": "src/lib/sync.ts"
+    },
+    {
+      "status": " M",
+      "path": "tests/database.test.ts"
+    },
+    {
+      "status": " M",
+      "path": "tsconfig.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/context/architecture.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/context/conventions.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/context/dependencies.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/context/glossary.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/context/navigation.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/context/project.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/context/security.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/index/changed-files.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/index/dependencies.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/index/ownership.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/index/repo-map.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/index/symbols.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/memory/decisions/ADR-001-shared-agent-workflows.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/memory/known-issues.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/memory/lessons.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/schemas/handoff.schema.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/schemas/provenance.schema.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/schemas/repo-index.schema.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/schemas/task-state.schema.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/scripts/architecture-check.mjs"
+    },
+    {
+      "status": "??",
+      "path": ".agent/scripts/changed-files.mjs"
+    },
+    {
+      "status": "??",
+      "path": ".agent/scripts/context-check.mjs"
+    },
+    {
+      "status": "??",
+      "path": ".agent/scripts/context-health.mjs"
+    },
+    {
+      "status": "??",
+      "path": ".agent/scripts/contracts.mjs"
+    },
+    {
+      "status": "??",
+      "path": ".agent/scripts/impact-analysis.mjs"
+    },
+    {
+      "status": "??",
+      "path": ".agent/scripts/subsystems.mjs"
+    },
+    {
+      "status": "??",
+      "path": ".agent/scripts/sync-skills.mjs"
+    },
+    {
+      "status": "??",
+      "path": ".agent/scripts/update-index.mjs"
+    },
+    {
+      "status": "??",
+      "path": ".agent/scripts/verify.mjs"
+    },
+    {
+      "status": "??",
+      "path": ".agent/skills/architecture-analysis/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/skills/change-planning/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/skills/code-review/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/skills/implementation/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/skills/release/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/skills/repo-discovery/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/skills/security-review/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/skills/verification/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/context-expansion/brief.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/context-expansion/changed-files.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/context-expansion/findings.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/context-expansion/handoff.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/context-expansion/plan.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/context-expansion/state.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/context-expansion/verification.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/impact-upgrade/brief.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/impact-upgrade/findings.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/impact-upgrade/plan.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/impact-upgrade/state.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/impact-upgrade/verification.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/orchestration-upgrade/brief.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/orchestration-upgrade/handoff.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/orchestration-upgrade/plan.md"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/orchestration-upgrade/state.json"
+    },
+    {
+      "status": "??",
+      "path": ".agent/tasks/orchestration-upgrade/verification.md"
+    },
+    {
+      "status": "??",
+      "path": ".agents/skills/architecture-analysis/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agents/skills/change-planning/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agents/skills/code-review/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agents/skills/implementation/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agents/skills/release/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agents/skills/repo-discovery/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agents/skills/security-review/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".agents/skills/verification/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".claude/README.md"
+    },
+    {
+      "status": "??",
+      "path": ".claude/skills/architecture-analysis/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".claude/skills/change-planning/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".claude/skills/code-review/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".claude/skills/implementation/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".claude/skills/release/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".claude/skills/repo-discovery/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".claude/skills/security-review/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".claude/skills/verification/SKILL.md"
+    },
+    {
+      "status": "??",
+      "path": ".codex/README.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/agent-workflow.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/codex_claude_unified_orchestration_blueprint.md"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/activity-view.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/empty.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/job-detail.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/jobs-view.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/modal-dialog.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/monitor-form.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/monitors-view.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/overview-view.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/settings-view.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/shared.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/source-form.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/sources-view.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/components/dashboard/stat.tsx"
+    },
+    {
+      "status": "??",
+      "path": "src/lib/actions/job-state.ts"
+    },
+    {
+      "status": "??",
+      "path": "src/lib/actions/monitors.ts"
+    },
+    {
+      "status": "??",
+      "path": "src/lib/actions/profile.ts"
+    },
+    {
+      "status": "??",
+      "path": "src/lib/actions/sources.ts"
+    },
+    {
+      "status": "??",
+      "path": "src/lib/matching-repository.ts"
+    },
+    {
+      "status": "??",
+      "path": "tests/actions.test.ts"
+    },
+    {
+      "status": "??",
+      "path": "tests/agent-index.test.ts"
+    },
+    {
+      "status": "??",
+      "path": "tests/agent-workflow.test.ts"
+    },
+    {
+      "status": "??",
+      "path": "tests/architecture.test.ts"
+    },
+    {
+      "status": "??",
+      "path": "tests/dashboard-views.test.ts"
+    },
+    {
+      "status": "??",
+      "path": "tests/matching-repository.test.ts"
+    }
+  ],
+  "captured_at": "2026-09-25T09:15:33.238Z",
+  "scope": "Historical checkpoint; not attribution"
+}

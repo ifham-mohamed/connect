@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "task_id": "context-expansion",
+  "goal": "Adapt fuller shared context and deterministic navigation workflows to Jobradar",
+  "owner": "codex",
+  "status": "complete",
+  "base_commit": "41a238573b38d1aba26aaafbaaf4076237af45c9",
+  "baseline_changes": [
+    "M AGENTS.md",
+    " M docs/architecture.md",
+    " M docs/operations.md",
+    " M eslint.config.mjs",
+    " M package.json",
+    " M scripts/rematch-deterministic.ts",
+    " M src/app/api/actions/route.ts",
+    " M src/app/api/intelligence/route.ts",
+    " M src/app/api/onboarding/route.ts",
+    " M src/components/dashboard.tsx",
+    " M src/components/workspace-page.tsx",
+    " M src/lib/intelligence/worker.ts",
+    " M src/lib/sync.ts",
+    " M tests/database.test.ts",
+    " M tsconfig.json",
+    "?? .agent/",
+    "?? docs/codex_claude_unified_orchestration_blueprint.md",
+    "?? src/components/dashboard/",
+    "?? src/lib/actions/",
+    "?? src/lib/matching-repository.ts",
+    "?? tests/actions.test.ts",
+    "?? tests/agent-workflow.test.ts",
+    "?? tests/architecture.test.ts",
+    "?? tests/dashboard-views.test.ts",
+    "?? tests/matching-repository.test.ts"
+  ],
+  "intended_files": [
+    ".agent",
+    ".agents",
+    ".claude",
+    ".codex",
+    "AGENTS.md",
+    "package.json",
+    "docs/agent-workflow.md",
+    "tests/agent-index.test.ts"
+  ],
+  "completed": [
+    "Seven focused context documents and shared decision memory",
+    "Eight canonical skills with checked Codex/Claude discovery copies",
+    "Static source hashes, named exports, import dependencies and module responsibility indices",
+    "Read-only Git changes and conservative impact analysis",
+    "Schema and context-health checks",
+    "Full verification and skill validation"
+  ],
+  "remaining": [],
+  "verification": [
+    "npm run agent:verify: exit 0; context/format/lint/types/136 tests passed",
+    "Eight skill quick validations: exit 0",
+    "Build skipped: development scripts/documentation only in this expansion; earlier build is historical",
+    "Original blueprint hash unchanged"
+  ]
+}
