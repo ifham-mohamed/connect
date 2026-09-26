@@ -1,8 +1,8 @@
 {
   "provenance": {
     "schema_version": 1,
-    "base_commit": "f1900cb27079285985f97808f933c9ad86778d5b",
-    "source_hash": "a6188f20c91b20c95471c57a6d85c44c8958df8d0b89e20d17db3a7520c63049",
+    "base_commit": "17748712bf1894428cfe7e43d2b9d91d5cb1d0e0",
+    "source_hash": "6b2a4d1484b717f25d1dc80f109530157d293a1557afa6ab4a6b8f986c67e49e",
     "generator": ".agent/scripts/update-index.mjs"
   },
   "packages": {

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "base_commit": "f1900cb27079285985f97808f933c9ad86778d5b",
+  "base_commit": "17748712bf1894428cfe7e43d2b9d91d5cb1d0e0",
   "sources": [
     {
       "path": ".agent/capabilities.json",
@@ -305,12 +305,12 @@
     {
       "path": "AGENTS.md",
       "subsystem": "AGENTS.md",
-      "sha256": "760b1c5b8d5e1786a909abdc5a3238bd98b0e3e839c60d69be30ce799b02531a"
+      "sha256": "4cf4677ca1c7dbfd08d1dd4e56d98eab84e868dee02bc7313aad142e0b5544c4"
     },
     {
       "path": "CLAUDE.md",
       "subsystem": "CLAUDE.md",
-      "sha256": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49"
+      "sha256": "a594389e6e93272838249502a6625e1bde9e28b47f020b49bb74be257a3d1f42"
     },
     {
       "path": "db/001_initial.sql",

@@ -46,3 +46,40 @@ source collection, personal job tracking, and optional JEV judgments.
 - Independent writers use separate Git worktrees; coordinate overlapping file
   claims and preserve uncommitted changes. See the shared workflow for optional
   workspace metadata and the limits of advisory ownership checks.
+
+# Behavioral guidelines
+
+These guidelines bias toward caution over speed. Use judgment for trivial
+tasks.
+
+## Think before coding
+
+- State assumptions explicitly. If uncertain, ask before implementing.
+- Surface multiple interpretations and tradeoffs instead of choosing silently.
+- Prefer a simpler approach when it solves the request; push back on needless
+  complexity.
+- If the request is unclear, name the ambiguity and ask before making a
+  consequential change.
+
+## Simplicity first
+
+- Implement only what the request needs.
+- Do not add speculative features, single-use abstractions, or unnecessary
+  configurability.
+- Do not add handling for impossible scenarios.
+- If an implementation is much larger than the problem requires, simplify it.
+
+## Surgical changes
+
+- Change only what the task requires and match the existing style.
+- Do not refactor adjacent code or remove unrelated dead code.
+- Remove imports, variables, or functions that become unused because of the
+  current change.
+- Every changed line should trace directly to the requested outcome.
+
+## Goal-driven execution
+
+- Define success as an observable check before implementation.
+- For validation work, add or identify a failing case first, then make it pass.
+- For refactoring, verify behavior before and after the change.
+- For multi-step work, keep a short plan with each step's verification check.
