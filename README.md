@@ -64,7 +64,7 @@ The public overview lives at `/`, account access lives at `/auth`, and the signe
 
 1. Install/start Docker Desktop or Docker Engine with Compose.
 2. Copy `.env.example` to `.env`.
-3. Replace `CRON_SECRET` with a random value of at least 24 characters. Generate one with:
+3. For local development, copy `.env.local.example` to `.env.local`. For Vercel, use `.env.production.example` as the variable checklist; add its values in Project Settings rather than committing a production file. Replace `CRON_SECRET` with a random value of at least 24 characters. Generate one with:
 
 ```sh
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"

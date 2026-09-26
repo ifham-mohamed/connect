@@ -261,7 +261,7 @@ export async function DELETE(request: Request) {
       { status: 403 },
     );
   const token = await currentSessionToken();
-  if (token && process.env.DATABASE_URL) {
+  if (token && databaseConfigured()) {
     const user = await db()
       .query<{ userId: string; sessionId: string }>(
         `SELECT user_id AS "userId",id AS "sessionId" FROM user_sessions WHERE token_hash=$1`,

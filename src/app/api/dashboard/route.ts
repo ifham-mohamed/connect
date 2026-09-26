@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentSessionToken, currentUser } from "@/lib/auth";
 import { getDashboard } from "@/lib/repository";
-import { db } from "@/lib/db";
+import { databaseConfigured, db } from "@/lib/db";
 export const dynamic = "force-dynamic";
 export async function GET() {
   if (!(await currentSessionToken()))
@@ -9,7 +9,7 @@ export async function GET() {
       { error: "Sign in to open this workspace.", code: "AUTH_REQUIRED" },
       { status: 401 },
     );
-  if (!process.env.DATABASE_URL)
+  if (!databaseConfigured())
     return NextResponse.json(
       { error: "Configure the workspace database and run its migrations." },
       { status: 503 },
@@ -34,7 +34,10 @@ export async function GET() {
       );
     if (!user.onboardingCompleted)
       return NextResponse.json(
-        { error: "Finish setting up your job preferences.", code: "ONBOARDING_REQUIRED" },
+        {
+          error: "Finish setting up your job preferences.",
+          code: "ONBOARDING_REQUIRED",
+        },
         { status: 409 },
       );
     return NextResponse.json(await getDashboard(user, client));

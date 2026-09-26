@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "base_commit": "b8c8102c7d0a0a4dbaa07a38f56be8d51ae303ee",
+  "base_commit": "f1900cb27079285985f97808f933c9ad86778d5b",
   "sources": [
     {
       "path": ".agent/capabilities.json",
@@ -570,7 +570,7 @@
     {
       "path": "docs/operations/runbook.md",
       "subsystem": "docs/operations",
-      "sha256": "57c38b25917fe1d6e157fa705a00959ea27804b9da82e80ce70591bf9a0c047f"
+      "sha256": "9ad0430f902f8fce4061d77f684df225f15eecc38fc49a4a602b5efdee0c2cfd"
     },
     {
       "path": "docs/security/security-audit.md",
@@ -695,7 +695,7 @@
     {
       "path": "src/app/api/auth/route.ts",
       "subsystem": "src/app",
-      "sha256": "ce249144d4a0f65c8766d4db5e3b31c0ee79fa07648c6ed64991e8b4c6cc6f54"
+      "sha256": "76dce236d3ca35fe89c6af140a9f9015bc43071e3a0dd3ca1ac84b7212207bd2"
     },
     {
       "path": "src/app/api/candidate/cv/route.ts",
@@ -715,7 +715,7 @@
     {
       "path": "src/app/api/dashboard/route.ts",
       "subsystem": "src/app",
-      "sha256": "aed71db7f796b054e49b62d3fd3a5f6578bf9f9c0254c211b1448f8f4d843b28"
+      "sha256": "e15571ed16619d399aff532ecd0dcefd402ecb95d81a0688d46e8d2cbf74eec0"
     },
     {
       "path": "src/app/api/health/route.ts",

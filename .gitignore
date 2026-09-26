@@ -2,6 +2,8 @@ node_modules/
 .next/
 .env*
 !.env.example
+!.env.local.example
+!.env.production.example
 coverage/
 *.tsbuildinfo
 artifacts/

@@ -26,6 +26,12 @@
 | `JEV_MAX_ATTEMPTS`       | Optional worker tuning            | Durable queue attempts before dead-lettering.                                                                 |
 | `JEV_BATCH_SIZE`         | Optional worker tuning            | Maximum tasks claimed by one worker cycle.                                                                    |
 
+Use `.env.local.example` as the local-development template and
+`.env.production.example` as the Vercel checklist. The application reads
+Next.js environment files at runtime, but real production values belong in the
+deployment secret store. Do not commit `.env.local`, `.env.production`, PEM
+certificates, database URLs or provider keys.
+
 Keep `.env` out of version control and container build context. Set deployment variables through the host’s secret manager. Use separate random values for the scheduler and audit secrets. Only the web service needs the scheduler and audit secrets; the worker only needs its database connection and JEV credential when enabled.
 
 Authenticated writes use persistent per-user route limits shared across web instances. Members default to five new CV-to-job analyses per Sri Lanka calendar day. Owners have no per-user daily cap, but every account remains inside the workspace monthly request/token boundary. Keep gateway paid overage and purchased credits disabled. A provider `402` or `429` pauses requests and deterministic matching continues.
