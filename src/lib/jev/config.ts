@@ -20,6 +20,17 @@ function boundedInteger(
 
 export type JevConfig = ReturnType<typeof jevConfig>;
 
+export function platformJevConfig(
+  env: Record<string, string | undefined> = process.env,
+) {
+  try {
+    const config = jevConfig({ ...env, JEV_MODE: "off" });
+    return config.apiKey ? config : null;
+  } catch {
+    return null;
+  }
+}
+
 export function jevQueueEnabled(
   env: Record<string, string | undefined> = process.env,
 ) {

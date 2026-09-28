@@ -62,8 +62,13 @@ export function SettingsView({
   const [jevApiKey, setJevApiKey] = useState("");
   const [showJevApiKey, setShowJevApiKey] = useState(false);
   const hasJevApiKey = data.user?.jevApiKeyConfigured === true;
+  const platformAiConfigured = data.user?.platformJevConfigured === true;
+  const credentialMode =
+    preferences.aiCredentialMode ?? (hasJevApiKey ? "personal" : "platform");
+  const selectedCredentialAvailable =
+    credentialMode === "platform" ? platformAiConfigured : hasJevApiKey;
   const aiAnalysisEnabled =
-    hasJevApiKey && preferences.aiAnalysisEnabled === true;
+    selectedCredentialAvailable && preferences.aiAnalysisEnabled === true;
   return (
     <div className="settings-grid">
       <section className="settings-overview">
@@ -205,6 +210,61 @@ export function SettingsView({
           Allow personal AI analysis of job listings against your CV. You can
           turn this off at any time.
         </p>
+        <div
+          className="ai-provider-group"
+          role="radiogroup"
+          aria-label="AI credential source"
+        >
+          <span className="settings-field-label">Use AI with</span>
+          <div className="ai-provider-options">
+            <button
+              type="button"
+              className={`ai-provider-option ${credentialMode === "platform" ? "selected" : ""}`}
+              role="radio"
+              aria-checked={credentialMode === "platform"}
+              disabled={data.mode !== "live" || !platformAiConfigured}
+              onClick={async () => {
+                try {
+                  await action("profile-update", undefined, {
+                    aiCredentialMode: "platform",
+                  });
+                  setToast("Workspace AI selected.");
+                } catch (cause) {
+                  setToast((cause as Error).message);
+                }
+              }}
+            >
+              <strong>Workspace AI</strong>
+              <small>
+                {platformAiConfigured
+                  ? "Configured by the workspace"
+                  : "Not configured"}
+              </small>
+            </button>
+            <button
+              type="button"
+              className={`ai-provider-option ${credentialMode === "personal" ? "selected" : ""}`}
+              role="radio"
+              aria-checked={credentialMode === "personal"}
+              disabled={data.mode !== "live"}
+              onClick={async () => {
+                try {
+                  await action("profile-update", undefined, {
+                    aiCredentialMode: "personal",
+                  });
+                  setToast("Personal JEV key selected.");
+                } catch (cause) {
+                  setToast((cause as Error).message);
+                }
+              }}
+            >
+              <strong>My personal key</strong>
+              <small>
+                {hasJevApiKey ? "Your encrypted JEV key" : "Add a key below"}
+              </small>
+            </button>
+          </div>
+        </div>
         <label className="settings-field settings-secret-field">
           <span>Personal JEV API key</span>
           <div className="auth-input">
@@ -285,8 +345,10 @@ export function SettingsView({
           <span className="ai-analysis-copy">
             <strong>Enable AI analysis</strong>
             <small>
-              {!hasJevApiKey
-                ? "Add a personal JEV API key below to enable this feature."
+              {!selectedCredentialAvailable
+                ? credentialMode === "platform"
+                  ? "Workspace AI is not configured. Choose your personal key above."
+                  : "Add a personal JEV API key below to enable this feature."
                 : aiAnalysisEnabled
                   ? "Enabled for your account"
                   : "Disabled until you turn it on"}

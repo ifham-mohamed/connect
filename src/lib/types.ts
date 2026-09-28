@@ -16,6 +16,7 @@ export type ExperienceLevel =
 export type WorkMode = "onsite" | "hybrid" | "remote";
 export interface UserPreferences {
   aiAnalysisEnabled?: boolean;
+  aiCredentialMode?: "platform" | "personal";
   experience?: ExperienceLevel;
   roles?: string[];
   locations?: string[];
@@ -120,6 +121,7 @@ export interface DashboardData {
     role: "owner" | "member";
     onboardingCompleted: boolean;
     jevApiKeyConfigured?: boolean;
+    platformJevConfigured?: boolean;
     preferences: UserPreferences;
   } | null;
 }

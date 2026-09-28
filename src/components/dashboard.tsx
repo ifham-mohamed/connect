@@ -1108,6 +1108,14 @@ export default function Dashboard({
                     : current.user.jevApiKeyConfigured,
                 preferences: {
                   ...current.user.preferences,
+                  ...(typeof (value as { aiCredentialMode?: unknown })
+                    ?.aiCredentialMode === "string"
+                    ? {
+                        aiCredentialMode: (
+                          value as { aiCredentialMode: "platform" | "personal" }
+                        ).aiCredentialMode,
+                      }
+                    : {}),
                   ...(typeof (value as { aiAnalysisEnabled?: unknown })
                     ?.aiAnalysisEnabled === "boolean"
                     ? {

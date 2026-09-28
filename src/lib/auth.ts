@@ -11,6 +11,7 @@ import { db } from "./db";
 import { recordSecurityEvent, requestSecurityContext } from "./security";
 import { consumeRateLimit, RateLimitError } from "./rate-limit";
 import type { UserPreferences } from "./types";
+import { platformJevConfig } from "./jev/config";
 
 const scrypt = promisify(scryptCallback);
 export const sessionCookie = "jobradar_session";
@@ -24,6 +25,7 @@ export interface AuthUser {
   role: UserRole;
   onboardingCompleted: boolean;
   jevApiKeyConfigured?: boolean;
+  platformJevConfigured?: boolean;
   preferences: UserPreferences;
 }
 type Queryable = Pick<Pool | PoolClient, "query">;
@@ -164,6 +166,7 @@ export async function currentUser(
     role: user.role,
     onboardingCompleted: user.onboardingCompleted,
     jevApiKeyConfigured: user.jevApiKeyConfigured,
+    platformJevConfigured: Boolean(platformJevConfig()),
     preferences: user.preferences,
   };
 }

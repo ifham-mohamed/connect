@@ -125,6 +125,14 @@ export async function POST(request: Request) {
         { error: "Add your JEV API key before enabling AI analysis." },
         { status: 400 },
       );
+    if (message === "PLATFORM_AI_NOT_CONFIGURED")
+      return NextResponse.json(
+        {
+          error:
+            "Workspace AI is not configured. Choose a personal JEV API key instead.",
+        },
+        { status: 503 },
+      );
     if (message === "JEV_KEY_ENCRYPTION_NOT_CONFIGURED")
       return NextResponse.json(
         {

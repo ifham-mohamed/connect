@@ -10,7 +10,7 @@ import {
 import { cvProfileSchema } from "@/lib/cv/schema";
 import { getJobDetail } from "@/lib/repository";
 import { createJevClient } from "@/lib/jev/client";
-import { jevConfig } from "@/lib/jev/config";
+import { jevConfig, platformJevConfig } from "@/lib/jev/config";
 import { getUserJevApiKey } from "@/lib/user-jev-key";
 import { jobCvHash, reviewJobAgainstCv } from "@/lib/intelligence/cv-review";
 import {
@@ -221,19 +221,33 @@ export async function POST(request: Request, context: Context) {
         { headers: usageHeaders(usage) },
       );
     }
-    const userApiKey = await getUserJevApiKey(client, user.id);
-    if (!userApiKey)
+    const credentialMode =
+      user.preferences.aiCredentialMode ??
+      (user.jevApiKeyConfigured ? "personal" : "platform");
+    const userApiKey =
+      credentialMode === "personal"
+        ? await getUserJevApiKey(client, user.id)
+        : null;
+    const config =
+      credentialMode === "platform"
+        ? platformJevConfig()
+        : userApiKey
+          ? jevConfig({
+              ...process.env,
+              AI_GATEWAY_API_KEY: userApiKey,
+              TYPESAFE_API_KEY: userApiKey,
+            })
+          : null;
+    if (!config)
       return NextResponse.json(
         {
-          error: "Add your JEV API key in Settings before running AI analysis.",
+          error:
+            credentialMode === "platform"
+              ? "Workspace AI is not configured. Choose a personal JEV API key in Settings."
+              : "Add your JEV API key in Settings before running AI analysis.",
         },
         { status: 409 },
       );
-    const config = jevConfig({
-      ...process.env,
-      AI_GATEWAY_API_KEY: userApiKey,
-      TYPESAFE_API_KEY: userApiKey,
-    });
     const reservation = await reserveAiJobAnalysis(client, user, jobId.data);
     reservationId = reservation.reservationId;
     if (!reservation.usage.unlimited && !reservationId) {
@@ -280,11 +294,7 @@ export async function POST(request: Request, context: Context) {
     // is working. Reconnect for the guarded persistence phase afterwards.
     client.release();
     clientReleased = true;
-    const analyzed = await reviewJobAgainstCv(
-      createJevClient({ ...config, apiKey: userApiKey }),
-      job,
-      cv,
-    );
+    const analyzed = await reviewJobAgainstCv(createJevClient(config), job, cv);
     client = await connectDatabase();
     clientReleased = false;
     await completeWorkspaceAiRequest(client, {

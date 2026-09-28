@@ -46,6 +46,9 @@ export async function POST(request: Request) {
             ...(typeof user.preferences.aiAnalysisEnabled === "boolean"
               ? { aiAnalysisEnabled: user.preferences.aiAnalysisEnabled }
               : {}),
+            ...(user.preferences.aiCredentialMode
+              ? { aiCredentialMode: user.preferences.aiCredentialMode }
+              : {}),
             experience: preferences.experience,
             roles: preferences.roles,
             locations: preferences.locations,
