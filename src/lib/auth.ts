@@ -187,6 +187,7 @@ export function originAllowed(request: Request) {
 
 function writeLimit(pathname: string) {
   if (pathname === "/api/onboarding") return { limit: 12, seconds: 600 };
+  if (pathname === "/api/ai-configuration") return { limit: 10, seconds: 300 };
   if (pathname === "/api/ai-usage") return { limit: 10, seconds: 300 };
   if (pathname === "/api/intelligence") return { limit: 30, seconds: 300 };
   if (pathname === "/api/security") return { limit: 20, seconds: 300 };

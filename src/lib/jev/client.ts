@@ -41,6 +41,18 @@ export async function classifyJobWithJev(
   };
 }
 
+export async function testJevConnection(
+  client: TypeSafeClient,
+  config: JevConfig,
+) {
+  const started = performance.now();
+  const models = await client.models.list();
+  return {
+    latencyMs: Math.round(performance.now() - started),
+    modelAvailable: models.some((model) => model.name === config.model),
+  };
+}
+
 export function jevConnectionMessage(error: unknown, config: JevConfig) {
   if (error instanceof AuthenticationError)
     return config.provider === "vercel"

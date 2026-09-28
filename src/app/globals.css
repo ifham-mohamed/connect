@@ -306,6 +306,21 @@ td small { display: block; margin-top: 5px; }
 .ai-provider-option strong { color: hsl(var(--foreground)); font-size: 11px; }
 .ai-provider-option small { font-size: 9px; line-height: 1.35; }
 .ai-provider-option:disabled { cursor: not-allowed; opacity: .55; }
+.ai-connection-actions { align-items: center; display: flex; gap: 14px; justify-content: space-between; margin-top: 14px; }
+.ai-connection-status { align-items: flex-start; color: hsl(var(--muted-foreground)); display: flex; flex: 1; gap: 9px; min-width: 0; }
+.ai-connection-status strong, .ai-connection-status small { display: block; }
+.ai-connection-status strong { color: hsl(var(--foreground)); font-size: 11px; }
+.ai-connection-status small { line-height: 1.45; margin-top: 2px; }
+.ai-connection-dot { background: #94a3b8; border-radius: 50%; flex: 0 0 8px; height: 8px; margin-top: 4px; width: 8px; }
+.ai-connection-status.healthy .ai-connection-dot { background: #16a34a; }
+.ai-connection-status.healthy strong { color: #15803d; }
+.ai-connection-status.warning .ai-connection-dot { background: #d97706; }
+.ai-connection-status.warning strong { color: #b45309; }
+.ai-connection-status.error .ai-connection-dot { background: #dc2626; }
+.ai-connection-status.error strong { color: #b91c1c; }
+.spin { animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 560px) { .ai-connection-actions { align-items: stretch; flex-direction: column; } }
 .settings-card > .btn { margin-top: 18px; }
 .settings-card-heading { display: flex; min-width: 0; align-items: center; gap: 12px; }
 .settings-card-heading > span:nth-child(2) { display: grid; min-width: 0; flex: 1; }

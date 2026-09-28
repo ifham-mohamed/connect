@@ -4,8 +4,9 @@ import { PermissionDeniedError, TypeSafeClient } from "@typesafe-ai/sdk";
 import {
   classifyJobWithJev,
   jevConnectionMessage,
+  testJevConnection,
 } from "../src/lib/jev/client";
-import { jevConfig } from "../src/lib/jev/config";
+import { jevConfig, platformJevConfig } from "../src/lib/jev/config";
 import { validateJobClassification } from "../src/lib/jev/contract";
 import { fixtureState, goldFixtureSchema } from "../src/lib/jev/evaluation";
 import { reviewShadowDecision } from "../src/lib/jev/policy";
@@ -134,6 +135,16 @@ describe("JEV configuration", () => {
       }),
     ).toThrow("AI_GATEWAY_API_KEY");
   });
+
+  it("detects whether the configured platform credential can see the model", () => {
+    expect(
+      platformJevConfig({
+        AI_GATEWAY_API_KEY: "workspace-key",
+        JEV_MODEL: "typesafe-ai/jev",
+      }),
+    ).toMatchObject({ apiKey: "workspace-key", model: "typesafe-ai/jev" });
+    expect(platformJevConfig({})).toBeNull();
+  });
 });
 
 describe("JEV v1 domain contract", () => {
@@ -230,6 +241,21 @@ describe("JEV v1 domain contract", () => {
 });
 
 describe("JEV SDK boundary", () => {
+  it("checks model access without exposing the credential", async () => {
+    const result = await testJevConnection(
+      {
+        models: {
+          list: async () => [
+            { name: "jev-latest", description: "", release_date: "" },
+          ],
+        },
+      } as unknown as TypeSafeClient,
+      jevConfig({ TYPESAFE_API_KEY: "never-print-this" }),
+    );
+    expect(result.modelAvailable).toBe(true);
+    expect(result.latencyMs).toBeGreaterThanOrEqual(0);
+  });
+
   it("gives a safe gateway setup message without echoing credentials", () => {
     const config = jevConfig({
       JEV_MODE: "shadow",

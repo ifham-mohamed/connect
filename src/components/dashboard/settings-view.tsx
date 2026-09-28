@@ -6,6 +6,7 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  LoaderCircle,
   LogOut,
   Radio,
   Settings2,
@@ -69,6 +70,49 @@ export function SettingsView({
     credentialMode === "platform" ? platformAiConfigured : hasJevApiKey;
   const aiAnalysisEnabled =
     selectedCredentialAvailable && preferences.aiAnalysisEnabled === true;
+  const [connectionState, setConnectionState] = useState<
+    "idle" | "testing" | "healthy" | "warning" | "error"
+  >("idle");
+  const [connectionMessage, setConnectionMessage] = useState("");
+  const selectCredentialMode = async (mode: "platform" | "personal") => {
+    setConnectionState("idle");
+    setConnectionMessage("");
+    try {
+      await action("profile-update", undefined, { aiCredentialMode: mode });
+      setToast(
+        mode === "platform"
+          ? "Workspace AI selected."
+          : "Personal JEV key selected.",
+      );
+    } catch (cause) {
+      setToast((cause as Error).message);
+    }
+  };
+  const testConnection = async () => {
+    setConnectionState("testing");
+    setConnectionMessage("");
+    try {
+      const response = await fetch("/api/ai-configuration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: credentialMode }),
+      });
+      const result = (await response.json()) as {
+        status?: "healthy" | "warning";
+        message?: string;
+        error?: string;
+      };
+      if (!response.ok)
+        throw new Error(result.error || "Connection test failed.");
+      setConnectionState(result.status || "healthy");
+      setConnectionMessage(
+        result.message || "Connection checked successfully.",
+      );
+    } catch (cause) {
+      setConnectionState("error");
+      setConnectionMessage((cause as Error).message);
+    }
+  };
   return (
     <div className="settings-grid">
       <section className="settings-overview">
@@ -225,10 +269,7 @@ export function SettingsView({
               disabled={data.mode !== "live" || !platformAiConfigured}
               onClick={async () => {
                 try {
-                  await action("profile-update", undefined, {
-                    aiCredentialMode: "platform",
-                  });
-                  setToast("Workspace AI selected.");
+                  await selectCredentialMode("platform");
                 } catch (cause) {
                   setToast((cause as Error).message);
                 }
@@ -249,10 +290,7 @@ export function SettingsView({
               disabled={data.mode !== "live"}
               onClick={async () => {
                 try {
-                  await action("profile-update", undefined, {
-                    aiCredentialMode: "personal",
-                  });
-                  setToast("Personal JEV key selected.");
+                  await selectCredentialMode("personal");
                 } catch (cause) {
                   setToast((cause as Error).message);
                 }
@@ -264,6 +302,44 @@ export function SettingsView({
               </small>
             </button>
           </div>
+        </div>
+        <div className="ai-connection-actions">
+          <div
+            className={`ai-connection-status ${connectionState}`}
+            role="status"
+            aria-live="polite"
+          >
+            <span className="ai-connection-dot" />
+            <span>
+              <strong>
+                {connectionState === "testing"
+                  ? "Checking connection"
+                  : connectionState === "healthy"
+                    ? "Connection healthy"
+                    : connectionState === "warning"
+                      ? "Needs attention"
+                      : connectionState === "error"
+                        ? "Connection failed"
+                        : "Connection not tested"}
+              </strong>
+              {connectionMessage && <small>{connectionMessage}</small>}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="btn"
+            disabled={
+              data.mode !== "live" ||
+              !selectedCredentialAvailable ||
+              connectionState === "testing"
+            }
+            onClick={testConnection}
+          >
+            {connectionState === "testing" && (
+              <LoaderCircle className="spin" size={14} />
+            )}
+            {connectionState === "testing" ? "Testing…" : "Test connection"}
+          </button>
         </div>
         <label className="settings-field settings-secret-field">
           <span>Personal JEV API key</span>
@@ -360,7 +436,7 @@ export function SettingsView({
             role="switch"
             aria-checked={aiAnalysisEnabled}
             aria-label={`${aiAnalysisEnabled ? "Disable" : "Enable"} AI analysis`}
-            disabled={data.mode !== "live" || !hasJevApiKey}
+            disabled={data.mode !== "live" || !selectedCredentialAvailable}
             onClick={async () => {
               const nextValue = !aiAnalysisEnabled;
               try {
