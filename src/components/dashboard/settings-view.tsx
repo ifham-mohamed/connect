@@ -55,6 +55,7 @@ export function SettingsView({
   preferenceWorkModes,
   navigate,
 }: Props) {
+  const aiAnalysisEnabled = preferences.aiAnalysisEnabled !== false;
   return (
     <div className="settings-grid">
       <section className="settings-overview">
@@ -196,28 +197,35 @@ export function SettingsView({
           Allow personal AI analysis of job listings against your CV. You can
           turn this off at any time.
         </p>
-        <label className="setting-row">
-          <span>Enable AI analysis</span>
-          <input
-            type="checkbox"
-            checked={preferences.aiAnalysisEnabled !== false}
+        <div className="setting-row">
+          <span>
+            <strong>Enable AI analysis</strong>
+            {/* <small>{aiAnalysisEnabled ? "Enabled" : "Disabled"}</small> */}
+          </span>
+          <button
+            type="button"
+            className={`toggle ${aiAnalysisEnabled ? "on" : ""}`}
+            role="switch"
+            aria-checked={aiAnalysisEnabled}
+            aria-label={`${aiAnalysisEnabled ? "Disable" : "Enable"} AI analysis`}
             disabled={data.mode !== "live"}
-            onChange={async (event) => {
+            onClick={async () => {
+              const nextValue = !aiAnalysisEnabled;
               try {
                 await action("profile-update", undefined, {
-                  aiAnalysisEnabled: event.target.checked,
+                  aiAnalysisEnabled: nextValue,
                 });
                 setToast(
-                  event.target.checked
-                    ? "AI analysis enabled."
-                    : "AI analysis disabled.",
+                  nextValue ? "AI analysis enabled." : "AI analysis disabled.",
                 );
               } catch (cause) {
                 setToast((cause as Error).message);
               }
             }}
-          />
-        </label>
+          >
+            <span />
+          </button>
+        </div>
       </section>
       <section className="settings-card settings-access-card">
         <div className="settings-card-heading compact">

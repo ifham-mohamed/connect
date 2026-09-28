@@ -1100,7 +1100,8 @@ export default function Dashboard({
               ...current,
               user: {
                 ...current.user,
-                name: String((value as { name?: string })?.name || ""),
+                name:
+                  (value as { name?: string })?.name ?? current.user.name,
                 preferences: {
                   ...current.user.preferences,
                   ...(typeof (value as { aiAnalysisEnabled?: unknown })
