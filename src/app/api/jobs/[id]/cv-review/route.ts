@@ -62,6 +62,11 @@ export async function GET(request: Request, context: Context) {
       const user = await currentUser(client, request);
       if (!user)
         return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+      if (user.preferences.aiAnalysisEnabled === false)
+        return NextResponse.json(
+          { enabled: false, error: "AI analysis is disabled in Settings." },
+          { status: 403 },
+        );
       const job = await getJobDetail(user, jobId.data, client);
       if (!job)
         return NextResponse.json({ error: "Job not found." }, { status: 404 });
@@ -156,6 +161,11 @@ export async function POST(request: Request, context: Context) {
       { status: 503 },
     );
   }
+  if (user.preferences.aiAnalysisEnabled === false)
+    return NextResponse.json(
+      { error: "AI analysis is disabled in Settings." },
+      { status: 403 },
+    );
   let client = await connectDatabase().catch(() => null);
   if (!client)
     return NextResponse.json(

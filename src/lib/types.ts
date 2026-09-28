@@ -15,6 +15,7 @@ export type ExperienceLevel =
   "internship" | "entry" | "mid" | "senior" | "other";
 export type WorkMode = "onsite" | "hybrid" | "remote";
 export interface UserPreferences {
+  aiAnalysisEnabled?: boolean;
   experience?: ExperienceLevel;
   roles?: string[];
   locations?: string[];

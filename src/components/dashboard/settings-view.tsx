@@ -7,6 +7,7 @@ import {
   Radio,
   Settings2,
   ShieldCheck,
+  Sparkles,
   Target,
 } from "lucide-react";
 import Link from "next/link";
@@ -180,6 +181,43 @@ export function SettingsView({
             <Radio size={14} /> Manage monitors
           </button>
         </div>
+      </section>
+      <section className="settings-card settings-access-card">
+        <div className="settings-card-heading compact">
+          <span className="settings-icon">
+            <Sparkles size={20} />
+          </span>
+          <span>
+            <small>Optional feature</small>
+            <h3>AI job analysis</h3>
+          </span>
+        </div>
+        <p>
+          Allow personal AI analysis of job listings against your CV. You can
+          turn this off at any time.
+        </p>
+        <label className="setting-row">
+          <span>Enable AI analysis</span>
+          <input
+            type="checkbox"
+            checked={preferences.aiAnalysisEnabled !== false}
+            disabled={data.mode !== "live"}
+            onChange={async (event) => {
+              try {
+                await action("profile-update", undefined, {
+                  aiAnalysisEnabled: event.target.checked,
+                });
+                setToast(
+                  event.target.checked
+                    ? "AI analysis enabled."
+                    : "AI analysis disabled.",
+                );
+              } catch (cause) {
+                setToast((cause as Error).message);
+              }
+            }}
+          />
+        </label>
       </section>
       <section className="settings-card settings-access-card">
         <div className="settings-card-heading compact">

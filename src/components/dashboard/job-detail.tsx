@@ -24,6 +24,7 @@ export function JobDetail({
   loading,
   demo,
   owner,
+  aiAnalysisEnabled = true,
   localSkillMatches,
   matchedMonitorNames,
   onStatus,
@@ -33,6 +34,7 @@ export function JobDetail({
   loading: boolean;
   demo: boolean;
   owner: boolean;
+  aiAnalysisEnabled?: boolean;
   localSkillMatches: string[];
   matchedMonitorNames: string[];
   onStatus: (job: Job, status: JobStatus) => Promise<void>;
@@ -116,7 +118,7 @@ export function JobDetail({
           Illustrative sample — this is not a verified job opening.
         </div>
       )}
-      {!demo && (
+      {!demo && aiAnalysisEnabled && (
         <JobCvReview key={`${job.id}-${reviewRevision}`} jobId={job.id} />
       )}
       {!demo && (job.sourceImageUrl || /topjobs/i.test(job.sourceName)) && (

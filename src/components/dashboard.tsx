@@ -1101,6 +1101,17 @@ export default function Dashboard({
               user: {
                 ...current.user,
                 name: String((value as { name?: string })?.name || ""),
+                preferences: {
+                  ...current.user.preferences,
+                  ...(typeof (value as { aiAnalysisEnabled?: unknown })
+                    ?.aiAnalysisEnabled === "boolean"
+                    ? {
+                        aiAnalysisEnabled: (
+                          value as { aiAnalysisEnabled: boolean }
+                        ).aiAnalysisEnabled,
+                      }
+                    : {}),
+                },
               },
             }
           : current,
@@ -2016,6 +2027,9 @@ export default function Dashboard({
               loading={jobDetailLoading === modal.job.id}
               demo={data.mode === "demo"}
               owner={isOwner}
+              aiAnalysisEnabled={
+                data.user?.preferences.aiAnalysisEnabled !== false
+              }
               localSkillMatches={
                 localCv
                   ? cvSkillTerms(localCv)
