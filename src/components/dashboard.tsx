@@ -1100,8 +1100,12 @@ export default function Dashboard({
               ...current,
               user: {
                 ...current.user,
-                name:
-                  (value as { name?: string })?.name ?? current.user.name,
+                name: (value as { name?: string })?.name ?? current.user.name,
+                jevApiKeyConfigured:
+                  typeof (value as { jevApiKey?: unknown })?.jevApiKey ===
+                  "string"
+                    ? Boolean((value as { jevApiKey: string }).jevApiKey)
+                    : current.user.jevApiKeyConfigured,
                 preferences: {
                   ...current.user.preferences,
                   ...(typeof (value as { aiAnalysisEnabled?: unknown })

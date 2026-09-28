@@ -119,6 +119,7 @@ export interface DashboardData {
     email: string;
     role: "owner" | "member";
     onboardingCompleted: boolean;
+    jevApiKeyConfigured?: boolean;
     preferences: UserPreferences;
   } | null;
 }

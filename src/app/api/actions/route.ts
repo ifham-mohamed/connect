@@ -120,6 +120,19 @@ export async function POST(request: Request) {
         { error: "The requested item was not found." },
         { status: 404 },
       );
+    if (message === "JEV_API_KEY_REQUIRED")
+      return NextResponse.json(
+        { error: "Add your JEV API key before enabling AI analysis." },
+        { status: 400 },
+      );
+    if (message === "JEV_KEY_ENCRYPTION_NOT_CONFIGURED")
+      return NextResponse.json(
+        {
+          error:
+            "Secure key storage is not configured. Contact the workspace owner.",
+        },
+        { status: 503 },
+      );
     if (
       typeof error === "object" &&
       error &&

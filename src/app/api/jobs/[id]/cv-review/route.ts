@@ -11,6 +11,7 @@ import { cvProfileSchema } from "@/lib/cv/schema";
 import { getJobDetail } from "@/lib/repository";
 import { createJevClient } from "@/lib/jev/client";
 import { jevConfig } from "@/lib/jev/config";
+import { getUserJevApiKey } from "@/lib/user-jev-key";
 import { jobCvHash, reviewJobAgainstCv } from "@/lib/intelligence/cv-review";
 import {
   completeAiJobAnalysis,
@@ -220,12 +221,19 @@ export async function POST(request: Request, context: Context) {
         { headers: usageHeaders(usage) },
       );
     }
-    const config = jevConfig();
-    if (!config.apiKey)
+    const userApiKey = await getUserJevApiKey(client, user.id);
+    if (!userApiKey)
       return NextResponse.json(
-        { error: "JEV review is not configured yet." },
-        { status: 503 },
+        {
+          error: "Add your JEV API key in Settings before running AI analysis.",
+        },
+        { status: 409 },
       );
+    const config = jevConfig({
+      ...process.env,
+      AI_GATEWAY_API_KEY: userApiKey,
+      TYPESAFE_API_KEY: userApiKey,
+    });
     const reservation = await reserveAiJobAnalysis(client, user, jobId.data);
     reservationId = reservation.reservationId;
     if (!reservation.usage.unlimited && !reservationId) {
@@ -272,7 +280,11 @@ export async function POST(request: Request, context: Context) {
     // is working. Reconnect for the guarded persistence phase afterwards.
     client.release();
     clientReleased = true;
-    const analyzed = await reviewJobAgainstCv(createJevClient(config), job, cv);
+    const analyzed = await reviewJobAgainstCv(
+      createJevClient({ ...config, apiKey: userApiKey }),
+      job,
+      cv,
+    );
     client = await connectDatabase();
     clientReleased = false;
     await completeWorkspaceAiRequest(client, {

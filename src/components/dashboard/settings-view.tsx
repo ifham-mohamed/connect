@@ -3,6 +3,9 @@ import type { DashboardData } from "@/lib/types";
 import {
   ArrowDownToLine,
   Database,
+  Eye,
+  EyeOff,
+  KeyRound,
   LogOut,
   Radio,
   Settings2,
@@ -22,6 +25,7 @@ import {
 
 import type { UserPreferences, WorkMode } from "@/lib/types";
 import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 interface Props {
   isOwner: boolean;
@@ -55,7 +59,11 @@ export function SettingsView({
   preferenceWorkModes,
   navigate,
 }: Props) {
-  const aiAnalysisEnabled = preferences.aiAnalysisEnabled !== false;
+  const [jevApiKey, setJevApiKey] = useState("");
+  const [showJevApiKey, setShowJevApiKey] = useState(false);
+  const hasJevApiKey = data.user?.jevApiKeyConfigured === true;
+  const aiAnalysisEnabled =
+    hasJevApiKey && preferences.aiAnalysisEnabled === true;
   return (
     <div className="settings-grid">
       <section className="settings-overview">
@@ -197,10 +205,92 @@ export function SettingsView({
           Allow personal AI analysis of job listings against your CV. You can
           turn this off at any time.
         </p>
-        <div className="setting-row">
-          <span>
+        <label className="settings-field settings-secret-field">
+          <span>Personal JEV API key</span>
+          <div className="auth-input">
+            <KeyRound size={16} />
+            <input
+              type={showJevApiKey ? "text" : "password"}
+              value={jevApiKey}
+              onChange={(event) => setJevApiKey(event.target.value)}
+              placeholder={
+                hasJevApiKey
+                  ? "Key saved — enter a new key to replace it"
+                  : "Paste your JEV API key"
+              }
+              maxLength={512}
+              autoComplete="off"
+              spellCheck={false}
+              aria-describedby="jev-key-help"
+            />
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => setShowJevApiKey((visible) => !visible)}
+              aria-label={
+                showJevApiKey ? "Hide JEV API key" : "Show JEV API key"
+              }
+            >
+              {showJevApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+          <small id="jev-key-help">
+            {hasJevApiKey
+              ? "Your saved key is never shown again. Enter a new one to replace it, or leave this blank to keep it."
+              : "The key is encrypted before it is stored and is used only for your personal CV-to-job analysis."}
+          </small>
+        </label>
+        <div className="settings-actions">
+          <button
+            className="btn primary"
+            disabled={data.mode !== "live" || !jevApiKey.trim()}
+            onClick={async () => {
+              try {
+                await action("profile-update", undefined, {
+                  jevApiKey: jevApiKey.trim(),
+                });
+                setJevApiKey("");
+                setToast(
+                  "JEV API key saved securely. You can now enable AI analysis.",
+                );
+              } catch (cause) {
+                setToast((cause as Error).message);
+              }
+            }}
+          >
+            Save key
+          </button>
+          {hasJevApiKey && (
+            <button
+              className="btn"
+              disabled={data.mode !== "live"}
+              onClick={async () => {
+                try {
+                  await action("profile-update", undefined, {
+                    jevApiKey: "",
+                    aiAnalysisEnabled: false,
+                  });
+                  setJevApiKey("");
+                  setToast("JEV API key removed and AI analysis disabled.");
+                } catch (cause) {
+                  setToast((cause as Error).message);
+                }
+              }}
+            >
+              Remove key
+            </button>
+          )}
+        </div>
+        <div className="setting-row ai-analysis-row">
+          <span className="ai-analysis-copy">
             <strong>Enable AI analysis</strong>
-            {/* <small>{aiAnalysisEnabled ? "Enabled" : "Disabled"}</small> */}
+            <small>
+              {!hasJevApiKey
+                ? "Add a personal JEV API key below to enable this feature."
+                : aiAnalysisEnabled
+                  ? "Enabled for your account"
+                  : "Disabled until you turn it on"}
+            </small>
           </span>
           <button
             type="button"
@@ -208,7 +298,7 @@ export function SettingsView({
             role="switch"
             aria-checked={aiAnalysisEnabled}
             aria-label={`${aiAnalysisEnabled ? "Disable" : "Enable"} AI analysis`}
-            disabled={data.mode !== "live"}
+            disabled={data.mode !== "live" || !hasJevApiKey}
             onClick={async () => {
               const nextValue = !aiAnalysisEnabled;
               try {

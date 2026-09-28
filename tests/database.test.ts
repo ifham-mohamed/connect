@@ -139,6 +139,7 @@ beforeAll(async () => {
     "033_source_observability",
     "034_role_title_aliases",
     "035_unspecified_stage_compatibility",
+    "036_user_jev_api_keys",
   ])
     await database.exec(
       await readFile(

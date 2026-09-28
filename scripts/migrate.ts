@@ -48,6 +48,7 @@ try {
     "033_source_observability",
     "034_role_title_aliases",
     "035_unspecified_stage_compatibility",
+    "036_user_jev_api_keys",
   ];
   for (const name of migrations) {
     const applied = await client.query(

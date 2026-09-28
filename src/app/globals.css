@@ -292,6 +292,10 @@ td small { display: block; margin-top: 5px; }
 .settings-card > p { margin: 10px 0 22px; }
 .setting-row { display: flex; justify-content: space-between; gap: 14px; padding: 14px 0; border-top: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); }
 .setting-row strong { color: hsl(var(--foreground)); }
+.ai-analysis-row { align-items: center; margin-top: 18px; padding-top: 16px; }
+.ai-analysis-copy { display: grid; min-width: 0; gap: 4px; }
+.ai-analysis-copy strong { font-size: 12px; line-height: 1.35; }
+.ai-analysis-copy small { color: hsl(var(--muted-foreground)); font-size: 10px; line-height: 1.45; }
 .settings-card > .btn { margin-top: 18px; }
 .settings-card-heading { display: flex; min-width: 0; align-items: center; gap: 12px; }
 .settings-card-heading > span:nth-child(2) { display: grid; min-width: 0; flex: 1; }

@@ -21,6 +21,7 @@
 | `JEV_MODEL`              | JEV processing                    | Use `typesafe-ai/jev` through Vercel AI Gateway.                                                              |
 | `JEV_BASE_URL`           | Optional endpoint override        | Normally blank; the application supplies Vercel's TypeSafe-compatible endpoint.                               |
 | `TYPESAFE_API_KEY`       | `JEV_PROVIDER=typesafe`           | Direct TypeSafe credential; leave blank when using Vercel.                                                    |
+| `JEV_USER_KEY_ENCRYPTION_SECRET` | Personal JEV keys in Settings | Server-only secret of at least 32 characters used to encrypt each user key at rest. |
 | `JEV_REQUEST_TIMEOUT_MS` | Optional worker tuning            | Maximum request duration.                                                                                     |
 | `JEV_MAX_RETRIES`        | Optional worker tuning            | SDK retries for transient request failures.                                                                   |
 | `JEV_MAX_ATTEMPTS`       | Optional worker tuning            | Durable queue attempts before dead-lettering.                                                                 |

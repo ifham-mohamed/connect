@@ -23,6 +23,7 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   onboardingCompleted: boolean;
+  jevApiKeyConfigured?: boolean;
   preferences: UserPreferences;
 }
 type Queryable = Pick<Pool | PoolClient, "query">;
@@ -95,6 +96,7 @@ export async function currentUser(
     `SELECT u.id, u.name, u.email, u.role,s.id AS "sessionId",s.last_seen_at AS "lastSeenAt",
             s.ip_hash AS "ipHash",s.user_agent_hash AS "userAgentHash",
             (u.onboarding_completed_at IS NOT NULL) AS "onboardingCompleted",
+            (u.jev_api_key_encrypted IS NOT NULL) AS "jevApiKeyConfigured",
             u.preferences
        FROM user_sessions s JOIN users u ON u.id=s.user_id
       WHERE s.token_hash=$1 AND s.expires_at>now() AND s.revoked_at IS NULL LIMIT 1`,
@@ -161,6 +163,7 @@ export async function currentUser(
     email: user.email,
     role: user.role,
     onboardingCompleted: user.onboardingCompleted,
+    jevApiKeyConfigured: user.jevApiKeyConfigured,
     preferences: user.preferences,
   };
 }

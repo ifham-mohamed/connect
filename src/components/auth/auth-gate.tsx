@@ -105,7 +105,9 @@ export function AuthGate({
             <span className="brand-icon">
               <Radio size={20} />
             </span>
-            <strong>jobradar<span>.</span></strong>
+            <strong>
+              jobradar<span>.</span>
+            </strong>
           </div>
 
           <div className="auth-heading">
@@ -168,7 +170,8 @@ export function AuthGate({
                 if (!response.ok)
                   throw new Error(result.error || "Account access failed.");
                 await onAuthenticated(
-                  mode === "sign-up" || result.user?.onboardingCompleted === false,
+                  mode === "sign-up" ||
+                    result.user?.onboardingCompleted === false,
                 );
               } catch (cause) {
                 setError(
@@ -222,7 +225,9 @@ export function AuthGate({
                   autoComplete={
                     mode === "sign-in" ? "current-password" : "new-password"
                   }
-                  placeholder={mode === "sign-up" ? "12+ characters" : "Your password"}
+                  placeholder={
+                    mode === "sign-up" ? "12+ characters" : "Your password"
+                  }
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   minLength={mode === "sign-up" ? 12 : 1}

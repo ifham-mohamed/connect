@@ -37,6 +37,7 @@ Scope: browser rendering, authentication, sessions, authorization, private candi
 - Authentication throttling returns a five-minute retry window and is enforced in PostgreSQL across application instances.
 - Member CV-to-job analysis uses an atomic daily allowance. The default is five per Sri Lanka calendar day, failed calls release their reservation, cached reviews are free, and owners are unlimited.
 - Only the workspace owner can change the member AI allowance in Workspace settings.
+- Personal JEV credentials are accepted during signup or in Settings, encrypted at rest with a server-only deployment secret, never returned to the browser, and used only for that account's personal analysis.
 - All authenticated mutations pass a persistent, per-user, per-route fixed-window limit. Manual source collection has an additional limit of three runs per fifteen minutes.
 
 ### Authorization and tenant isolation

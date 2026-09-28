@@ -43,6 +43,9 @@ export async function POST(request: Request) {
         [
           user.id,
           JSON.stringify({
+            ...(typeof user.preferences.aiAnalysisEnabled === "boolean"
+              ? { aiAnalysisEnabled: user.preferences.aiAnalysisEnabled }
+              : {}),
             experience: preferences.experience,
             roles: preferences.roles,
             locations: preferences.locations,

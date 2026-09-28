@@ -133,6 +133,7 @@ export async function POST(request: Request) {
       email: string;
       role: "owner" | "member";
       onboardingCompleted: boolean;
+      jevApiKeyConfigured: boolean;
       preferences: Record<string, unknown>;
     };
     await client.query("BEGIN");
@@ -161,7 +162,8 @@ export async function POST(request: Request) {
       const role = count.rows[0]?.count === 0 ? "owner" : "member";
       const created = await client.query<typeof user>(
         `INSERT INTO users(name,email,password_hash,role) VALUES($1,$2,$3,$4)
-         RETURNING id,name,email,role,false AS "onboardingCompleted",preferences`,
+         RETURNING id,name,email,role,false AS "onboardingCompleted",
+                   false AS "jevApiKeyConfigured",preferences`,
         [parsed.data.name, email, await hashPassword(password), role],
       );
       user = created.rows[0];
@@ -173,7 +175,8 @@ export async function POST(request: Request) {
     } else {
       const found = await client.query<typeof user & { passwordHash: string }>(
         `SELECT id,name,email,role,password_hash AS "passwordHash",
-                (onboarding_completed_at IS NOT NULL) AS "onboardingCompleted",preferences
+                (onboarding_completed_at IS NOT NULL) AS "onboardingCompleted",
+                (jev_api_key_encrypted IS NOT NULL) AS "jevApiKeyConfigured",preferences
            FROM users WHERE lower(email)=lower($1) LIMIT 1`,
         [email],
       );
