@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "task_id": "engineering-task-refiner",
+  "goal": "Adapt one repository-grounded engineering task refiner and automatic intake guidance",
+  "owner": "codex",
+  "workspace": {
+    "branch": "main",
+    "worktree": "C:/Users/Administrator/Downloads/applicaction-tracker",
+    "claimed_files": [
+      "AGENTS.md",
+      ".agent/skills/engineering-task-refiner",
+      ".agents/skills/engineering-task-refiner",
+      ".claude/skills/engineering-task-refiner",
+      ".agent/context/navigation.md",
+      "docs/operations/agent-workflow.md",
+      ".agent/index",
+      ".agent/tasks/engineering-task-refiner"
+    ]
+  },
+  "status": "complete",
+  "base_commit": "297af2670c44beacb9f4600b275a0e6a075bf032",
+  "baseline_changes": [],
+  "intended_files": [
+    "AGENTS.md",
+    ".agent/skills/engineering-task-refiner/SKILL.md",
+    ".agent/skills/engineering-task-refiner/references/task-patterns.md",
+    ".agent/skills/engineering-task-refiner/references/prompt-template.md",
+    ".agents/skills/engineering-task-refiner/SKILL.md",
+    ".claude/skills/engineering-task-refiner/SKILL.md",
+    ".agent/context/navigation.md",
+    "docs/operations/agent-workflow.md",
+    ".agent/index/repo-map.json",
+    ".agent/index/symbols.json",
+    ".agent/index/dependencies.json",
+    ".agent/index/ownership.json",
+    ".agent/tasks/engineering-task-refiner"
+  ],
+  "completed": [
+    "Inspected canonical workflow and repository baseline",
+    "Added skill, references, and intake guidance",
+    "Synced and validated skill entrypoints and shared reference paths",
+    "Reviewed intent, mode, ambiguity, and authorization instructions",
+    "Refreshed reviewed source indices and passed documentation verification"
+  ],
+  "remaining": [],
+  "verification": [
+    "Skill creator quick_validate.py: exit 0",
+    "agent:sync-skills -- --write: exit 0; entrypoint hashes identical",
+    "agent:update-index -- --write: exit 0 after reviewing guidance changes",
+    "agent:verify -- --docs: exit 0 after index refresh",
+    "git diff --check: exit 0",
+    "Static scenario review only; native-client selection and independent model behavior not tested"
+  ]
+}

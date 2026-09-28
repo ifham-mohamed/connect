@@ -15,6 +15,12 @@ source collection, personal job tracking, and optional JEV judgments.
 
 - Read `.agent/context/project.md` and only the relevant entries in
   `.agent/context/navigation.md` before substantial work.
+- For engineering requests, use
+  `.agent/skills/engineering-task-refiner/SKILL.md` to ground the request in
+  repository evidence and choose the smallest suitable task pattern. Keep clear,
+  small requests lightweight. When asked to do work, refine and continue within
+  that scope; return only a refined prompt when prompt refinement is the request.
+  Ask about unresolved product decisions before making dependent changes.
 - Existing architecture, security, operations, and JEV documents remain the
   authorities. JEV is the only application model service; development agents
   are not application providers.

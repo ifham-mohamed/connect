@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "base_commit": "17748712bf1894428cfe7e43d2b9d91d5cb1d0e0",
+  "base_commit": "297af2670c44beacb9f4600b275a0e6a075bf032",
   "sources": [
     {
       "path": ".agent/capabilities.json",
@@ -30,7 +30,7 @@
     {
       "path": ".agent/context/navigation.md",
       "subsystem": ".agent/context",
-      "sha256": "132fb408a3976ca281692702752b5288b56824c9ceeda6ba53e2455648466c80"
+      "sha256": "ac214210b6005d0b2d157fecfa3874f2cd1a1c0271bf305f30b8c73e74d52194"
     },
     {
       "path": ".agent/context/project.md",
@@ -193,6 +193,21 @@
       "sha256": "4e53f6537b102d5c6ef892fce0618737a6366a471eb65a54fde68104e4d37e73"
     },
     {
+      "path": ".agent/skills/engineering-task-refiner/SKILL.md",
+      "subsystem": ".agent/skills",
+      "sha256": "67b6da0cf56cfb78496f007a49e0b0e647edecc26b1b6bdf3cc7f493c6a097c4"
+    },
+    {
+      "path": ".agent/skills/engineering-task-refiner/references/prompt-template.md",
+      "subsystem": ".agent/skills",
+      "sha256": "11084029a7946fd55ad479e65bee0ab407ae513e6637f6e7d039ad41ec407c9b"
+    },
+    {
+      "path": ".agent/skills/engineering-task-refiner/references/task-patterns.md",
+      "subsystem": ".agent/skills",
+      "sha256": "c3e70158227dcb51e8df7b9140f4c1f2b484ed31728a48f0b47fe01885a8089c"
+    },
+    {
       "path": ".agent/skills/implementation/SKILL.md",
       "subsystem": ".agent/skills",
       "sha256": "a2d773c94bce577fcdf0b0af51719f531dfe7f791c6721c4e1edcad2ec341f21"
@@ -241,6 +256,11 @@
       "path": ".claude/skills/code-review/SKILL.md",
       "subsystem": ".claude/skills",
       "sha256": "4e53f6537b102d5c6ef892fce0618737a6366a471eb65a54fde68104e4d37e73"
+    },
+    {
+      "path": ".claude/skills/engineering-task-refiner/SKILL.md",
+      "subsystem": ".claude/skills",
+      "sha256": "67b6da0cf56cfb78496f007a49e0b0e647edecc26b1b6bdf3cc7f493c6a097c4"
     },
     {
       "path": ".claude/skills/implementation/SKILL.md",
@@ -305,7 +325,7 @@
     {
       "path": "AGENTS.md",
       "subsystem": "AGENTS.md",
-      "sha256": "4cf4677ca1c7dbfd08d1dd4e56d98eab84e868dee02bc7313aad142e0b5544c4"
+      "sha256": "3bedfc1c6f4fb8c7fa11b78e70afebb5905d974c89bb4e6d6f3808708b87e551"
     },
     {
       "path": "CLAUDE.md",
@@ -535,7 +555,7 @@
     {
       "path": "docs/operations/agent-workflow.md",
       "subsystem": "docs/operations",
-      "sha256": "61a8e4a6f9290777144a236a16706786c802ac753030ecc16419a4f332dd0645"
+      "sha256": "15b721a07ae8fa296e2f0c65bf4a50a2aaa784e0a8c4f491f3031374abec63ca"
     },
     {
       "path": "docs/operations/cost-and-capacity.md",

@@ -6,16 +6,17 @@ AGENTS.md contains universal policy. CLAUDE.md imports it. The supplied orchestr
 
 Start with Git HEAD/status and project/navigation context. Select one to three documents using this table, then inspect exact source symbols. Do not load all skills or historical tasks.
 
-| Task                        | Context                                      | Shared skill          |
-| --------------------------- | -------------------------------------------- | --------------------- |
-| Locate unfamiliar code      | project, navigation                          | repo-discovery        |
-| Change module boundaries    | architecture, conventions                    | architecture-analysis |
-| Authentication/private data | security, navigation                         | security-review       |
-| Dependency change           | dependencies, conventions                    | change-planning       |
-| Implement feature/fix       | navigation, conventions                      | implementation        |
-| Validate changes            | conventions                                  | verification          |
-| Review a diff               | navigation, architecture                     | code-review           |
-| Explicit release task       | security, dependencies, operations authority | release               |
+| Task                        | Context                                      | Shared skill             |
+| --------------------------- | -------------------------------------------- | ------------------------ |
+| Refine engineering intent   | project, navigation, relevant source         | engineering-task-refiner |
+| Locate unfamiliar code      | project, navigation                          | repo-discovery           |
+| Change module boundaries    | architecture, conventions                    | architecture-analysis    |
+| Authentication/private data | security, navigation                         | security-review          |
+| Dependency change           | dependencies, conventions                    | change-planning          |
+| Implement feature/fix       | navigation, conventions                      | implementation           |
+| Validate changes            | conventions                                  | verification             |
+| Review a diff               | navigation, architecture                     | code-review              |
+| Explicit release task       | security, dependencies, operations authority | release                  |
 
 Context under .agent/context describes the system and links authorities. Decision memory records accepted reasons; lessons are curated recurring knowledge; known-issues records limitations with evidence. Task memory records current work. Keep disposable investigations in ignored artifacts, with no sensitive user data. Existing documents are organized under docs/architecture, docs/api, docs/database, docs/security and docs/operations; skills/ reference assets remain in place.
 
@@ -48,7 +49,7 @@ Verification writes current machine evidence under ignored artifacts/agent/verif
 
 ## Tool adapters
 
-Canonical skills live under .agent/skills. The same eight files appear under
+Canonical skills live under .agent/skills. Their SKILL.md entrypoints appear under
 .agents/skills for Codex discovery and .claude/skills for Claude discovery;
 these are adapters required by each tool's supported search path, not three
 independent skill libraries. Edit only .agent/skills, then run
@@ -58,6 +59,20 @@ without deleting them. The guides use repository-root paths, so copied
 instructions do not depend on their installation depth. See [Codex
 skills](https://developers.openai.com/codex/skills/) and [Claude
 skills](https://code.claude.com/docs/en/skills).
+
+The engineering-task-refiner prepares rough requests using the smallest suitable
+task pattern before the applicable execution workflow. AGENTS.md makes this an
+engineering intake step: requests to do work are refined and then carried out;
+prompt-only requests return a reusable prompt. Review, investigation, and design
+retain their requested scope. Explicit `$engineering-task-refiner` invocation
+without a request to execute produces a prompt. Clear, small requests stay brief.
+
+Its pattern and prompt references stay under
+`.agent/skills/engineering-task-refiner/references/`. The sync command copies only
+SKILL.md; all entrypoints use repository-root paths to reach these shared
+references. The deterministic `agent:route` command still selects the eight
+execution workflows; it does not rewrite prompts or enforce model adherence to
+the intake skill.
 
 The native .codex/config.toml and .mcp.json configure the local read-only MCP server as the implementer role. Start clients from the repository root; project trust/restart may be required for native configuration changes. The checked-in Claude settings connect session, edit and compaction events to the shared lifecycle script. Git hooks use the same verification command after explicit local installation. Project adapters contain no credentials and do not change application JEV providers. See the [Codex MCP configuration](https://developers.openai.com/codex/mcp/) and [Claude hooks contract](https://code.claude.com/docs/en/hooks).
 
@@ -81,7 +96,7 @@ Use `npm run agent:changed-files -- --task impact-upgrade` for a task-associated
 | ---------------- | ---------------------------------------------------------------------- |
 | AGENTS.md        | Universal project rules                                                |
 | Context and ADRs | Project knowledge and accepted decisions                               |
-| Skills           | The eight focused reusable workflows                                   |
+| Skills           | Task refinement plus the eight focused execution workflows             |
 | Scripts          | Deterministic navigation and checks                                    |
 | Hooks            | Local lifecycle events, context invalidation and verification gates    |
 | MCP              | External/live capabilities only when a task needs them                 |
@@ -165,16 +180,17 @@ Verification writes the latest run to artifacts/agent/verification.json and veri
 
 Evaluate instructions when they change meaning. For each scenario record selected skill, observed action, expected action and pass/fail with evidence in the task's existing verification record. Review ambiguity and authorization handling, not only frontmatter. The matrix below defines cases; its presence does not claim that model-based evaluations ran.
 
-| Skill                 | Should trigger                            | Should not trigger            | Ambiguous/missing input                                                    | Failure case                                              | Consequential action case                                  |
-| --------------------- | ----------------------------------------- | ----------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------- |
-| repo-discovery        | Locate source collection and its tests    | Rewrite a known button label  | Which repository/subsystem? Inspect available context first                | Stale map: inspect source and report mismatch             | Finding deployment files does not authorize running them   |
-| architecture-analysis | Assess moving matching persistence        | Correct a spelling error      | Unclear boundary goal: gather callers and constraints                      | Unsupported claim: require source evidence                | Proposed production topology does not authorize deployment |
-| change-planning       | Plan a multi-module auth change           | Explain a familiar term       | Missing behavior: separate assumptions from required decisions             | Conflicting requirements: resolve before dependent edits  | Migration execution requires separate authorization        |
-| implementation        | Apply a scoped authorized fix             | Review-only request           | Missing acceptance detail: inspect tests, ask only what blocks correctness | Failing regression: fix or report, do not claim done      | Never commit or publish merely to finish an edit           |
-| verification          | Validate the current change               | Change product behavior       | No test target: inspect scope and use existing gates                       | Nonzero check must remain FAIL                            | Do not run live collection as a smoke test                 |
-| code-review           | Review a diff for regressions             | Implement a requested feature | Missing revision: inspect current Git state and define scope               | No concrete evidence: do not invent findings              | Review does not authorize merge or force push              |
-| security-review       | Review changed auth/private-data handling | Adjust visual spacing         | Unclear access expectations: inspect roles and contracts                   | Unverified concern: label it and identify evidence needed | Do not probe production or expose secrets                  |
-| release               | Prepare an explicitly requested release   | Ordinary local bug fix        | Missing target: prepare evidence, resolve target before external action    | Failed gate blocks a ready claim                          | Publication/deployment needs explicit authorization        |
+| Skill                    | Should trigger                              | Should not trigger             | Ambiguous/missing input                                                    | Failure case                                              | Consequential action case                                  |
+| ------------------------ | ------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------- |
+| engineering-task-refiner | Rough engineering request or prompt rewrite | Ordinary explanation or status | Inspect technical context; ask about unresolved product choices            | Preserve suspected causes as hypotheses                   | Refining a prompt does not authorize its execution         |
+| repo-discovery           | Locate source collection and its tests      | Rewrite a known button label   | Which repository/subsystem? Inspect available context first                | Stale map: inspect source and report mismatch             | Finding deployment files does not authorize running them   |
+| architecture-analysis    | Assess moving matching persistence          | Correct a spelling error       | Unclear boundary goal: gather callers and constraints                      | Unsupported claim: require source evidence                | Proposed production topology does not authorize deployment |
+| change-planning          | Plan a multi-module auth change             | Explain a familiar term        | Missing behavior: separate assumptions from required decisions             | Conflicting requirements: resolve before dependent edits  | Migration execution requires separate authorization        |
+| implementation           | Apply a scoped authorized fix               | Review-only request            | Missing acceptance detail: inspect tests, ask only what blocks correctness | Failing regression: fix or report, do not claim done      | Never commit or publish merely to finish an edit           |
+| verification             | Validate the current change                 | Change product behavior        | No test target: inspect scope and use existing gates                       | Nonzero check must remain FAIL                            | Do not run live collection as a smoke test                 |
+| code-review              | Review a diff for regressions               | Implement a requested feature  | Missing revision: inspect current Git state and define scope               | No concrete evidence: do not invent findings              | Review does not authorize merge or force push              |
+| security-review          | Review changed auth/private-data handling   | Adjust visual spacing          | Unclear access expectations: inspect roles and contracts                   | Unverified concern: label it and identify evidence needed | Do not probe production or expose secrets                  |
+| release                  | Prepare an explicitly requested release     | Ordinary local bug fix         | Missing target: prepare evidence, resolve target before external action    | Failed gate blocks a ready claim                          | Publication/deployment needs explicit authorization        |
 
 Use an isolated fixture or checkout for behavioral evaluations when needed. Do not give an evaluator the intended answer. Use only authorized delegation, avoid external side effects and retain concise outcomes rather than full conversations. npm run agent:eval executes deterministic routing fixtures covering all eight selected skills, explanation-only requests, ambiguity, unsafe actions and missing input. It records fixture/router/skill hashes and observed routes, and exits nonzero on mismatches. Vitest exercises failure handling, claims, protocol boundaries and freshness. These checks do not prove model instruction-following: a model-based assessment must name the actual model, observations and evaluated snapshot separately. No model agent is launched automatically by verification.
 
@@ -204,7 +220,7 @@ The full blueprint is adapted to this single Next.js application. Mechanisms bel
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | Foundation 1–5         | Shared policy, thin Claude import, curated context, existing ADRs, strict task contracts                                      | Context checks and workflow regressions                                                          |
 | Navigation 6–10        | Hashed repository map, Git/ripgrep, TypeScript language service, navigation, current Git change snapshots                     | Index, symbol, rename/deletion and stale-reference tests                                         |
-| Skills 11–15           | Eight canonical focused workflows and checked native discovery copies                                                         | Copy drift checks, contract and routing evaluation; model adherence remains separately evaluated |
+| Skills 11–15           | Task refinement and eight execution workflows with checked discovery entrypoints                                              | Copy drift checks, contract and routing evaluation; model adherence remains separately evaluated |
 | Coordination 16–19     | Structured handoffs, atomic shared claims, native isolated Git worktrees, role/context router                                 | Conflict, recovery and role tests; delegation is explicit, never automatic                       |
 | Capabilities 20–23     | Validated role registry, bounded read-only MCP, official docs and configured GitHub repository/issues, portable search plugin | Protocol and denial tests; client configuration present; private reads need external credentials |
 | Reliability 24–29      | One verifier, architecture checks, provenance/hashes, context invalidation, Git/Claude hooks, authorization policy            | Local gate, lifecycle and failure tests; hosted workflow configured but needs a pushed run       |

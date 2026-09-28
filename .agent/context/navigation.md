@@ -35,6 +35,7 @@ Use the source/test table above first, then select only relevant workflows. Skil
 
 | Task area                         | Relevant skills under .agent/skills                                       | Decision/context to inspect                                                                              |
 | --------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Engineering request intake        | engineering-task-refiner                                                  | AGENTS.md; inspect the relevant source/test area before choosing a task pattern                          |
 | Authentication and account access | implementation, security-review, verification                             | docs/architecture/system.md; docs/security/security-audit.md; no separate auth ADR is currently recorded |
 | Database/schema changes           | architecture-analysis, implementation, verification                       | docs/database/jev-data-model.md; scripts/migrate.ts; no dedicated migration skill is currently installed |
 | Matching and JEV integration      | architecture-analysis, implementation, verification                       | docs/architecture/adr-001-jev-only-decision-layer.md; docs/api/jev-decision-contract.md                  |
