@@ -18,7 +18,7 @@
 | `JEV_MODE`               | Optional JEV processing           | `off`, `shadow`, or `assisted`; keep `off` until the live smoke test succeeds.                                |
 | `JEV_PROVIDER`           | JEV processing                    | `vercel` for AI Gateway or `typesafe` for a direct TypeSafe account.                                          |
 | `AI_GATEWAY_API_KEY`     | `JEV_PROVIDER=vercel`             | Server-only Vercel AI Gateway credential.                                                                     |
-| `JEV_MODEL`              | JEV processing                    | Use `typesafe-ai/jev` through Vercel AI Gateway.                                                              |
+| `JEV_MODEL`              | JEV processing                    | Use `jev-latest` with the TypeSafe-compatible Vercel Gateway endpoint.                                         |
 | `JEV_BASE_URL`           | Optional endpoint override        | Normally blank; the application supplies Vercel's TypeSafe-compatible endpoint.                               |
 | `TYPESAFE_API_KEY`       | `JEV_PROVIDER=typesafe`           | Direct TypeSafe credential; leave blank when using Vercel.                                                    |
 | `JEV_USER_KEY_ENCRYPTION_SECRET` | Personal JEV keys in Settings | Server-only secret of at least 32 characters used to encrypt each user key at rest. |
@@ -48,7 +48,7 @@ Configure the local ignored `.env` file:
 AI_GATEWAY_API_KEY=<your Vercel AI Gateway key>
 JEV_MODE=shadow
 JEV_PROVIDER=vercel
-JEV_MODEL=typesafe-ai/jev
+JEV_MODEL=jev-latest
 JEV_REQUEST_TIMEOUT_MS=10000
 JEV_MAX_RETRIES=2
 JEV_MAX_ATTEMPTS=5

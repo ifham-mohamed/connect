@@ -56,6 +56,12 @@ export function jevConfig(
         : "Set TYPESAFE_API_KEY before enabling JEV shadow or assisted mode with TypeSafe directly.",
     );
 
+  const configuredModel = env.JEV_MODEL?.trim();
+  const model =
+    provider === "vercel" && configuredModel === "typesafe-ai/jev"
+      ? "jev-latest"
+      : configuredModel || "jev-latest";
+
   return {
     mode,
     provider,
@@ -64,9 +70,7 @@ export function jevConfig(
       provider === "vercel"
         ? env.JEV_BASE_URL?.trim() || VERCEL_TYPESAFE_BASE_URL
         : env.JEV_BASE_URL?.trim() || undefined,
-    model:
-      env.JEV_MODEL?.trim() ||
-      (provider === "vercel" ? "typesafe-ai/jev" : "jev-latest"),
+    model,
     timeoutMs: boundedInteger(
       env.JEV_REQUEST_TIMEOUT_MS,
       10_000,

@@ -122,7 +122,7 @@ describe("JEV configuration", () => {
       provider: "vercel",
       apiKey: "gateway-key",
       baseURL: "https://ai-gateway.vercel.sh/typesafe",
-      model: "typesafe-ai/jev",
+      model: "jev-latest",
     });
   });
 
@@ -142,7 +142,7 @@ describe("JEV configuration", () => {
         AI_GATEWAY_API_KEY: "workspace-key",
         JEV_MODEL: "typesafe-ai/jev",
       }),
-    ).toMatchObject({ apiKey: "workspace-key", model: "typesafe-ai/jev" });
+    ).toMatchObject({ apiKey: "workspace-key", model: "jev-latest" });
     expect(platformJevConfig({})).toBeNull();
   });
 });

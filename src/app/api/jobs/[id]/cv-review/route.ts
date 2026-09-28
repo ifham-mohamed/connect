@@ -9,7 +9,7 @@ import {
 } from "@/lib/db";
 import { cvProfileSchema } from "@/lib/cv/schema";
 import { getJobDetail } from "@/lib/repository";
-import { createJevClient } from "@/lib/jev/client";
+import { createJevClient, jevConnectionMessage } from "@/lib/jev/client";
 import { jevConfig, platformJevConfig } from "@/lib/jev/config";
 import { getUserJevApiKey } from "@/lib/user-jev-key";
 import { jobCvHash, reviewJobAgainstCv } from "@/lib/intelligence/cv-review";
@@ -176,6 +176,7 @@ export async function POST(request: Request, context: Context) {
   let reservationId: string | null = null;
   let workspaceReserved = false;
   let clientReleased = false;
+  let activeConfig: ReturnType<typeof jevConfig> | null = null;
   try {
     const job = await getJobDetail(user, jobId.data, client);
     if (!job)
@@ -248,6 +249,7 @@ export async function POST(request: Request, context: Context) {
         },
         { status: 409 },
       );
+    activeConfig = config;
     const reservation = await reserveAiJobAnalysis(client, user, jobId.data);
     reservationId = reservation.reservationId;
     if (!reservation.usage.unlimited && !reservationId) {
@@ -377,6 +379,11 @@ export async function POST(request: Request, context: Context) {
       "CV job review failed",
       error instanceof Error ? error.name : "unknown",
     );
+    if (activeConfig && (status === 401 || status === 403))
+      return NextResponse.json(
+        { error: jevConnectionMessage(error, activeConfig) },
+        { status: 502 },
+      );
     return NextResponse.json(
       { error: "JEV could not review this job right now. Try again later." },
       { status: 503 },
